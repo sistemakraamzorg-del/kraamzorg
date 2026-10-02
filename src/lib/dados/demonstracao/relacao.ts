@@ -119,6 +119,19 @@ export function criarRelacaoDemonstracao(
     obterLoja().usuarios.find((u) => u.id === usuarioId)?.nome ??
     "Pessoa da equipe";
 
+  const PAPEIS_TAREFA: Papel[] = [
+    "comercial",
+    "coordenacao",
+    "diretoria",
+    "enfermeira",
+    "financeiro",
+    "marketing",
+  ];
+  const gestao = () => tem("coordenacao", "diretoria");
+  function recusaTarefa(codigo: string): never {
+    throw new ErroRepositorio("recusado", `demonstração: tarefa:${codigo}`);
+  }
+
   // --- P47 --------------------------------------------------------------------------
 
   function veValores(): boolean {
@@ -1015,11 +1028,75 @@ export function criarRelacaoDemonstracao(
           })),
       };
     },
+
+    // 0046: as mesmas regras de api.tarefa_criar, tarefa_mudar_estado e tarefa_atribuir.
+    async criar(p) {
+      const eu = autorizar([...PAPEIS_TAREFA]);
+      const titulo = p.titulo.trim();
+      if (titulo.length < 3 || titulo.length > 120)
+        recusaTarefa("titulo_invalido");
+      let responsavelId = p.responsavelId || null;
+      const papel = (p.papelResponsavel || null) as Papel | null;
+      if (!gestao()) {
+        if ((responsavelId && responsavelId !== eu) || (papel && !tem(papel)))
+          recusaTarefa("so_para_voce");
+        responsavelId = eu;
+      }
+      const principal = obterLoja();
+      if (
+        responsavelId &&
+        !principal.usuarios.some((u) => u.id === responsavelId && u.ativo)
+      )
+        recusaTarefa("responsavel_invalido");
+      if (p.familiaId && !principal.familias.some((f) => f.id === p.familiaId))
+        recusaTarefa("familia_invalida");
+      const id = novoId(loja(), 15);
+      principal.tarefas.push({
+        id,
+        tipo: "outro",
+        titulo,
+        prioridade: p.prioridade ?? "normal",
+        status: "aberta",
+        venceEm: p.venceEm || null,
+        familiaId: p.familiaId || null,
+        responsavelId,
+        papelResponsavel: papel,
+        payload: { acao: "tarefa_manual" },
+        criadoEm: new Date().toISOString(),
+      });
+      return id;
+    },
+    async mudarEstado(tarefaId, status) {
+      const eu = autorizar([...PAPEIS_TAREFA]);
+      const t = obterLoja().tarefas.find((x) => x.id === tarefaId);
+      if (!t) recusaTarefa("nao_encontrada");
+      if (!(
+        gestao() ||
+        t.responsavelId === eu ||
+        (t.responsavelId === null &&
+          t.papelResponsavel !== null &&
+          tem(t.papelResponsavel))
+      ))
+        recusaTarefa("sem_permissao");
+      if (t.status !== "aberta" && t.status !== "em_andamento")
+        recusaTarefa("tarefa_encerrada");
+      t.status = status;
+    },
+    async atribuir(tarefaId, responsavelId) {
+      autorizar(["coordenacao", "diretoria"], true);
+      const principal = obterLoja();
+      if (!principal.usuarios.some((u) => u.id === responsavelId && u.ativo))
+        recusaTarefa("responsavel_invalido");
+      const t = principal.tarefas.find((x) => x.id === tarefaId);
+      if (!t) recusaTarefa("nao_encontrada");
+      if (t.status !== "aberta" && t.status !== "em_andamento")
+        recusaTarefa("tarefa_encerrada");
+      t.responsavelId = responsavelId;
+    },
   };
 
   // --- P51 · manuais e trilhas ------------------------------------------------------------
 
-  const gestao = () => tem("coordenacao", "diretoria");
   const visivel = (m: ManualDemo) =>
     gestao() ||
     m.papeisAlvo.length === 0 ||

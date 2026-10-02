@@ -51,7 +51,8 @@ export default async function PaginaAcessoFamilia() {
           Portal da família
         </h1>
         <p className="text-corpo text-texto-2 max-w-[60ch]">
-          Quem da família já entra no portal e quem ainda falta liberar.
+          Veja quem da família já entra no portal e quem ainda falta liberar.
+          Cada pessoa tem o próprio acesso.
         </p>
       </div>
 
@@ -88,6 +89,24 @@ export default async function PaginaAcessoFamilia() {
         </FaixaAlerta>
       ) : (
         <>
+          <section
+            aria-labelledby="ajuda"
+            className="rounded-3 bg-areia-clara flex max-w-[72ch] flex-col gap-2 p-5"
+          >
+            <h2
+              id="ajuda"
+              className="font-titulo text-2 text-texto font-medium"
+            >
+              O que a família vê no portal
+            </h2>
+            <p className="text-corpo text-texto">
+              Os próximos passos e as datas do acompanhamento, as visitas em
+              casa, o nome e a foto da enfermeira (só com autorização), o guia
+              de início, a pesquisa de opinião e o contato da equipe. Depois de
+              liberar, a pessoa recebe um convite por e-mail e entra com um
+              link, sem senha. Suspender fecha o acesso na hora.
+            </p>
+          </section>
           <section aria-labelledby="acessos" className="flex flex-col gap-4">
             <h2
               id="acessos"

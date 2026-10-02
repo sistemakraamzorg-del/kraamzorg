@@ -31,7 +31,8 @@ export default async function PaginaNotas({
   let tela: TelaListaNotas | null = null;
   try {
     tela = await obterTelaListaNotas(usuario, estado);
-  } catch {
+  } catch (erro) {
+    console.error("[tela-erro] /notas", erro instanceof Error ? erro.message : erro);
     tela = null;
   }
 

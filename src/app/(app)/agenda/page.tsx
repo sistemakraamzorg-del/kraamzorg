@@ -71,7 +71,8 @@ export default async function PaginaAgenda({
   let tela: AgendaTela | null = null;
   try {
     tela = await carregarAgenda({ desde, ate, profissionalId });
-  } catch {
+  } catch (erro) {
+    console.error("[tela-erro] /agenda", erro instanceof Error ? erro.message : erro);
     tela = null;
   }
 

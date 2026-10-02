@@ -23,18 +23,28 @@ export function CabecalhoTela({
   subtitulo,
   lateral,
   abertura,
+  sobretitulo,
 }: {
   titulo: ReactNode;
   subtitulo?: ReactNode;
   lateral?: ReactNode;
   abertura?: boolean;
+  /** Linha pequena em caixa alta acima do título (ex: "Operação"). */
+  sobretitulo?: ReactNode;
 }) {
   return (
     <>
-      <header className="bg-fundo sticky top-0 z-[var(--z-barra)] -mx-4 flex min-h-16 flex-wrap items-center gap-x-3 gap-y-2 px-4 pt-3 pb-2 lg:-mx-8 lg:px-8 lg:pt-5">
-        <h1 className="font-titulo text-display lg:text-display-lg text-texto font-normal">
-          {titulo}
-        </h1>
+      <header className="bg-fundo border-areia/60 sticky top-0 lg:border-b z-[var(--z-barra)] -mx-4 flex min-h-16 flex-wrap items-center gap-x-3 gap-y-2 px-4 pt-3 pb-2 lg:-mx-8 lg:px-8 lg:pt-5">
+        <div className="flex flex-col">
+          {sobretitulo ? (
+            <span className="text-mini text-texto-2 font-medium tracking-[0.14em] uppercase">
+              {sobretitulo}
+            </span>
+          ) : null}
+          <h1 className="font-titulo text-display lg:text-display-lg text-texto font-light">
+            {titulo}
+          </h1>
+        </div>
         {lateral ? (
           <div className="ml-auto flex flex-wrap items-center gap-2">
             {lateral}

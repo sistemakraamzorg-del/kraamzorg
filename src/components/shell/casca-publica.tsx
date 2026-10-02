@@ -15,7 +15,7 @@ export function CascaPublica({ children }: { children: ReactNode }) {
     >
       <div className="max-w-leitura flex w-full flex-col gap-8">
         <Image
-          src="/brand/logo-provisorio.png"
+          src="/brand/logo-vertical-marinho.png"
           alt="Kraamzorg Brasil"
           width={104}
           height={89}

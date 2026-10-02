@@ -44,7 +44,7 @@ export function NavegacaoLateral({
   return (
     <BarraLateral
       nomeMarca="Kraamzorg OS"
-      simboloSrc="/brand/simbolo-provisorio.png"
+      logoSrc="/brand/logo-negativo.png"
       rotulo="Navegação principal"
       visivelEm="computador"
       grupos={grupos.map((grupo) => ({

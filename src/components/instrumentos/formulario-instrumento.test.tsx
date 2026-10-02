@@ -260,7 +260,11 @@ describe("FormularioInstrumento com o DOC 2", () => {
     );
     await avancar(user, TITULOS_9_2.length - 1);
     const concluir = screen.getByRole("button", { name: "Concluir" });
-    expect(concluir).toHaveAttribute("aria-disabled", "true");
+    // Antes de tentar concluir, a tela fica limpa: sem aviso.
+    expect(screen.queryByRole("alert")).toBeNull();
+    expect(screen.queryByText("Falta responder para concluir:")).toBeNull();
+    await user.click(concluir);
+    expect(screen.getByRole("alert")).toBeInTheDocument();
     expect(
       screen.getByText("Falta responder para concluir:"),
     ).toBeInTheDocument();

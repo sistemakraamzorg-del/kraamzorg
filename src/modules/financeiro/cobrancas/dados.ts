@@ -17,7 +17,12 @@ import type {
 export type TelaListaCobrancas =
   | { situacao: "mfa" }
   | { situacao: "sem_permissao" }
-  | { situacao: "ok"; lista: ListaCobrancas };
+  | {
+      situacao: "ok";
+      lista: ListaCobrancas;
+      /** Todas as cobranças, sem o filtro: os gráficos contam o conjunto inteiro. */
+      todas: ListaCobrancas["cobrancas"];
+    };
 
 export type TelaDetalheCobranca =
   | { situacao: "mfa" }
@@ -42,7 +47,14 @@ export async function obterTelaListaCobrancas(
   if (usuario.aal !== "aal2") return { situacao: "mfa" };
   const { cobrancas } = await obterRepositorios();
   try {
-    return { situacao: "ok", lista: await cobrancas.listar(situacao) };
+    const todas = await cobrancas.listar();
+    const lista = situacao
+      ? {
+          ...todas,
+          cobrancas: todas.cobrancas.filter((c) => c.situacao === situacao),
+        }
+      : todas;
+    return { situacao: "ok", lista, todas: todas.cobrancas };
   } catch (erro) {
     if (erro instanceof ErroRepositorio && erro.codigo === "sem_permissao") {
       return { situacao: "sem_permissao" };

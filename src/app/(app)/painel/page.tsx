@@ -31,7 +31,8 @@ export default async function PaginaPainel({
   let tela: Awaited<ReturnType<typeof obterTelaPainel>> | null = null;
   try {
     tela = await obterTelaPainel(usuario, mes);
-  } catch {
+  } catch (erro) {
+    console.error("[tela-erro] /painel", erro instanceof Error ? erro.message : erro);
     tela = null;
   }
 

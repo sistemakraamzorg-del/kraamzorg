@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
  * Barra lateral (DESIGN.md, 2.9 e seção 6). Computador, marinho, solta 12
  * px das bordas com raio 28, como um bloco que segura a navegação. Símbolo
  * e nome do sistema no topo; grupos com título em frase; itens de 44 px em
- * pílula; o ativo vira uma pílula creme com o ícone e o texto em marinho.
+ * pílula; o ativo ganha fundo dourado translúcido com halo. Fundo em degradê sutil, grupos em caixa alta, selos dourado (neutro) e alerta.
  * Mostra só o que o papel pode abrir.
  *
  * Este componente é estático (sem papel): os grupos e itens vêm sempre por
@@ -39,8 +39,8 @@ export interface GrupoBarraLateral {
 export interface BarraLateralProps {
   /** Nome do sistema, ao lado do símbolo (ex: "Kraamzorg OS"). */
   nomeMarca: string;
-  /** Caminho do símbolo em `/public/brand` (provisório até o SVG oficial). */
-  simboloSrc: string;
+  /** Caminho da logo para fundo escuro (versão negativa do guia da marca), em `/public/brand`. */
+  logoSrc: string;
   grupos: GrupoBarraLateral[];
   /** Rótulo acessível da navegação (ex: "Navegação principal"). O nome da marca não é o rótulo da navegação. */
   rotulo: string;
@@ -55,7 +55,7 @@ export interface BarraLateralProps {
 
 export function BarraLateral({
   nomeMarca,
-  simboloSrc,
+  logoSrc,
   grupos,
   rotulo,
   rodape,
@@ -67,23 +67,23 @@ export function BarraLateral({
     <nav
       aria-label={rotulo}
       className={cn(
-        "bg-marinho text-texto-inverso rounded-3 shadow-2 flex flex-col gap-6 overflow-y-auto px-3 py-6",
+        "bg-marinho text-texto-inverso rounded-3 shadow-2 flex flex-col gap-5 overflow-y-auto bg-[image:var(--brilho-marinho)] px-3 py-6",
         posicao === "fixa" &&
           "sticky top-3 m-3 h-[calc(100dvh-24px)] w-[calc(var(--container-lateral)-24px)]",
         visivelEm === "computador" && "hidden lg:flex",
         className,
       )}
     >
-      <div className="flex items-center gap-3 px-3">
+      <div className="border-texto-inverso/10 flex flex-col items-start gap-1 border-b px-3 pb-5">
         <Image
-          src={simboloSrc}
+          src={logoSrc}
           alt=""
-          width={36}
-          height={31}
+          width={120}
+          height={103}
           priority
           style={{ height: "auto" }}
         />
-        <span className="font-titulo text-marca font-medium">{nomeMarca}</span>
+        <span className="sr-only">{nomeMarca}</span>
       </div>
 
       {grupos.map((grupo) => {
@@ -92,7 +92,7 @@ export function BarraLateral({
           <div key={grupo.titulo} className="flex flex-col gap-0.5">
             <span
               id={idGrupo}
-              className="text-mini text-texto-inverso-2 px-4 pb-1"
+              className="text-mini text-texto-inverso-2 px-4 pb-1 font-medium tracking-[0.12em] uppercase"
             >
               {grupo.titulo}
             </span>
@@ -103,11 +103,11 @@ export function BarraLateral({
                     href={item.href}
                     aria-current={item.ativo ? "page" : undefined}
                     className={cn(
-                      "min-h-toque rounded-pilula text-apoio ease-estado flex items-center gap-3 px-4 font-medium no-underline transition-colors duration-140",
+                      "min-h-toque rounded-pilula text-apoio ease-estado flex items-center gap-3 px-4 font-medium no-underline transition-[background-color,color,box-shadow] duration-140",
                       "[&>svg]:size-5",
                       item.ativo
-                        ? "bg-creme text-marinho [&>svg]:text-marinho font-semibold"
-                        : "text-texto-inverso hover:bg-lateral-hover [&>svg]:text-texto-inverso-2",
+                        ? "bg-dourado/20 text-creme shadow-halo [&>svg]:text-dourado font-semibold"
+                        : "text-texto-inverso hover:bg-texto-inverso/8 [&>svg]:text-texto-inverso-2 hover:[&>svg]:text-dourado",
                     )}
                   >
                     {item.icone}
@@ -118,10 +118,8 @@ export function BarraLateral({
                         className={cn(
                           "text-mini ml-auto font-mono",
                           item.contadorAlerta
-                            ? "rounded-pilula bg-areia text-marinho px-2"
-                            : item.ativo
-                              ? "text-marinho"
-                              : "text-texto-inverso-2",
+                            ? "rounded-pilula bg-alerta text-branco px-2"
+                            : "rounded-pilula bg-dourado text-marinho px-2 font-semibold",
                         )}
                       >
                         {item.contador}
@@ -139,7 +137,7 @@ export function BarraLateral({
       })}
 
       {rodape ? (
-        <div className="border-marinho-claro text-apoio mt-auto border-t px-1 pt-4">
+        <div className="border-texto-inverso/10 text-apoio mt-auto border-t px-1 pt-4">
           {rodape}
         </div>
       ) : null}

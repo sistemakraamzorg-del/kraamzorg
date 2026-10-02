@@ -11,11 +11,14 @@ import {
 import { BarrasHorizontais } from "@/components/graficos/barras-horizontais";
 import { Colunas } from "@/components/graficos/colunas";
 import { MedidorMeta } from "@/components/graficos/medidor-meta";
+import { BarrasHorizontais as BarrasValor, Rosca } from "@/components/graficos";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { TileIcone } from "@/components/ui/tile-icone";
 import type { Tom } from "@/components/ui/tons";
 import { formatarMoeda } from "@/lib/formatacao";
-import { formatarPct } from "@/lib/gestao/formato";
+import { formatarMoedaCurta, formatarPct, nomeMes } from "@/lib/gestao/formato";
+import { somarMeses } from "@/lib/gestao/financeiro";
+import { ColunasMoeda } from "@/modules/financeiro/gestao/componentes/graficos-dinheiro";
 import { cn } from "@/lib/utils";
 import {
   INDICADORES,
@@ -488,17 +491,88 @@ export function PainelTela({ dados }: { dados: DadosPainel }) {
         secao="experiencia"
         frase={fraseDeExperiencia(p)}
       >
+        <div className="grid gap-6 lg:grid-cols-2">
+          <div className="border-linha rounded-3 flex flex-col gap-4 border p-5">
+            <h3 className="text-3 text-texto font-semibold">NPS do mês</h3>
+            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <span className="font-titulo text-numero text-texto font-medium tabular-nums">
+                {e.nps === null ? semDado : e.nps}
+              </span>
+              <span className="text-apoio text-texto-2">
+                meta de {p.metas.nps}
+                {e.nps !== null && a?.experiencia.nps != null
+                  ? `. ${contraAnterior(e.nps, a.experiencia.nps, mes)}`
+                  : ""}
+              </span>
+            </div>
+            {e.nps === null ? (
+              <p className="text-apoio text-texto-2 max-w-[60ch]">
+                Com menos de {e.amostraMinima} respostas o NPS não aparece, para
+                não enganar. {e.respostas} de {e.amostraMinima} até agora. A
+                nota e o gráfico surgem quando a pesquisa chegar lá.
+              </p>
+            ) : (
+              <BarrasValor
+                rotulo="NPS contra a meta e o mês anterior"
+                larguraRotulo="8.5rem"
+                itens={[
+                  {
+                    rotulo: "Este mês",
+                    valor: Math.max(e.nps, 0),
+                    tom: "dourado",
+                    nota: String(e.nps),
+                    dica: `NPS de ${e.nps} em ${nomeMes(mes)}`,
+                  },
+                  ...(a?.experiencia.nps != null
+                    ? [
+                        {
+                          rotulo: nomeMes(somarMeses(mes, -1)),
+                          valor: Math.max(a.experiencia.nps, 0),
+                          tom: "areia" as const,
+                          nota: String(a.experiencia.nps),
+                          dica: `NPS de ${a.experiencia.nps} no mês anterior`,
+                        },
+                      ]
+                    : []),
+                  {
+                    rotulo: "Meta",
+                    valor: p.metas.nps,
+                    tom: "marinho",
+                    nota: String(p.metas.nps),
+                    dica: `Meta de NPS: ${p.metas.nps}`,
+                  },
+                ]}
+              />
+            )}
+          </div>
+          <div className="border-linha rounded-3 flex flex-col gap-4 border p-5">
+            <h3 className="text-3 text-texto font-semibold">Quem respondeu</h3>
+            {e.nps === null ? (
+              <p className="text-apoio text-texto-2 max-w-[60ch]">
+                A divisão entre promotores, neutros e detratores aparece junto
+                com o NPS, a partir de {e.amostraMinima} respostas no mês.
+              </p>
+            ) : (
+              <Rosca
+                rotulo="Respostas do mês por tipo"
+                centro={{ valor: String(e.respostas), legenda: "respostas" }}
+                fatias={[
+                  { rotulo: "Promotores", valor: e.promotores, tom: "sucesso" },
+                  {
+                    rotulo: "Neutros",
+                    valor: Math.max(
+                      e.respostas - e.promotores - e.detratores,
+                      0,
+                    ),
+                    tom: "areia",
+                  },
+                  { rotulo: "Detratores", valor: e.detratores, tom: "aviso" },
+                ]}
+              />
+            )}
+          </div>
+        </div>
         <GradeNumeros secao="experiencia">
-          <Numero
-            rotulo="NPS"
-            valor={e.nps === null ? semDado : String(e.nps)}
-            comparacao={
-              e.nps !== null
-                ? contraAnterior(e.nps, a?.experiencia.nps, mes)
-                : undefined
-            }
-            destaque
-          />
           <Numero
             rotulo="Respostas da pesquisa"
             valor={String(e.respostas)}
@@ -529,6 +603,110 @@ export function PainelTela({ dados }: { dados: DadosPainel }) {
         secao="financeiro"
         frase={fraseDeFinanceiro(p)}
       >
+        <div className="grid gap-6 lg:grid-cols-2">
+          <div className="border-linha rounded-3 flex flex-col gap-4 border p-5">
+            <h3 className="text-3 text-texto font-semibold">
+              Este mês contra o anterior e a meta
+            </h3>
+            <ColunasMoeda
+              rotulo="Faturamento, recebido e custos, em reais"
+              tom="areia"
+              tom2="dourado"
+              legenda={
+                a ? [nomeMes(somarMeses(mes, -1)), nomeMes(mes)] : undefined
+              }
+              referencia={{
+                centavos: p.metas.faturamentoMesCentavos,
+                rotulo: "Meta de faturamento",
+              }}
+              itens={[
+                {
+                  rotulo: "Faturamento",
+                  centavos: a
+                    ? a.financeiro.faturamentoCentavos
+                    : f.faturamentoCentavos,
+                  centavos2: a ? f.faturamentoCentavos : undefined,
+                  dica: [
+                    "Faturamento (contratos assinados)",
+                    `Este mês: ${formatarMoeda(f.faturamentoCentavos)}`,
+                    `Meta: ${formatarMoeda(p.metas.faturamentoMesCentavos)}`,
+                  ],
+                },
+                {
+                  rotulo: "Recebido",
+                  centavos: a
+                    ? a.financeiro.recebimentosCentavos
+                    : f.recebimentosCentavos,
+                  centavos2: a ? f.recebimentosCentavos : undefined,
+                  dica: [
+                    "Recebido (cobranças pagas)",
+                    `Este mês: ${formatarMoeda(f.recebimentosCentavos)}`,
+                  ],
+                },
+                {
+                  rotulo: "Custos",
+                  centavos: a ? a.financeiro.custosCentavos : f.custosCentavos,
+                  centavos2: a ? f.custosCentavos : undefined,
+                  dica: [
+                    "Custos (despesas pagas)",
+                    `Este mês: ${formatarMoeda(f.custosCentavos)}`,
+                  ],
+                },
+              ]}
+            />
+            {a ? null : (
+              <p className="text-mini text-texto-2">
+                Sem mês anterior para comparar. As colunas mostram só este mês.
+              </p>
+            )}
+          </div>
+          <div className="border-linha rounded-3 flex flex-col gap-4 border p-5">
+            <h3 className="text-3 text-texto font-semibold">
+              Receita, recebido, a receber e despesas
+            </h3>
+            <BarrasValor
+              rotulo="Dinheiro do mês em reais"
+              larguraRotulo="8.5rem"
+              itens={[
+                {
+                  rotulo: "Faturamento",
+                  valor: f.faturamentoCentavos,
+                  tom: "marinho",
+                  nota: formatarMoedaCurta(f.faturamentoCentavos),
+                  dica: `Faturamento: ${formatarMoeda(f.faturamentoCentavos)}`,
+                },
+                {
+                  rotulo: "Recebido",
+                  valor: f.recebimentosCentavos,
+                  tom: "sucesso",
+                  nota: formatarMoedaCurta(f.recebimentosCentavos),
+                  dica: `Recebido: ${formatarMoeda(f.recebimentosCentavos)}`,
+                },
+                {
+                  rotulo: "A receber",
+                  valor: f.previsaoAVencerCentavos,
+                  tom: "dourado",
+                  nota: formatarMoedaCurta(f.previsaoAVencerCentavos),
+                  dica: `A receber nos próximos meses: ${formatarMoeda(f.previsaoAVencerCentavos)}`,
+                },
+                {
+                  rotulo: "Vencido em aberto",
+                  valor: f.vencidoCentavos,
+                  tom: "aviso",
+                  nota: formatarMoedaCurta(f.vencidoCentavos),
+                  dica: `Vencido e em aberto: ${formatarMoeda(f.vencidoCentavos)}`,
+                },
+                {
+                  rotulo: "Despesas",
+                  valor: f.custosCentavos,
+                  tom: "areia",
+                  nota: formatarMoedaCurta(f.custosCentavos),
+                  dica: `Despesas: ${formatarMoeda(f.custosCentavos)}`,
+                },
+              ]}
+            />
+          </div>
+        </div>
         <GradeNumeros secao="financeiro">
           <Numero
             rotulo="Recebimentos"

@@ -782,6 +782,28 @@ export function criarRelacaoSupabase({ cliente }: ContextoSupabase): RelacaoRepo
       async visao() {
         return tarefasEquipeDoBanco(await rpc("tarefas_por_equipe"));
       },
+      async criar(p) {
+        const r = objeto(
+          await rpc("tarefa_criar", {
+            titulo: p.titulo,
+            responsavel_id: uuidOuNulo(p.responsavelId),
+            papel_responsavel: uuidOuNulo(p.papelResponsavel),
+            familia_id: uuidOuNulo(p.familiaId),
+            vence_em: uuidOuNulo(p.venceEm),
+            prioridade: p.prioridade ?? "normal",
+          }),
+        );
+        return String(r.tarefa_id);
+      },
+      async mudarEstado(tarefaId, status) {
+        await rpc("tarefa_mudar_estado", { tarefa_id: tarefaId, status });
+      },
+      async atribuir(tarefaId, responsavelId) {
+        await rpc("tarefa_atribuir", {
+          tarefa_id: tarefaId,
+          responsavel_id: responsavelId,
+        });
+      },
     },
     manuais: {
       async listar() {

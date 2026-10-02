@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ChartColumn, Coins, Download, Link2, LockKeyhole } from "lucide-react";
+import { Coins, Download, Link2, LockKeyhole } from "lucide-react";
 import { CabecalhoTela } from "@/components/shell/cabecalho-tela";
 import { Botao } from "@/components/ui/botao";
 import { TileIcone } from "@/components/ui/tile-icone";
@@ -11,7 +11,11 @@ import { obterTelaMarketing } from "@/modules/marketing/dados";
 import { periodoDaBusca } from "@/modules/marketing/periodo";
 import { FormularioCusto } from "@/modules/marketing/componentes/form-custo";
 import { GeradorLinks } from "@/modules/marketing/componentes/gerador-links";
-import { RelatorioMarketingTela } from "@/modules/marketing/componentes/relatorio-marketing";
+import {
+  RelatorioMarketingTela,
+  TabelasCanaisMarketing,
+} from "@/modules/marketing/componentes/relatorio-marketing";
+import { AbasPilula } from "@/components/ui/abas-pilula";
 
 export const metadata: Metadata = { title: "Marketing · Kraamzorg OS" };
 
@@ -24,15 +28,25 @@ export const metadata: Metadata = { title: "Marketing · Kraamzorg OS" };
 export default async function PaginaMarketing({
   searchParams,
 }: {
-  searchParams: Promise<{ desde?: string; ate?: string }>;
+  searchParams: Promise<{ desde?: string; ate?: string; aba?: string }>;
 }) {
   const usuario = await exigirSessao("/marketing");
-  const periodo = periodoDaBusca(await searchParams);
+  const busca = await searchParams;
+  const periodo = periodoDaBusca(busca);
+  const aba = busca.aba === "canais" ? "canais" : "geral";
+  const filtroUrl =
+    periodo.desde || periodo.ate
+      ? `desde=${periodo.desde ?? ""}&ate=${periodo.ate ?? ""}`
+      : "";
 
   let tela: Awaited<ReturnType<typeof obterTelaMarketing>> | null = null;
   try {
     tela = await obterTelaMarketing(usuario, periodo);
-  } catch {
+  } catch (erro) {
+    console.error(
+      "[tela-erro] /marketing",
+      erro instanceof Error ? erro.message : erro,
+    );
     tela = null;
   }
 
@@ -42,7 +56,7 @@ export default async function PaginaMarketing({
         titulo="Marketing"
         subtitulo="De onde as famílias chegam, quanto cada canal custou e o que virou contrato."
       />
-      <div className="flex flex-col gap-10 pt-6">
+      <div className="flex flex-col gap-6 pt-6">
         {!tela ? (
           <FaixaAlerta variante="erro" titulo="O marketing não abriu agora">
             Confira a conexão e recarregue a página. Nada foi alterado.
@@ -73,104 +87,129 @@ export default async function PaginaMarketing({
           </div>
         ) : (
           <>
-            {tela.relatorio ? (
-              <section
-                aria-labelledby="relatorio"
-                className="flex flex-col gap-4"
-              >
-                <h2
-                  id="relatorio"
-                  className="font-titulo text-2 text-texto flex items-center gap-3 font-medium"
-                >
-                  <TileIcone tom="argila" forma="quadrado">
-                    <ChartColumn />
-                  </TileIcone>
-                  Leads, receita e custo
-                </h2>
+            <AbasPilula
+              rotulo="Partes do marketing"
+              ativa={aba}
+              larga="celular"
+              abas={[
+                {
+                  valor: "geral",
+                  rotulo: "Visão geral",
+                  href: filtroUrl ? `/marketing?${filtroUrl}` : "/marketing",
+                },
+                {
+                  valor: "canais",
+                  rotulo: "Canais e custos",
+                  href: `/marketing?aba=canais${filtroUrl ? `&${filtroUrl}` : ""}`,
+                },
+              ]}
+            />
+            {aba === "geral" ? (
+              tela.relatorio ? (
                 <RelatorioMarketingTela
                   relatorio={tela.relatorio}
                   periodo={tela.periodo}
                 />
-              </section>
-            ) : null}
+              ) : (
+                <FaixaAlerta
+                  variante="info"
+                  titulo="O relatório não está com o seu papel"
+                >
+                  O relatório é do marketing, da diretoria e do financeiro. Os
+                  links por canal aparecem na outra aba.
+                </FaixaAlerta>
+              )
+            ) : (
+              <>
+                {tela.relatorio ? (
+                  <TabelasCanaisMarketing relatorio={tela.relatorio} />
+                ) : null}
 
-            {tela.canais ? (
-              <section aria-labelledby="links" className="flex flex-col gap-4">
-                <h2
-                  id="links"
-                  className="font-titulo text-2 text-texto flex items-center gap-3 font-medium"
-                >
-                  <TileIcone tom="areia" forma="quadrado">
-                    <Link2 />
-                  </TileIcone>
-                  Links por canal
-                </h2>
-                <p className="text-corpo text-texto-2 max-w-[64ch]">
-                  Cada canal tem um código que vai no texto da primeira
-                  mensagem. Quando a família escreve, a origem já entra certa no
-                  cadastro.
-                </p>
-                <GeradorLinks
-                  canais={tela.canais}
-                  enderecoBase={tela.enderecoBase}
-                />
-              </section>
-            ) : null}
-
-            {tela.podeLancarCusto && tela.relatorio ? (
-              <section aria-labelledby="custo" className="flex flex-col gap-4">
-                <h2
-                  id="custo"
-                  className="font-titulo text-2 text-texto flex items-center gap-3 font-medium"
-                >
-                  <TileIcone tom="areia" forma="quadrado">
-                    <Coins />
-                  </TileIcone>
-                  Custo por canal
-                </h2>
-                <FormularioCusto
-                  canais={tela.relatorio.porCanal.map((c) => ({
-                    id: c.canalId,
-                    rotulo: `${c.nome} (${c.codigo})`,
-                  }))}
-                  mesAtual={hojeBrasilia().slice(0, 7)}
-                />
-              </section>
-            ) : null}
-
-            {tela.podeExportar ? (
-              <section
-                aria-labelledby="exportar"
-                className="rounded-3 bg-areia-clara flex flex-col gap-3 p-5 lg:p-6"
-              >
-                <h2
-                  id="exportar"
-                  className="font-titulo text-2 text-texto flex items-center gap-3 font-medium"
-                >
-                  <TileIcone tom="areia" forma="quadrado">
-                    <Download />
-                  </TileIcone>
-                  Exportar famílias
-                </h2>
-                <p className="text-corpo text-texto-2 max-w-[64ch]">
-                  O arquivo traz só famílias que podem receber contato de
-                  marketing: sem estado sensível e sem quem pediu para não ser
-                  contatada. Nunca leva endereço nem histórico de saúde.
-                </p>
-                <Botao
-                  asChild
-                  variante="secundario"
-                  tamanho="compacto"
-                  className="self-start"
-                >
-                  <a
-                    href={`/marketing/exportar${tela.periodo.desde || tela.periodo.ate ? `?desde=${tela.periodo.desde ?? ""}&ate=${tela.periodo.ate ?? ""}` : ""}`}
+                {tela.canais ? (
+                  <section
+                    aria-labelledby="links"
+                    className="flex flex-col gap-4"
                   >
-                    Baixar arquivo CSV
-                  </a>
-                </Botao>
-              </section>
-            ) : null}
+                    <h2
+                      id="links"
+                      className="font-titulo text-2 text-texto flex items-center gap-3 font-medium"
+                    >
+                      <TileIcone tom="areia" forma="quadrado">
+                        <Link2 />
+                      </TileIcone>
+                      Links por canal
+                    </h2>
+                    <p className="text-corpo text-texto-2 max-w-[64ch]">
+                      Cada canal tem um código que vai no texto da primeira
+                      mensagem. Quando a família escreve, a origem já entra
+                      certa no cadastro.
+                    </p>
+                    <GeradorLinks
+                      canais={tela.canais}
+                      enderecoBase={tela.enderecoBase}
+                    />
+                  </section>
+                ) : null}
+
+                {tela.podeLancarCusto && tela.relatorio ? (
+                  <section
+                    aria-labelledby="custo"
+                    className="flex flex-col gap-4"
+                  >
+                    <h2
+                      id="custo"
+                      className="font-titulo text-2 text-texto flex items-center gap-3 font-medium"
+                    >
+                      <TileIcone tom="areia" forma="quadrado">
+                        <Coins />
+                      </TileIcone>
+                      Custo por canal
+                    </h2>
+                    <FormularioCusto
+                      canais={tela.relatorio.porCanal.map((c) => ({
+                        id: c.canalId,
+                        rotulo: `${c.nome} (${c.codigo})`,
+                      }))}
+                      mesAtual={hojeBrasilia().slice(0, 7)}
+                    />
+                  </section>
+                ) : null}
+
+                {tela.podeExportar ? (
+                  <section
+                    aria-labelledby="exportar"
+                    className="rounded-3 bg-areia-clara flex flex-col gap-3 p-5 lg:p-6"
+                  >
+                    <h2
+                      id="exportar"
+                      className="font-titulo text-2 text-texto flex items-center gap-3 font-medium"
+                    >
+                      <TileIcone tom="areia" forma="quadrado">
+                        <Download />
+                      </TileIcone>
+                      Exportar famílias
+                    </h2>
+                    <p className="text-corpo text-texto-2 max-w-[64ch]">
+                      O arquivo traz só famílias que podem receber contato de
+                      marketing: sem estado sensível e sem quem pediu para não
+                      ser contatada. Nunca leva endereço nem histórico de saúde.
+                    </p>
+                    <Botao
+                      asChild
+                      variante="secundario"
+                      tamanho="compacto"
+                      className="self-start"
+                    >
+                      <a
+                        href={`/marketing/exportar${tela.periodo.desde || tela.periodo.ate ? `?desde=${tela.periodo.desde ?? ""}&ate=${tela.periodo.ate ?? ""}` : ""}`}
+                      >
+                        Baixar arquivo CSV
+                      </a>
+                    </Botao>
+                  </section>
+                ) : null}
+              </>
+            )}
           </>
         )}
       </div>

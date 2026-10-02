@@ -1,5 +1,6 @@
 import { CabecalhoTela } from "@/components/shell/cabecalho-tela";
 import { AbasPilula } from "@/components/ui/abas-pilula";
+import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { exigirSessao } from "@/lib/auth/sessao";
 import { obterRepositorios } from "@/lib/dados/fabrica";
 import {
@@ -32,12 +33,33 @@ export async function PaginaDeAlertas({
       : "enfermeira";
 
   const { assistencial } = await obterRepositorios();
-  const [alertas, telefone] = await Promise.all([
-    assistencial.listarAlertas(situacao),
-    assistencial.telefoneSupervisao(),
-  ]);
-
   const t = textosAlertas[papel];
+  let alertas: Awaited<ReturnType<typeof assistencial.listarAlertas>>;
+  let telefone: Awaited<ReturnType<typeof assistencial.telefoneSupervisao>>;
+  try {
+    // O telefone da supervisão só liga o botão de ligar: a falha dele não esconde a lista.
+    [alertas, telefone] = await Promise.all([
+      assistencial.listarAlertas(situacao),
+      assistencial.telefoneSupervisao().catch(() => ""),
+    ]);
+  } catch (erro) {
+    console.error(
+      "[tela-erro] alertas clínicos",
+      erro instanceof Error ? erro.message : erro,
+    );
+    return (
+      <div className="flex flex-col gap-6 pb-8">
+        <CabecalhoTela titulo={t.titulo} subtitulo={t.subtitulo} />
+        <FaixaAlerta
+          variante="erro"
+          titulo="Os alertas clínicos não abriram agora"
+        >
+          Nada foi alterado. Confira a conexão e recarregue a página.
+        </FaixaAlerta>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-6 pb-8">
       <CabecalhoTela titulo={t.titulo} subtitulo={t.subtitulo} />

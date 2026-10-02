@@ -10,6 +10,7 @@ import { formatarData, formatarMoeda } from "@/lib/formatacao";
 import { mesParaBusca, rotuloMes } from "@/lib/gestao/formato";
 import { plural, ROTULO_CATEGORIA, ROTULO_ORIGEM } from "../textos";
 import { RemoverDespesa } from "./remover-despesa";
+import { PizzaMoeda, fatiasDeDespesa } from "./graficos-dinheiro";
 
 /** Frase de abertura da tela de despesas. */
 export function fraseDespesas(l: ListaDespesas): string {
@@ -35,69 +36,94 @@ export function ListaDespesasTela({ lista }: { lista: ListaDespesas }) {
       />
     );
   }
+  const porCategoria = new Map<string, number>();
+  for (const d of lista.despesas) {
+    const nome = ROTULO_CATEGORIA[d.categoria];
+    porCategoria.set(nome, (porCategoria.get(nome) ?? 0) + d.valorCentavos);
+  }
+  const fatias = fatiasDeDespesa(
+    [...porCategoria].map(([rotulo, centavos]) => ({ rotulo, centavos })),
+  );
   return (
-    <SecaoBloco
-      idTitulo="desp-lista"
-      titulo={`Lançadas em ${rotuloMes(lista.mes)}`}
-      icone={<ListOrdered />}
-      tom="areia"
-      contagem={lista.despesas.length}
-    >
-      <div className="min-[720px]:rounded-3 min-[720px]:bg-superficie min-[720px]:shadow-1 min-[720px]:p-2 lg:px-4 lg:py-3">
-        <TabelaLista
-          rotulo={`Despesas de ${rotuloMes(lista.mes)}`}
-          colunas={[
-            { chave: "descricao", rotulo: "O que foi pago", principal: true },
-            { chave: "categoria", rotulo: "Categoria", canto: true },
-            { chave: "data", rotulo: "Dia" },
-            { chave: "valor", rotulo: "Valor", numerica: true },
-            { chave: "acoes", rotulo: "Ações" },
-          ]}
-          linhas={lista.despesas.map((d) => ({
-            id: d.id,
-            valores: {
-              descricao: (
-                <span>
-                  {d.descricao}
-                  {d.fornecedor ? (
-                    <span className="text-texto-2 text-mini block">
-                      {d.fornecedor}
-                    </span>
-                  ) : null}
-                  {d.canal ? (
-                    <span className="text-texto-2 text-mini block">
-                      Canal: {ROTULO_ORIGEM[d.canal]}
-                    </span>
-                  ) : null}
-                </span>
-              ),
-              categoria: (
-                <Selo variante={d.daEquipe ? "marinho" : "neutro"}>
-                  {ROTULO_CATEGORIA[d.categoria]}
-                </Selo>
-              ),
-              data: formatarData(d.data) ?? d.data,
-              valor: formatarMoeda(d.valorCentavos),
-              acoes: d.daEquipe ? (
-                <span className="text-mini text-texto-2">
-                  Vem do pagamento da equipe
-                </span>
-              ) : (
-                <span className="flex flex-wrap items-center gap-x-4">
-                  <Link
-                    href={`/financeiro/despesas?mes=${mesParaBusca(lista.mes)}&editar=${d.id}`}
-                    className="text-apoio text-texto min-h-toque inline-flex items-center font-semibold underline decoration-1 underline-offset-4"
-                    aria-label={`Corrigir a despesa ${d.descricao}`}
-                  >
-                    Corrigir
-                  </Link>
-                  <RemoverDespesa despesaId={d.id} descricao={d.descricao} />
-                </span>
-              ),
-            },
-          }))}
+    <>
+      <section
+        aria-labelledby="desp-comp"
+        className="bg-superficie border-linha rounded-3 flex flex-col gap-4 border p-5 lg:p-6"
+      >
+        <h2
+          id="desp-comp"
+          className="font-titulo text-2 text-texto font-medium"
+        >
+          Como as despesas se dividem
+        </h2>
+        <PizzaMoeda
+          rotulo={`Despesas de ${rotuloMes(lista.mes)} por categoria`}
+          fatias={fatias}
         />
-      </div>
-    </SecaoBloco>
+      </section>
+      <SecaoBloco
+        idTitulo="desp-lista"
+        titulo={`Lançadas em ${rotuloMes(lista.mes)}`}
+        icone={<ListOrdered />}
+        tom="areia"
+        contagem={lista.despesas.length}
+      >
+        <div className="min-[720px]:rounded-3 min-[720px]:bg-superficie min-[720px]:shadow-1 min-[720px]:p-2 lg:px-4 lg:py-3">
+          <TabelaLista
+            rotulo={`Despesas de ${rotuloMes(lista.mes)}`}
+            colunas={[
+              { chave: "descricao", rotulo: "O que foi pago", principal: true },
+              { chave: "categoria", rotulo: "Categoria", canto: true },
+              { chave: "data", rotulo: "Dia" },
+              { chave: "valor", rotulo: "Valor", numerica: true },
+              { chave: "acoes", rotulo: "Ações" },
+            ]}
+            linhas={lista.despesas.map((d) => ({
+              id: d.id,
+              valores: {
+                descricao: (
+                  <span>
+                    {d.descricao}
+                    {d.fornecedor ? (
+                      <span className="text-texto-2 text-mini block">
+                        {d.fornecedor}
+                      </span>
+                    ) : null}
+                    {d.canal ? (
+                      <span className="text-texto-2 text-mini block">
+                        Canal: {ROTULO_ORIGEM[d.canal]}
+                      </span>
+                    ) : null}
+                  </span>
+                ),
+                categoria: (
+                  <Selo variante={d.daEquipe ? "marinho" : "neutro"}>
+                    {ROTULO_CATEGORIA[d.categoria]}
+                  </Selo>
+                ),
+                data: formatarData(d.data) ?? d.data,
+                valor: formatarMoeda(d.valorCentavos),
+                acoes: d.daEquipe ? (
+                  <span className="text-mini text-texto-2">
+                    Vem do pagamento da equipe
+                  </span>
+                ) : (
+                  <span className="flex flex-wrap items-center gap-x-4">
+                    <Link
+                      href={`/financeiro/despesas?mes=${mesParaBusca(lista.mes)}&editar=${d.id}`}
+                      className="text-apoio text-texto min-h-toque inline-flex items-center font-semibold underline decoration-1 underline-offset-4"
+                      aria-label={`Corrigir a despesa ${d.descricao}`}
+                    >
+                      Corrigir
+                    </Link>
+                    <RemoverDespesa despesaId={d.id} descricao={d.descricao} />
+                  </span>
+                ),
+              },
+            }))}
+          />
+        </div>
+      </SecaoBloco>
+    </>
   );
 }

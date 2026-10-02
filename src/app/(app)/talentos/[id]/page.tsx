@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, ClipboardCheck, MessageSquareText } from "lucide-react";
 import { TileIcone } from "@/components/ui/tile-icone";
+import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { notFound } from "next/navigation";
 import { Selo } from "@/components/ui/selo";
 import { exigirSessao } from "@/lib/auth/sessao";
@@ -26,10 +27,22 @@ export default async function PaginaCandidata({
   const { id } = await params;
   await exigirSessao(`/talentos/${id}`);
   let candidata: DetalheCandidata | null = null;
+  let falhou = false;
   try {
     candidata = await (await obterRepositorios()).relacao.talentos.obter(id);
-  } catch {
-    candidata = null;
+  } catch (erro) {
+    console.error(
+      "[tela-erro] /talentos/[id]",
+      erro instanceof Error ? erro.message : erro,
+    );
+    falhou = true;
+  }
+  if (falhou) {
+    return (
+      <FaixaAlerta variante="erro" titulo="A ficha não abriu agora">
+        Nada foi alterado. Confira a conexão e recarregue a página.
+      </FaixaAlerta>
+    );
   }
   if (!candidata) notFound();
 

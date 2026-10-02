@@ -19,7 +19,12 @@ export default async function PaginaDuplicatas({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const pesquisa = await searchParams;
-  const resultado = await listarDuplicatas();
+  let resultado: Awaited<ReturnType<typeof listarDuplicatas>> | null = null;
+  try {
+    resultado = await listarDuplicatas();
+  } catch (erro) {
+    console.error("[tela-erro] /pipeline/duplicatas", erro);
+  }
 
   return (
     <>
@@ -55,7 +60,13 @@ export default async function PaginaDuplicatas({
       ) : null}
 
       <div className="pt-6">
-        <ListaDuplicatas resultado={resultado} />
+        {resultado ? (
+          <ListaDuplicatas resultado={resultado} />
+        ) : (
+          <FaixaAlerta variante="erro" titulo="As duplicatas não abriram agora">
+            Nada foi alterado. Confira a conexão e recarregue a página.
+          </FaixaAlerta>
+        )}
       </div>
     </>
   );

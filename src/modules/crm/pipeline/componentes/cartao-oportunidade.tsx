@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { Clock, FileText, Hourglass, OctagonPause } from "lucide-react";
 import type { Papel } from "@/lib/auth/papeis";
 import { Cartao } from "@/components/ui/cartao";
@@ -8,6 +7,10 @@ import { formatarData, localidade } from "@/lib/formatacao";
 import type { EstadoSensivel, NumeroPipeline } from "@/lib/dados/tipos";
 import { calcularIdadeGestacional, hojeBrasilia } from "../idade-gestacional";
 import type { CartaoPipelineTela } from "../tipos";
+import {
+  EXPLICA_CLASSIFICACAO,
+  ROTULO_CLASSIFICACAO,
+} from "./detalhe-oportunidade";
 import { MenuMover } from "./menu-mover";
 
 const ROTULO_FREIO: Record<Exclude<EstadoSensivel, "normal">, string> = {
@@ -23,12 +26,6 @@ function fraseNoEstagio(tempo: string): string {
     : `Neste estágio ${tempo.charAt(0).toLowerCase()}${tempo.slice(1)}`;
 }
 
-const ROTULO_CLASSIFICACAO = {
-  quente: "Quente",
-  morno: "Morno",
-  frio: "Frio",
-} as const;
-
 /**
  * Cartão da oportunidade (P15 item 3): nome, semanas calculadas, cidade,
  * tempo no estágio, próximo contato e sinais (apresentação enviada,
@@ -39,10 +36,13 @@ export function CartaoOportunidadePipeline({
   cartao,
   pipeline,
   papeis,
+  aoAbrir,
 }: {
   cartao: CartaoPipelineTela;
   pipeline: NumeroPipeline;
   papeis: readonly Papel[];
+  /** Abre o painel de detalhes (clique no cartão ou Enter no nome). */
+  aoAbrir?: () => void;
 }) {
   const emFreio = cartao.estadoSensivel !== "normal";
   // Perda ou intercorrência (bloqueio total, encerrado sensível): sai a
@@ -59,20 +59,50 @@ export function CartaoOportunidadePipeline({
 
   return (
     <Cartao
+      variante="plano"
+      // Clique em área livre do cartão abre os detalhes; botões e menus
+      // dentro dele seguem com a própria ação. Teclado: botão do nome.
+      onClick={(e) => {
+        if (!(e.target as HTMLElement).closest("button, a, [role=menuitem]"))
+          aoAbrir?.();
+      }}
       // `areia` é a cor da família e da Isadora (cabeçalho, selo da
       // conversa): o cartão com freio usa o ameixa lavado, como o
       // protótipo, não areia (crítica do CRM, P1 item 9).
-      className={
-        emFreio ? "bg-sensivel-lavado border-sensivel-borda border" : undefined
-      }
+      className={`shadow-1 hover:shadow-2 motion-safe:transition-[box-shadow,transform] motion-safe:duration-140 motion-safe:hover:-translate-y-0.5 ${
+        aoAbrir ? "cursor-pointer" : ""
+      } ${emFreio ? "bg-sensivel-lavado border-sensivel-borda border" : ""}`}
     >
       <div className="flex flex-col gap-2">
-        <Link
-          href={`/familias/${cartao.familiaId}`}
-          className="font-titulo text-3 min-h-toque inline-flex items-center font-medium underline-offset-4 hover:underline"
-        >
-          {cartao.nomeFamilia}
-        </Link>
+        <div className="flex items-start justify-between gap-2">
+          <button
+            type="button"
+            onClick={aoAbrir}
+            aria-label={`Ver detalhes de ${cartao.nomeFamilia}`}
+            className="font-titulo text-3 min-h-toque inline-flex items-center text-left font-medium underline-offset-4 hover:underline"
+          >
+            {cartao.nomeFamilia}
+          </button>
+          {!sensivel && cartao.score !== null ? (
+            <Selo
+              variante={
+                cartao.classificacao === "quente"
+                  ? "sucesso"
+                  : cartao.classificacao === "morno"
+                    ? "aviso"
+                    : "neutro"
+              }
+              className="mt-2 font-mono"
+              title={
+                cartao.classificacao
+                  ? `Pontuação ${cartao.score}. ${EXPLICA_CLASSIFICACAO[cartao.classificacao]}`
+                  : "Pontuação do lead"
+              }
+            >
+              {cartao.score}
+            </Selo>
+          ) : null}
+        </div>
         <p className="text-apoio text-texto-2 flex flex-wrap gap-x-3 gap-y-0.5">
           {!sensivel && cartao.idadeGestacional ? (
             <span

@@ -486,8 +486,33 @@ export interface VisaoTarefasEquipe {
   tarefas: TarefaEquipe[];
 }
 
+export interface PedidoTarefaEquipe {
+  titulo: string;
+  /** Pessoa responsável; vazio = sem pessoa definida. */
+  responsavelId?: string | null;
+  /** Equipe responsável quando ainda não há pessoa. */
+  papelResponsavel?: string | null;
+  familiaId?: string | null;
+  /** Instante ISO do prazo. */
+  venceEm?: string | null;
+  prioridade?: Enums<"prioridade">;
+}
+
+/**
+ * Leitura (0027) e ações do quadro (0046: api.tarefa_criar, tarefa_mudar_estado,
+ * tarefa_atribuir). Concluir continua em `tarefas.concluirTarefa`, que usa
+ * api.tarefa_concluir. Antes de a 0046 ser aplicada, as ações lançam
+ * ErroRepositorio "funcao_pendente".
+ */
 export interface TarefasEquipeRepositorio {
   visao(): Promise<VisaoTarefasEquipe>;
+  /** Devolve o id da tarefa criada. */
+  criar(pedido: PedidoTarefaEquipe): Promise<string>;
+  mudarEstado(
+    tarefaId: string,
+    status: "aberta" | "em_andamento",
+  ): Promise<void>;
+  atribuir(tarefaId: string, responsavelId: string): Promise<void>;
 }
 
 export type CategoriaManual = "manual" | "protocolo";

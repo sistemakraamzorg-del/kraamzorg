@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Lock, UserRound } from "lucide-react";
+import { Lock, ShieldCheck, UserRound } from "lucide-react";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { TileIcone } from "@/components/ui/tile-icone";
 import { descreverPapeis } from "@/lib/auth/papeis";
@@ -33,9 +33,19 @@ export default async function PaginaEntrar({
 
   return (
     <>
-      <h1 className="font-titulo text-display text-texto font-normal">
-        Entrar
-      </h1>
+      <div className="flex flex-col gap-2">
+        <span className="bg-dourado-claro text-texto rounded-pilula text-apoio inline-flex w-fit items-center gap-1.5 px-3 py-1 font-semibold">
+          <ShieldCheck aria-hidden="true" className="size-4" strokeWidth={1.75} />
+          Verificação em duas etapas
+        </span>
+        <h1 className="font-titulo text-display text-texto font-light">
+          Entrar no sistema
+        </h1>
+        <p className="text-corpo text-texto-2">
+          Use o e-mail e a senha do seu acesso. Quem lida com dados de saúde
+          confirma também com o código do aplicativo.
+        </p>
+      </div>
       {aviso ? <FaixaAlerta variante="info" titulo={aviso} /> : null}
 
       {forma.tipo === "senha" ? (
@@ -69,7 +79,7 @@ export default async function PaginaEntrar({
                   ) : null}
                   <button
                     type="submit"
-                    className="rounded-3 bg-superficie shadow-1 hover:shadow-2 ease-estado min-h-toque-campo flex w-full items-center gap-3 px-3 py-3 text-left transition-[box-shadow,transform] duration-140 active:scale-[0.99]"
+                    className="rounded-3 bg-[image:var(--brilho-superficie)] shadow-1 hover:shadow-halo ease-estado min-h-toque-campo flex w-full items-center gap-3 px-3 py-3 text-left transition-[box-shadow,transform] duration-140 active:scale-[0.99]"
                   >
                     <TileIcone tom="argila" forma="quadrado">
                       <UserRound />
@@ -90,7 +100,7 @@ export default async function PaginaEntrar({
         </section>
       )}
 
-      <p className="text-apoio text-texto-2 flex items-start gap-2">
+      <p className="text-apoio text-texto-2 border-texto/10 flex items-start gap-2 border-t pt-4">
         <Lock
           aria-hidden="true"
           className="mt-0.5 size-4 shrink-0"

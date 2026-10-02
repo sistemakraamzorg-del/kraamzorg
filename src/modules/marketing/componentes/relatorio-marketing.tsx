@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CircleCheck, Coins, Compass, Filter, Radio } from "lucide-react";
 import { BarrasHorizontais } from "@/components/graficos/barras-horizontais";
+import { Rosca, type FatiaRosca } from "@/components/graficos";
 import { Broto, FolhaLupa } from "@/components/ilustracoes";
 import { CartaoResumo } from "@/components/ui/cartao-resumo";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
@@ -12,7 +13,6 @@ import type {
   RelatorioMarketing,
 } from "@/lib/dados/tipos-relacao";
 import { formatarData, formatarMoeda } from "@/lib/formatacao";
-import { cn } from "@/lib/utils";
 import { ROTULO_ORIGEM } from "@/modules/relacao/rotulos";
 import { atalhosDePeriodo } from "../periodo";
 
@@ -75,6 +75,56 @@ function celulasValores(c: ContagensMarketing) {
   };
 }
 
+const TONS_PIZZA: FatiaRosca["tom"][] = [
+  "dourado",
+  "marinho",
+  "sucesso",
+  "aviso",
+  "sensivel",
+  "alerta",
+];
+const MAX_FATIAS = TONS_PIZZA.length;
+
+/** Pizza de leads por canal: os maiores em cor própria, o resto junto em "Outros". */
+function PizzaCanais({ relatorio }: { relatorio: RelatorioMarketing }) {
+  const canais = [...relatorio.porCanal]
+    .filter((c) => c.leads > 0)
+    .sort((a, b) => b.leads - a.leads);
+  if (canais.length === 0) {
+    return (
+      <EstadoVazio
+        nivelTitulo="h3"
+        ilustracao={<Broto tamanho={96} />}
+        titulo="Nenhum lead por canal neste período"
+        texto="Quando uma família escrever pelo link de um canal, a fatia dele aparece aqui."
+      />
+    );
+  }
+  const topo = canais.slice(0, MAX_FATIAS - 1);
+  const resto = canais.slice(MAX_FATIAS - 1);
+  const fatias: FatiaRosca[] = topo.map((c, i) => ({
+    rotulo: c.nome,
+    valor: c.leads,
+    tom: TONS_PIZZA[i]!,
+  }));
+  if (resto.length > 0) {
+    fatias.push({
+      rotulo: "Outros canais",
+      valor: resto.reduce((a, c) => a + c.leads, 0),
+      tom: "areia",
+    });
+  }
+  return (
+    <Rosca
+      espessura={44}
+      rotulo="Leads por canal"
+      centro={{ valor: String(relatorio.total.leads), legenda: "leads" }}
+      fatias={fatias}
+    />
+  );
+}
+
+/** Aba "Visão geral": período, frase, funil, pizza de canais e o dinheiro. */
 export function RelatorioMarketingTela({
   relatorio,
   periodo,
@@ -83,27 +133,12 @@ export function RelatorioMarketingTela({
   periodo: FiltroPeriodo;
 }) {
   const atalhos = atalhosDePeriodo();
-  const colunasBase = [
-    { chave: "nome", rotulo: "", principal: true },
-    { chave: "leads", rotulo: "Leads", numerica: true },
-    { chave: "qualificados", rotulo: "Qualificados", numerica: true },
-    { chave: "ganhos", rotulo: "Com contrato", numerica: true },
-  ];
-  const colunasValores = relatorio.veValores
-    ? [
-        { chave: "receita", rotulo: "Receita", numerica: true },
-        { chave: "custo", rotulo: "Custo", numerica: true },
-        { chave: "custoLead", rotulo: "Custo por lead", numerica: true },
-        {
-          chave: "custoContrato",
-          rotulo: "Custo por contrato",
-          numerica: true,
-        },
-      ]
-    : [];
-
+  const custoLead = dividir(
+    relatorio.total.custoCentavos,
+    relatorio.total.leads,
+  );
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-5">
       {/* O período num bloco de tempo (lavanda, DESIGN.md 2.5). */}
       <form
         method="get"
@@ -160,18 +195,36 @@ export function RelatorioMarketingTela({
         <span className="text-texto-2">{textoPeriodo(periodo)}. </span>
         {fraseRelatorio(relatorio)}
       </p>
-      {/* Do lead ao contrato: o funil do período em barras (argila, as
-          pessoas), e ao lado o dinheiro em número grande, para quem vê
-          valores. */}
-      <div
-        className={cn(
-          "grid grid-cols-1 items-start gap-3",
-          relatorio.veValores && "lg:grid-cols-[62fr_38fr]",
-        )}
-      >
+
+      {relatorio.soElegiveis ? (
+        <p className="text-apoio text-texto-2 max-w-[64ch]">
+          Este relatório conta só famílias que podem receber contato de
+          marketing. A receita e o custo aparecem para a diretoria e o
+          financeiro.
+        </p>
+      ) : null}
+
+      {/* Pizza de origem dos leads ao lado do funil. */}
+      <div className="grid grid-cols-1 items-start gap-3 lg:grid-cols-2">
+        <section
+          aria-labelledby="pizza-canais"
+          className="rounded-3 bg-superficie border-linha flex flex-col gap-4 border p-5"
+        >
+          <h3
+            id="pizza-canais"
+            className="font-titulo text-2 text-texto flex items-center gap-3 font-medium"
+          >
+            <TileIcone tom="areia" forma="quadrado" tamanho="p">
+              <Radio />
+            </TileIcone>
+            De onde vêm os leads
+          </h3>
+          <PizzaCanais relatorio={relatorio} />
+        </section>
+
         <section
           aria-labelledby="funil"
-          className="rounded-3 bg-argila-clara flex flex-col gap-4 p-5 lg:p-6"
+          className="rounded-3 bg-superficie border-linha flex flex-col gap-4 border p-5"
         >
           <h3
             id="funil"
@@ -206,42 +259,101 @@ export function RelatorioMarketingTela({
             ]}
           />
         </section>
-        {relatorio.veValores ? (
-          <div className="tablet:grid-cols-2 grid grid-cols-1 gap-3 lg:grid-cols-1">
-            <CartaoResumo
-              tom="salvia"
-              arranjo="linha"
-              icone={<CircleCheck />}
-              valor={dinheiro(relatorio.total.receitaCentavos)}
-              rotulo="recebidos"
-              contexto={`de ${relatorio.total.contratosPagos ?? 0} ${relatorio.total.contratosPagos === 1 ? "contrato" : "contratos"}`}
-            />
-            <CartaoResumo
-              tom="areia"
-              arranjo="linha"
-              icone={<Coins />}
-              valor={dinheiro(relatorio.total.custoCentavos)}
-              rotulo="de custo lançado"
-              contexto={
-                dividir(
-                  relatorio.total.custoCentavos,
-                  relatorio.total.leads,
-                ) !== null
-                  ? `${formatarMoeda(dividir(relatorio.total.custoCentavos, relatorio.total.leads)!)} por lead`
-                  : "sem lead para dividir"
-              }
-            />
-          </div>
-        ) : null}
       </div>
 
-      {relatorio.soElegiveis ? (
-        <p className="text-apoio text-texto-2 max-w-[64ch]">
-          Este relatório conta só famílias que podem receber contato de
-          marketing. A receita e o custo aparecem para a diretoria e o
-          financeiro.
-        </p>
+      {relatorio.veValores ? (
+        <div className="tablet:grid-cols-2 grid grid-cols-1 gap-3">
+          <CartaoResumo
+            tom="salvia"
+            arranjo="linha"
+            icone={<CircleCheck />}
+            valor={dinheiro(relatorio.total.receitaCentavos)}
+            rotulo="recebidos"
+            contexto={`de ${relatorio.total.contratosPagos ?? 0} ${relatorio.total.contratosPagos === 1 ? "contrato" : "contratos"}`}
+          />
+          <CartaoResumo
+            tom="areia"
+            arranjo="linha"
+            icone={<Coins />}
+            valor={dinheiro(relatorio.total.custoCentavos)}
+            rotulo="de custo lançado"
+            contexto={
+              custoLead !== null
+                ? `${formatarMoeda(custoLead)} por lead`
+                : "sem lead para dividir"
+            }
+          />
+        </div>
       ) : null}
+    </div>
+  );
+}
+
+/** Aba "Canais e custos": as tabelas por origem e por canal. */
+export function TabelasCanaisMarketing({
+  relatorio,
+}: {
+  relatorio: RelatorioMarketing;
+}) {
+  const colunasBase = [
+    { chave: "nome", rotulo: "", principal: true },
+    { chave: "leads", rotulo: "Leads", numerica: true },
+    { chave: "qualificados", rotulo: "Qualificados", numerica: true },
+    { chave: "ganhos", rotulo: "Com contrato", numerica: true },
+  ];
+  const colunasValores = relatorio.veValores
+    ? [
+        { chave: "receita", rotulo: "Receita", numerica: true },
+        { chave: "custo", rotulo: "Custo", numerica: true },
+        { chave: "custoLead", rotulo: "Custo por lead", numerica: true },
+        {
+          chave: "custoContrato",
+          rotulo: "Custo por contrato",
+          numerica: true,
+        },
+      ]
+    : [];
+
+  return (
+    <div className="flex flex-col gap-6">
+      <section aria-labelledby="por-canal" className="flex flex-col gap-3">
+        <h2
+          id="por-canal"
+          className="font-titulo text-2 text-texto flex items-center gap-3 font-medium"
+        >
+          <TileIcone tom="areia" forma="quadrado" tamanho="p">
+            <Radio />
+          </TileIcone>
+          Por canal
+        </h2>
+        {relatorio.porCanal.length === 0 ? (
+          <EstadoVazio
+            nivelTitulo="h3"
+            ilustracao={<Broto tamanho={96} />}
+            titulo="Nenhum canal ainda"
+            texto="Crie um canal na aba de links para começar a medir de onde as famílias chegam."
+          />
+        ) : (
+          <div className="min-[720px]:rounded-3 min-[720px]:bg-superficie min-[720px]:shadow-1 min-[720px]:p-2 lg:px-4 lg:py-3">
+            <TabelaLista
+              rotulo="Leads e receita por canal"
+              colunas={[
+                ...colunasBase.map((c) =>
+                  c.chave === "nome" ? { ...c, rotulo: "Canal" } : c,
+                ),
+                ...colunasValores,
+              ]}
+              linhas={relatorio.porCanal.map((c) => ({
+                id: c.canalId,
+                valores: {
+                  nome: `${c.nome} (${c.codigo})`,
+                  ...celulasValores(c),
+                },
+              }))}
+            />
+          </div>
+        )}
+      </section>
 
       <section aria-labelledby="por-origem" className="flex flex-col gap-3">
         <h2
@@ -275,45 +387,6 @@ export function RelatorioMarketingTela({
                 valores: {
                   nome: ROTULO_ORIGEM[o.origem],
                   ...celulasValores(o),
-                },
-              }))}
-            />
-          </div>
-        )}
-      </section>
-
-      <section aria-labelledby="por-canal" className="flex flex-col gap-3">
-        <h2
-          id="por-canal"
-          className="font-titulo text-2 text-texto flex items-center gap-3 font-medium"
-        >
-          <TileIcone tom="areia" forma="quadrado" tamanho="p">
-            <Radio />
-          </TileIcone>
-          Por canal
-        </h2>
-        {relatorio.porCanal.length === 0 ? (
-          <EstadoVazio
-            nivelTitulo="h3"
-            ilustracao={<Broto tamanho={96} />}
-            titulo="Nenhum canal ainda"
-            texto="Crie um canal na aba de links para começar a medir de onde as famílias chegam."
-          />
-        ) : (
-          <div className="min-[720px]:rounded-3 min-[720px]:bg-superficie min-[720px]:shadow-1 min-[720px]:p-2 lg:px-4 lg:py-3">
-            <TabelaLista
-              rotulo="Leads e receita por canal"
-              colunas={[
-                ...colunasBase.map((c) =>
-                  c.chave === "nome" ? { ...c, rotulo: "Canal" } : c,
-                ),
-                ...colunasValores,
-              ]}
-              linhas={relatorio.porCanal.map((c) => ({
-                id: c.canalId,
-                valores: {
-                  nome: `${c.nome} (${c.codigo})`,
-                  ...celulasValores(c),
                 },
               }))}
             />

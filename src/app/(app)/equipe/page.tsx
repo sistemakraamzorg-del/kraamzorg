@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { z } from "zod";
 import Link from "next/link";
 import {
   CalendarDays,
@@ -72,13 +73,16 @@ export default async function PaginaEquipe({
 }) {
   await exigirSessao("/equipe");
   const pesquisa = await searchParams;
-  const regiaoId = um(pesquisa.praca);
+  const pracaPedida = um(pesquisa.praca);
+  const regiaoId =
+    pracaPedida && z.uuid().safeParse(pracaPedida).success ? pracaPedida : null;
   const inativas = um(pesquisa.inativas) === "1";
 
   let tela: EquipeTela | null = null;
   try {
     tela = await carregarEquipe({ regiaoId, incluirInativas: inativas });
-  } catch {
+  } catch (erro) {
+    console.error("[tela-erro] /equipe", erro instanceof Error ? erro.message : erro);
     tela = null;
   }
 

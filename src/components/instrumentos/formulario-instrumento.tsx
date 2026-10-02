@@ -411,9 +411,24 @@ export function FormularioInstrumento({
     contexto,
   });
   const ultima = indiceAtual === etapas.length - 1;
+  // O aviso de pendência só aparece depois da primeira tentativa de concluir.
+  const [tentouSalvar, definirTentouSalvar] = React.useState(false);
 
   function concluir() {
-    if (pendencias.length > 0) return;
+    definirTentouSalvar(true);
+    const primeira = pendencias[0];
+    if (primeira) {
+      irParaPendencia(primeira);
+      // Espera a etapa/aba renderizar antes de focar o primeiro campo com problema.
+      window.requestAnimationFrame(() =>
+        focarCampo({
+          bloco: primeira.bloco,
+          campo: primeira.campo,
+          bebe: primeira.bebe,
+        }),
+      );
+      return;
+    }
     const final = preencherAutomaticos(
       definicao,
       respostas,
@@ -585,11 +600,11 @@ export function FormularioInstrumento({
           ))
         )}
 
-        {ultima ? (
+        {ultima || (tentouSalvar && pendencias.length > 0) ? (
           <div className="border-linha mt-4 flex flex-col gap-2 border-t pt-4">
-            {pendencias.length > 0 ? (
-              <>
-                <p className="text-apoio text-texto font-semibold">
+            {!tentouSalvar ? null : pendencias.length > 0 ? (
+              <div role="alert" className="flex flex-col gap-2">
+                <p className="text-apoio text-alerta font-semibold">
                   {t.faltaParaConcluir}
                 </p>
                 <ul className="flex flex-col gap-1">
@@ -613,7 +628,7 @@ export function FormularioInstrumento({
                     );
                   })}
                 </ul>
-              </>
+              </div>
             ) : (
               <p className="text-apoio text-sucesso font-semibold">
                 {t.tudoRespondido}
@@ -640,7 +655,6 @@ export function FormularioInstrumento({
           <Botao
             type="button"
             largaTotal
-            aria-disabled={pendencias.length > 0 || undefined}
             onClick={concluir}
           >
             {rotuloConcluir ?? t.concluir}

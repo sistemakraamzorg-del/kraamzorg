@@ -10,7 +10,6 @@ import {
 import { SecaoCondicoes } from "@/modules/configuracoes/componentes/secao-condicoes";
 import { SecaoMensagens } from "@/modules/configuracoes/componentes/secao-mensagens";
 import { SecaoPacotes } from "@/modules/configuracoes/componentes/secao-pacotes";
-import { SecaoParametros } from "@/modules/configuracoes/componentes/secao-parametros";
 import { SecaoRegioes } from "@/modules/configuracoes/componentes/secao-regioes";
 import { SecaoRegua } from "@/modules/configuracoes/componentes/secao-regua";
 import { SecaoTermosAlerta } from "@/modules/configuracoes/componentes/secao-termos-alerta";
@@ -19,7 +18,6 @@ import { podeVerTudo } from "@/modules/configuracoes/dados/tipos";
 export const metadata: Metadata = { title: "Configurações · Kraamzorg OS" };
 
 const ABAS_DIRETORIA: AbaConfiguracoes[] = [
-  { chave: "parametros", rotulo: "Parâmetros" },
   { chave: "pacotes", rotulo: "Pacotes e preços" },
   { chave: "regioes", rotulo: "Regiões e localidades" },
   { chave: "condicoes", rotulo: "Condições comerciais" },
@@ -68,7 +66,7 @@ export default async function PaginaConfiguracoes({
         titulo="Configurações"
         subtitulo={
           vePreco
-            ? "Parâmetros, preços, regiões, condições comerciais, mensagens, termos de alerta e a régua de contato."
+            ? "Preços, regiões, condições comerciais, mensagens, termos de alerta e a régua de contato."
             : "Os termos que disparam alerta ou bloqueio para a equipe de saúde."
         }
       />
@@ -78,11 +76,7 @@ export default async function PaginaConfiguracoes({
       {/* Tela densa (DESIGN.md, 2: Restrained): as tabelas moram num bloco
           branco no computador; no celular cada linha já vira um cartão. */}
       <div className="pt-6">
-        {aba === "parametros" && vePreco ? (
-          <div className={BLOCO_TABELA}>
-            <SecaoParametros />
-          </div>
-        ) : aba === "pacotes" && vePreco ? (
+        {aba === "pacotes" && vePreco ? (
           <SecaoPacotes />
         ) : aba === "regioes" && vePreco ? (
           <SecaoRegioes />

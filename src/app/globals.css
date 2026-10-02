@@ -178,10 +178,32 @@
   /* Sombras, tingidas de marinho (DESIGN.md, seção 4). */
   --sombra-1:
     0 1px 2px color-mix(in srgb, var(--marinho) 6%, transparent),
-    0 6px 16px -10px color-mix(in srgb, var(--marinho) 18%, transparent);
+    0 10px 26px -14px color-mix(in srgb, var(--marinho) 22%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--branco) 85%, transparent);
   --sombra-2:
     0 2px 6px color-mix(in srgb, var(--marinho) 8%, transparent),
-    0 18px 40px -16px color-mix(in srgb, var(--marinho) 30%, transparent);
+    0 22px 44px -18px color-mix(in srgb, var(--marinho) 34%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--branco) 70%, transparent);
+  /* Brilho [v4.5, pedido da Drop]: degradês e halos tingidos de dourado e
+     marinho, para cartões e painéis com acabamento (não são cores novas). */
+  --brilho-superficie: linear-gradient(
+    180deg,
+    var(--branco) 0%,
+    color-mix(in srgb, var(--creme) 55%, var(--branco)) 100%
+  );
+  --brilho-dourado: radial-gradient(
+    120% 90% at 20% 10%,
+    color-mix(in srgb, var(--areia) 70%, var(--branco)) 0%,
+    color-mix(in srgb, var(--areia) 85%, var(--dourado)) 45%,
+    color-mix(in srgb, var(--dourado) 55%, var(--areia)) 100%
+  );
+  --brilho-marinho: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--marinho) 88%, var(--branco)) 0%,
+    var(--marinho) 60%
+  );
+  --halo-dourado: 0 0 0 1px color-mix(in srgb, var(--dourado) 28%, transparent),
+    0 8px 28px -10px color-mix(in srgb, var(--dourado) 45%, transparent);
 
   /* Camadas, movimento e estrutura: variáveis simples (não geram utilitário
      Tailwind; usadas via arbitrário, ex. z-[var(--z-barra)]). */
@@ -322,19 +344,20 @@
   /* Raio: quatro degraus, comprometidos (nada fora daqui). Direção
      "Colo" [v4.4]: cantos generosos. */
   --radius-1: 6px; /* caixa de seleção, marca pequena */
-  --radius-2: 16px; /* campo, faixa, item de lista, bloco da régua */
-  --radius-3: 28px; /* cartão, bloco, folha inferior, painel */
+  --radius-2: 12px; /* campo, faixa, item de lista, bloco da régua */
+  --radius-3: 20px; /* cartão, bloco, folha inferior, painel */
   --radius-pilula: 999px; /* botão, selo, seletor, aba, navegação */
   /* Forma "colo": os cantos de cima em raio-3 e a base inteira em arco
      raso, como a curva do símbolo da marca (DESIGN.md, 2.4). Um por tela,
      no bloco de abertura. Pede 40 px de respiro embaixo. */
-  --radius-colo: 28px 28px 50% 50% / 28px 28px 40px 40px;
+  --radius-colo: 22px 22px 36px 36px / 22px 22px 28px 28px;
 
   /* Sombra: duas, tingidas de marinho, mais o anel de foco do dia de hoje
      (régua de dias) como uma terceira, para não ficar solto em arbitrário. */
   --shadow-1: var(--sombra-1);
   --shadow-2: var(--sombra-2);
   --shadow-anel-hoje: var(--anel-hoje);
+  --shadow-halo: var(--halo-dourado);
 
   /* Textura de fundo: hachura do dia pendente (régua de dias). */
   --background-image-hachura-aviso: var(--hachura-aviso);

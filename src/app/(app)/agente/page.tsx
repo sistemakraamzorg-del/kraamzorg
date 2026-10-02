@@ -1,11 +1,30 @@
 import type { Metadata } from "next";
-import { BookOpen, ChartColumn, Clock3, Settings2 } from "lucide-react";
+import Link from "next/link";
+import {
+  BookOpen,
+  ChartColumn,
+  ChevronDown,
+  Clock3,
+  MessageCircle,
+  Settings2,
+} from "lucide-react";
 import { CabecalhoTela } from "@/components/shell/cabecalho-tela";
-import { TileIcone } from "@/components/ui/tile-icone";
-import type { Tom } from "@/components/ui/tons";
 import { cn } from "@/lib/utils";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { exigirSessao } from "@/lib/auth/sessao";
+import { Botao } from "@/components/ui/botao";
+import { Selo } from "@/components/ui/selo";
+import { listarConversasTela } from "@/modules/agente/conversas/dados";
+import {
+  nomeDaConversa,
+  quandoNaLista,
+} from "@/modules/agente/conversas/lista";
+import { rotuloDaSituacao } from "@/modules/agente/formatacao";
+import { listarFilaTela } from "@/modules/agente/transferencias/dados";
+import type {
+  ConversaComPausa,
+  TransferenciaTela,
+} from "@/modules/agente/tipos";
 import { obterBaseConhecimentoTela } from "@/modules/agente/base-conhecimento/dados";
 import { PainelBaseConhecimento } from "@/modules/agente/base-conhecimento/componentes/painel-base-conhecimento";
 import {
@@ -19,71 +38,94 @@ import { PainelRegraRetomada } from "@/modules/agente/regras-retomada/componente
 
 export const metadata: Metadata = { title: "Isadora · Kraamzorg OS" };
 
-/**
- * Cada assunto da Isadora num bloco com a cor do que ele é (DESIGN.md,
- * 2.5): os ajustes são o agora (dourado), a retomada é tempo (lavanda), os
- * números são das conversas (argila), a base é o que já foi guardado
- * (areia). O título leva o assunto num tile.
- */
-const FUNDO_SECAO: Record<Tom, string> = {
-  dourado: "bg-dourado-claro",
-  lavanda: "bg-lavanda-clara",
-  argila: "bg-argila-clara",
-  areia: "bg-areia-clara",
-  salvia: "bg-salvia-clara",
-};
-
-function Secao({
+/** Bloco recolhido: só abre quando a pessoa toca. Nada sai do ar, só fica guardado. */
+function Avancado({
   titulo,
-  texto,
   icone,
-  tom,
-  className,
   children,
 }: {
   titulo: string;
-  texto?: string;
   icone: React.ReactNode;
-  tom: Tom;
-  className?: string;
   children: React.ReactNode;
 }) {
   return (
-    <section
+    <details className="group border-linha rounded-2 bg-superficie border">
+      <summary className="focus-visible:outline-foco flex min-h-11 cursor-pointer list-none items-center gap-3 px-4 py-2 [&::-webkit-details-marker]:hidden">
+        <span className="text-dourado [&_svg]:size-5">{icone}</span>
+        <span className="text-texto flex-1 font-medium">{titulo}</span>
+        <ChevronDown
+          aria-hidden
+          className="text-texto-2 size-5 transition-transform group-open:rotate-180"
+        />
+      </summary>
+      <div className="flex flex-col gap-4 px-4 pt-1 pb-4">{children}</div>
+    </details>
+  );
+}
+
+function Numero({
+  valor,
+  rotulo,
+  href,
+  destaque,
+}: {
+  valor: number | null;
+  rotulo: string;
+  href: string;
+  destaque?: boolean;
+}) {
+  return (
+    <Link
+      href={href}
       className={cn(
-        "rounded-3 flex min-w-0 flex-col gap-4 p-5 lg:p-6",
-        FUNDO_SECAO[tom],
-        className,
+        "rounded-3 border-linha bg-superficie focus-visible:outline-foco flex min-h-11 flex-col gap-1 border p-4",
+        destaque && valor ? "border-dourado" : null,
       )}
     >
-      <div className="flex items-start gap-3">
-        <TileIcone tom={tom} forma="quadrado">
-          {icone}
-        </TileIcone>
-        <div className="flex flex-col gap-1">
-          <h2 className="font-titulo text-2 text-texto font-medium">
-            {titulo}
-          </h2>
-          {texto ? <p className="text-apoio text-texto-2">{texto}</p> : null}
-        </div>
-      </div>
-      {children}
-    </section>
+      <span className="font-titulo text-texto text-4 font-medium">
+        {valor ?? "sem dado"}
+      </span>
+      <span className="text-apoio text-texto-2">{rotulo}</span>
+    </Link>
   );
 }
 
 /**
- * Painel da Isadora no CRM (P27 itens 1, 4 e 5; PRD 11.3, 11.4, 11.12 e
- * 20.5): textos de retomada, base de conhecimento e métricas. [v4.5] O modo,
- * a lista de teste, as pausas e a janela de retomada são parâmetros do
- * agente, mantidos pela equipe de implantação: a tela só explica isso.
- * Conversas e transferências ficam juntas em `/conversas` (item 1 e 2; a
- * fila é o filtro "Esperando alguém", e `/transferencias` leva para lá).
- * Dono: P27.
+ * Tela da Isadora (P27; PRD 11). A primeira dobra é só o que o dia a dia
+ * pede: quantas conversas esperam alguém, como estão as conversas e as
+ * mais recentes. Retomada, base de conhecimento e números ficam em
+ * "Configurações avançadas", recolhidas. [v4.5] O modo, a lista de teste,
+ * as pausas e a janela de retomada são parâmetros do agente, mantidos pela
+ * equipe de implantação (o app não lê o modo). A pausa e o "devolver à
+ * Isadora" ficam na conversa, e a fila de transferências em
+ * `/conversas?filtro=esperando`. Dono: P27.
  */
 export default async function PaginaAgente() {
   const sessao = await exigirSessao("/agente");
   const ehDiretoria = sessao.papeis.includes("diretoria");
+
+  const [conversasR, filaR] = await Promise.all([
+    listarConversasTela().then(
+      (v) => ({ ok: true as const, v }),
+      () => ({ ok: false as const, v: null as ConversaComPausa[] | null }),
+    ),
+    listarFilaTela().then(
+      (v) => ({ ok: true as const, v }),
+      () => ({ ok: false as const, v: null as TransferenciaTela[] | null }),
+    ),
+  ]);
+  const conversas = conversasR.v;
+  const fila = filaR.v;
+  const contar = (s: ConversaComPausa["situacao"]) =>
+    conversas ? conversas.filter((c) => c.situacao === s).length : null;
+  const recentes = (conversas ?? [])
+    .filter((c) => c.situacao !== "nao_lead")
+    .sort((a, b) =>
+      (b.ultimaEntradaEm ?? b.ultimaSaidaEm ?? "").localeCompare(
+        a.ultimaEntradaEm ?? a.ultimaSaidaEm ?? "",
+      ),
+    )
+    .slice(0, 5);
 
   const [regraR, baseR, metricasR] = await Promise.all([
     obterRegraRetomadaTela().then(
@@ -105,43 +147,150 @@ export default async function PaginaAgente() {
   const regra = regraR.v;
   const base = baseR.v;
   const metricas = metricasR.v;
-  const carregouTudo = regraR.ok && baseR.ok && metricasR.ok;
+  const esperando = fila ? fila.length : null;
 
   return (
     <>
       <CabecalhoTela
         titulo="Isadora"
-        subtitulo="Retomada, base de conhecimento e os números do mês."
+        subtitulo="Quem espera uma resposta da equipe e como estão as conversas."
+        lateral={
+          <Botao asChild tamanho="compacto">
+            <Link href="/conversas?filtro=esperando">Ver quem espera</Link>
+          </Botao>
+        }
       />
       <div className="flex flex-col gap-6 pt-6">
-        {!carregouTudo ? (
+        {!conversasR.ok || !filaR.ok ? (
           <FaixaAlerta variante="erro" titulo="Alguma parte não carregou agora">
             Confira a conexão e recarregue a página. Se continuar, avise a
             equipe técnica.
           </FaixaAlerta>
         ) : null}
 
-        <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
-          <Secao
-            icone={<Settings2 />}
-            tom="dourado"
-            titulo="Ajustes da Isadora"
-            texto="Quando ela responde, a lista de teste, as pausas, a retomada e a agenda."
-          >
+        <section
+          aria-labelledby="titulo-situacao"
+          className="flex flex-col gap-3"
+        >
+          <h2 id="titulo-situacao" className="sr-only">
+            Situação das conversas
+          </h2>
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <Numero
+              valor={esperando}
+              rotulo="Esperando a equipe"
+              href="/conversas?filtro=esperando"
+              destaque
+            />
+            <Numero
+              valor={contar("isadora")}
+              rotulo="Com a Isadora"
+              href="/conversas?filtro=isadora"
+            />
+            <Numero
+              valor={contar("equipe")}
+              rotulo="Com a equipe"
+              href="/conversas?filtro=equipe"
+            />
+            <Numero
+              valor={contar("pausada")}
+              rotulo="Isadora pausada"
+              href="/conversas?filtro=pausada"
+            />
+          </div>
+          <p className="text-apoio text-texto-2">
+            Para pausar a Isadora ou devolver uma conversa a ela, abra a
+            conversa e use os botões no alto.
+          </p>
+        </section>
+
+        <section
+          aria-labelledby="titulo-recentes"
+          className="flex flex-col gap-3"
+        >
+          <div className="flex items-center justify-between gap-3">
+            <h2
+              id="titulo-recentes"
+              className="font-titulo text-2 text-texto font-medium"
+            >
+              Conversas recentes
+            </h2>
+            <Link
+              href="/conversas"
+              className="text-apoio text-texto focus-visible:outline-foco underline underline-offset-4"
+            >
+              Ver todas
+            </Link>
+          </div>
+          {recentes.length === 0 ? (
+            <p className="text-corpo text-texto-2 rounded-3 border-linha bg-superficie border p-4">
+              {conversas
+                ? "Ainda não há conversas. Quando uma família escrever, ela aparece aqui."
+                : "Não foi possível carregar as conversas agora."}
+            </p>
+          ) : (
+            <ul className="rounded-3 border-linha bg-superficie divide-linha divide-y border">
+              {recentes.map((c) => (
+                <li key={c.id}>
+                  <Link
+                    href={`/conversas/${c.id}`}
+                    className="focus-visible:outline-foco flex min-h-11 items-center gap-3 px-4 py-3"
+                  >
+                    <MessageCircle
+                      aria-hidden
+                      className="text-dourado size-5 shrink-0"
+                    />
+                    <span className="text-texto min-w-0 flex-1 truncate font-medium">
+                      {nomeDaConversa(c)}
+                    </span>
+                    <Selo variante="neutro">
+                      {rotuloDaSituacao(c.situacao, c.agenteEncerradoMotivo)}
+                    </Selo>
+                    <span className="text-apoio text-texto-2 w-12 shrink-0 text-right">
+                      {quandoNaLista(c.ultimaEntradaEm ?? c.ultimaSaidaEm)}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <section
+          aria-labelledby="titulo-avancado"
+          className="flex flex-col gap-3"
+        >
+          <div className="flex flex-col gap-1">
+            <h2
+              id="titulo-avancado"
+              className="font-titulo text-2 text-texto font-medium"
+            >
+              Configurações avançadas
+            </h2>
+            <p className="text-apoio text-texto-2">
+              Normalmente ficam com a equipe de implantação. Só abra se for
+              preciso.
+            </p>
+          </div>
+
+          <Avancado titulo="Ajustes da Isadora" icone={<Settings2 />}>
             <p className="text-corpo text-texto">
-              Esses ajustes são feitos pela equipe de implantação, fora do
+              Quando ela responde, a lista de teste, as pausas, a retomada e a
+              agenda são ajustes feitos pela equipe de implantação, fora do
               aplicativo, para a Isadora nunca falar com uma família por um
               número trocado sem querer. Para pedir uma mudança, fale com a
               equipe de implantação.
             </p>
-          </Secao>
+          </Avancado>
 
-          <Secao
-            icone={<Clock3 />}
-            tom="lavanda"
+          <Avancado
             titulo="Retomada de quem parou de responder"
-            texto="A Isadora manda uma única mensagem de retomada. D+3 e D+14 continuam como tarefa humana."
+            icone={<Clock3 />}
           >
+            <p className="text-apoio text-texto-2">
+              A Isadora manda uma única mensagem de retomada. D+3 e D+14
+              continuam como tarefa humana.
+            </p>
             {regra ? (
               <PainelRegraRetomada regra={regra} />
             ) : (
@@ -149,41 +298,39 @@ export default async function PaginaAgente() {
                 Não foi possível carregar esta regra agora.
               </p>
             )}
-          </Secao>
-        </div>
+          </Avancado>
 
-        <Secao
-          icone={<ChartColumn />}
-          tom="argila"
-          titulo="Números do mês"
-          texto="Últimos 30 dias, cada número ao lado da meta combinada para os primeiros 60 dias."
-        >
-          {metricas ? (
-            <PainelMetricas
-              metricas={metricas}
-              limiarAmostra={await obterLimiarAmostra()}
-            />
-          ) : (
+          <Avancado titulo="Números do mês" icone={<ChartColumn />}>
             <p className="text-apoio text-texto-2">
-              Não foi possível carregar as métricas agora.
+              Últimos 30 dias, cada número ao lado da meta combinada para os
+              primeiros 60 dias.
             </p>
-          )}
-        </Secao>
+            {metricas ? (
+              <PainelMetricas
+                metricas={metricas}
+                limiarAmostra={await obterLimiarAmostra()}
+              />
+            ) : (
+              <p className="text-apoio text-texto-2">
+                Não foi possível carregar as métricas agora.
+              </p>
+            )}
+          </Avancado>
 
-        <Secao
-          icone={<BookOpen />}
-          tom="areia"
-          titulo="Base de conhecimento"
-          texto="O que a Isadora pode responder. Só o que está aprovado entra na próxima atualização."
-        >
-          {base ? (
-            <PainelBaseConhecimento base={base} podeAprovar={ehDiretoria} />
-          ) : (
+          <Avancado titulo="Base de conhecimento" icone={<BookOpen />}>
             <p className="text-apoio text-texto-2">
-              Não foi possível carregar a base agora.
+              O que a Isadora pode responder. Só o que está aprovado entra na
+              próxima atualização.
             </p>
-          )}
-        </Secao>
+            {base ? (
+              <PainelBaseConhecimento base={base} podeAprovar={ehDiretoria} />
+            ) : (
+              <p className="text-apoio text-texto-2">
+                Não foi possível carregar a base agora.
+              </p>
+            )}
+          </Avancado>
+        </section>
       </div>
     </>
   );

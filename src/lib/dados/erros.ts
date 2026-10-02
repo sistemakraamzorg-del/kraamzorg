@@ -38,6 +38,8 @@ export function traduzirErroBanco(
 ): ErroRepositorio {
   const codigo = erro.code ?? "";
   const detalhe = `${contexto}: ${erro.message ?? "erro sem mensagem"}`;
+  // Diagnóstico: o código e a mensagem do banco vão para o log do servidor.
+  console.error(`[erro-banco] ${codigo || "sem_codigo"} ${detalhe}`);
   if (codigo === "42501" || codigo === "PGRST301" || codigo === "PGRST302") {
     return new ErroRepositorio("sem_permissao", detalhe);
   }
@@ -119,6 +121,16 @@ export function ehConflitoDeVersao(erro: unknown): boolean {
 export function codigoGestao(erro: unknown): string | null {
   const mensagem = erro instanceof Error ? erro.message : String(erro ?? "");
   const achado = /gestao:([a-z_0-9]+)/.exec(mensagem);
+  return achado?.[1] ?? null;
+}
+
+/**
+ * Código da recusa de negócio das ações de tarefa (0046): o banco manda
+ * "tarefa:<código> <detalhe>" na mensagem. null quando o erro não é desse tipo.
+ */
+export function codigoTarefa(erro: unknown): string | null {
+  const mensagem = erro instanceof Error ? erro.message : String(erro ?? "");
+  const achado = /tarefa:([a-z_0-9]+)/.exec(mensagem);
   return achado?.[1] ?? null;
 }
 

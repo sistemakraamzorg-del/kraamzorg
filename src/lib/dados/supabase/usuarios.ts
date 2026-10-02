@@ -63,7 +63,17 @@ export function criarUsuariosSupabase(
     },
 
     async convidarUsuario(pedido: PedidoConvite): Promise<ResultadoConvite> {
-      const servico = criarClienteServico("convite_usuario");
+      let servico: ReturnType<typeof criarClienteServico>;
+      try {
+        servico = criarClienteServico("convite_usuario");
+      } catch (erro) {
+        // Sem a chave de serviço no servidor o convite não sai.
+        console.error(
+          "[erro-convite] cliente de serviço indisponível",
+          erro instanceof Error ? erro.message : erro,
+        );
+        return { ok: false, erro: "indisponivel" };
+      }
 
       // 1. A conta nasce com o nome em app_metadata: o gatilho
       //    privado.criar_perfil_do_convite (0007) cria o perfil, sem papel.

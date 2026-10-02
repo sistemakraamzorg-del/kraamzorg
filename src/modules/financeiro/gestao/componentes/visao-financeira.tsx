@@ -1,24 +1,11 @@
 import Link from "next/link";
-import {
-  ArrowDownLeft,
-  ArrowUpRight,
-  CalendarClock,
-  ChartColumn,
-  ClockAlert,
-  ListOrdered,
-  ReceiptText,
-  Scale,
-  Wallet,
-} from "lucide-react";
+import type { ReactNode } from "react";
 import { MantaDobrada } from "@/components/ilustracoes";
-import { BarrasHorizontais } from "@/components/graficos/barras-horizontais";
-import { Colunas } from "@/components/graficos/colunas";
+import { BarrasHorizontais, Sparkline } from "@/components/graficos";
 import { VerComoTabela } from "@/components/graficos/ver-como-tabela";
-import { CartaoResumo } from "@/components/ui/cartao-resumo";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
 import { Selo } from "@/components/ui/selo";
 import { TabelaLista } from "@/components/ui/tabela-lista";
-import { TileIcone } from "@/components/ui/tile-icone";
 import { formatarData, formatarMoeda } from "@/lib/formatacao";
 import {
   dataCurta,
@@ -27,6 +14,8 @@ import {
   nomeMes,
   rotuloMes,
 } from "@/lib/gestao/formato";
+import { ColunasMoeda, PizzaMoeda, fatiasDeDespesa } from "./graficos-dinheiro";
+import { somarMeses } from "@/lib/gestao/financeiro";
 import { plural, ROTULO_CATEGORIA } from "../textos";
 import type { VisaoFinanceira } from "../dados";
 
@@ -61,188 +50,211 @@ function rotuloFaixa(deDias: number, ateDias: number | null): string {
   return `De ${deDias} a ${ateDias} dias`;
 }
 
+const CARTAO = "bg-superficie border-linha rounded-3 border p-5 lg:p-6";
+
+function Bloco({
+  id,
+  titulo,
+  apoio,
+  children,
+  className,
+}: {
+  id: string;
+  titulo: string;
+  apoio?: ReactNode;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <section
+      aria-labelledby={id}
+      className={`${CARTAO} flex flex-col gap-4 ${className ?? ""}`}
+    >
+      <div className="flex flex-col gap-1">
+        <h2 id={id} className="font-titulo text-2 text-texto font-medium">
+          {titulo}
+        </h2>
+        {apoio ? (
+          <p className="text-apoio text-texto-2 max-w-[68ch]">{apoio}</p>
+        ) : null}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+/** Comparação com o mês anterior, em frase. Sem mês anterior, diz isso. */
+function delta(
+  atual: number,
+  anterior: number | undefined,
+  mes: string,
+  melhorSeSobe: boolean,
+): { texto: string; bom: boolean | null } {
+  if (anterior === undefined) {
+    return { texto: "Sem mês anterior para comparar.", bom: null };
+  }
+  const dif = atual - anterior;
+  const antes = nomeMes(somarMeses(mes, -1));
+  if (dif === 0) return { texto: `Igual a ${antes}.`, bom: null };
+  const texto = `${formatarMoeda(Math.abs(dif))} ${dif > 0 ? "a mais" : "a menos"} que em ${antes}.`;
+  return { texto, bom: dif > 0 === melhorSeSobe };
+}
+
+function CartaoDre({
+  rotulo,
+  valor,
+  comparacao,
+  serie,
+  tom,
+  destaque,
+}: {
+  rotulo: string;
+  valor: string;
+  comparacao: { texto: string; bom: boolean | null };
+  serie: number[];
+  tom: "marinho" | "dourado" | "sucesso" | "aviso";
+  destaque?: boolean;
+}) {
+  return (
+    <div
+      className={`${CARTAO} flex flex-col gap-2 ${destaque ? "border-l-dourado border-l-4" : ""}`}
+    >
+      <p className="text-apoio text-texto-2 font-medium">{rotulo}</p>
+      <p className="font-titulo text-numero-sm text-texto font-medium tabular-nums">
+        {valor}
+      </p>
+      <Sparkline
+        valores={serie.map((v) => Math.max(v, 0))}
+        tom={tom}
+        rotulo={`${rotulo} nos últimos ${serie.length} meses`}
+      />
+      <p
+        className={`text-mini ${comparacao.bom === null ? "text-texto-2" : comparacao.bom ? "text-sucesso" : "text-aviso"}`}
+      >
+        {comparacao.bom === null
+          ? ""
+          : comparacao.bom
+            ? "Subiu: "
+            : "Atenção: "}
+        {comparacao.texto}
+      </p>
+    </div>
+  );
+}
+
 /**
  * Visão do mês do financeiro (P46): DRE gerencial em regime de caixa,
  * inadimplência, previsão de recebimentos e os lançamentos que compõem o
- * DRE. O número do painel executivo vem das mesmas funções do banco.
+ * DRE. O número do painel executivo vem das mesmas funções do banco. Tudo o
+ * que é série vira gráfico; a tabela fica logo abaixo de cada um.
  */
 export function VisaoFinanceiraTela({ v }: { v: VisaoFinanceira }) {
   const { dre, inadimplencia, previsao, lancamentos } = v;
-  const menor = Math.min(0, ...dre.serie.map((p) => p.resultadoCentavos));
-  const despesasComValor = dre.despesasPorCategoria.filter(
-    (c) => c.centavos > 0,
+  const i = dre.serie.findIndex((p) => p.mes === dre.mes);
+  const ant = i > 0 ? dre.serie[i - 1] : undefined;
+  const fatias = fatiasDeDespesa(
+    dre.despesasPorCategoria.map((c) => ({
+      rotulo: ROTULO_CATEGORIA[c.categoria],
+      centavos: c.centavos,
+    })),
   );
+  const temSerie = dre.serie.some(
+    (p) => p.receitaCentavos > 0 || p.despesasCentavos > 0,
+  );
+  const faixasComValor = inadimplencia.faixas.some((f) => f.centavos > 0);
 
   return (
-    <div className="flex flex-col gap-8">
-      {/* O mês em três números (DESIGN.md, 2.6): o que entrou é o feito
-          (sálvia), o que saiu é o que já foi guardado (areia), o resultado
-          é o agora, em destaque. Cada um com a frase que dá o contexto. */}
-      <div className="grid grid-cols-1 gap-2 lg:grid-cols-3 lg:gap-3">
-        <CartaoResumo
-          tom="dourado"
-          arranjo="linha"
-          icone={<Scale />}
+    <div className="flex flex-col gap-6">
+      {/* DRE resumida: quatro cartões, cada um com a linha dos últimos meses
+          e o quanto mudou desde o mês anterior. */}
+      <div className="grid grid-cols-1 gap-3 min-[600px]:grid-cols-2 lg:grid-cols-4">
+        <CartaoDre
+          destaque
+          rotulo="Resultado do mês"
           valor={formatarMoeda(dre.resultadoCentavos)}
-          rotulo="de resultado"
-          contexto={
-            dre.margemPct !== null
-              ? `margem de ${formatarPct(dre.margemPct)}`
-              : "sem recebimento, sem margem"
-          }
-        />
-        <CartaoResumo
-          tom="salvia"
-          arranjo="linha"
-          icone={<ArrowDownLeft />}
-          valor={formatarMoeda(dre.receitaCentavos)}
-          rotulo="entraram"
-          contexto="cobranças pagas no mês"
-        />
-        <CartaoResumo
-          tom="areia"
-          arranjo="linha"
-          icone={<ArrowUpRight />}
-          valor={formatarMoeda(dre.despesasCentavos)}
-          rotulo="saíram"
-          contexto={plural(
-            despesasComValor.length,
-            "categoria de despesa",
-            "categorias de despesa",
+          comparacao={delta(
+            dre.resultadoCentavos,
+            ant?.resultadoCentavos,
+            dre.mes,
+            true,
           )}
+          serie={dre.serie.map((p) => p.resultadoCentavos)}
+          tom="dourado"
         />
+        <CartaoDre
+          rotulo="Entraram"
+          valor={formatarMoeda(dre.receitaCentavos)}
+          comparacao={delta(
+            dre.receitaCentavos,
+            ant?.receitaCentavos,
+            dre.mes,
+            true,
+          )}
+          serie={dre.serie.map((p) => p.receitaCentavos)}
+          tom="sucesso"
+        />
+        <CartaoDre
+          rotulo="Saíram"
+          valor={formatarMoeda(dre.despesasCentavos)}
+          comparacao={delta(
+            dre.despesasCentavos,
+            ant?.despesasCentavos,
+            dre.mes,
+            false,
+          )}
+          serie={dre.serie.map((p) => p.despesasCentavos)}
+          tom="marinho"
+        />
+        <div className={`${CARTAO} flex flex-col gap-2`}>
+          <p className="text-apoio text-texto-2 font-medium">Margem</p>
+          <p className="font-titulo text-numero-sm text-texto font-medium tabular-nums">
+            {dre.margemPct !== null ? formatarPct(dre.margemPct) : "sem número"}
+          </p>
+          <p className="text-mini text-texto-2">
+            {dre.margemPct !== null
+              ? "Resultado dividido pelo que entrou no mês."
+              : "Sem recebimento no mês, ainda não há margem para calcular."}
+          </p>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-[62fr_38fr]">
-        <section
-          aria-labelledby="fin-dre"
-          className="min-[720px]:bg-superficie min-[720px]:rounded-3 min-[720px]:shadow-1 flex flex-col gap-4 min-[720px]:p-5 lg:p-6"
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[62fr_38fr]">
+        <Bloco
+          id="fin-serie"
+          titulo={`Entrou e saiu nos últimos ${dre.serie.length} meses`}
+          apoio="Regime de caixa: conta o que foi pago no mês. Cobrança estornada ou cancelada não entra."
         >
-          <div className="flex flex-col gap-1">
-            <h2
-              id="fin-dre"
-              className="font-titulo text-2 text-texto flex items-center gap-3 font-medium"
-            >
-              <TileIcone tom="areia" forma="quadrado" tamanho="p">
-                <ReceiptText />
-              </TileIcone>
-              DRE de {rotuloMes(dre.mes)}
-            </h2>
-            <p className="text-apoio text-texto-2 max-w-[68ch]">
-              Regime de caixa: conta o que foi pago no mês. Cobrança estornada
-              ou cancelada não entra, e a taxa do meio de pagamento ainda não é
-              registrada.
-            </p>
-          </div>
-
-          <TabelaLista
-            rotulo={`DRE de ${rotuloMes(dre.mes)}`}
-            colunas={[
-              { chave: "linha", rotulo: "Linha", principal: true },
-              { chave: "valor", rotulo: "Valor", numerica: true },
-            ]}
-            linhas={[
-              {
-                id: "receita",
-                valores: {
-                  linha: "Recebimentos (cobranças pagas)",
-                  valor: formatarMoeda(dre.receitaCentavos),
-                },
-              },
-              ...dre.despesasPorCategoria.map((c) => ({
-                id: c.categoria,
-                valores: {
-                  linha: `Despesa: ${ROTULO_CATEGORIA[c.categoria].toLowerCase()}`,
-                  valor:
-                    c.centavos > 0
-                      ? `-${formatarMoeda(c.centavos)}`
-                      : formatarMoeda(0),
-                },
-              })),
-              {
-                id: "resultado",
-                valores: {
-                  linha: `Resultado${dre.margemPct !== null ? ` (margem de ${formatarPct(dre.margemPct)})` : ""}`,
-                  valor: formatarMoeda(dre.resultadoCentavos),
-                },
-              },
-            ]}
-          />
-        </section>
-
-        {/* Para onde foi o dinheiro: bloco próprio, ao lado do DRE no
-          computador, em areia (o que já foi guardado). */}
-        <section
-          aria-labelledby="fin-destino"
-          className="bg-areia-clara rounded-3 flex flex-col gap-4 p-5 lg:p-6"
-        >
-          <h2
-            id="fin-destino"
-            className="font-titulo text-2 text-texto flex items-center gap-3 font-medium"
-          >
-            <TileIcone tom="areia" forma="quadrado" tamanho="p">
-              <Wallet />
-            </TileIcone>
-            Para onde foi o dinheiro
-          </h2>
-          {despesasComValor.length > 0 ? (
-            <BarrasHorizontais
-              descricao={`Despesas de ${rotuloMes(dre.mes)} por categoria`}
-              dados={despesasComValor.map((c) => ({
-                id: c.categoria,
-                rotulo: ROTULO_CATEGORIA[c.categoria],
-                valor: c.centavos,
-                valorTexto: formatarMoeda(c.centavos),
+          {temSerie ? (
+            <ColunasMoeda
+              rotulo="Entrou e saiu por mês, em reais"
+              legenda={["Entrou", "Saiu"]}
+              tom="sucesso"
+              tom2="marinho"
+              itens={dre.serie.map((p) => ({
+                rotulo: nomeMes(p.mes).slice(0, 3),
+                centavos: p.receitaCentavos,
+                centavos2: p.despesasCentavos,
+                dica: [
+                  rotuloMes(p.mes),
+                  `Entrou: ${formatarMoeda(p.receitaCentavos)}`,
+                  `Saiu: ${formatarMoeda(p.despesasCentavos)}`,
+                  `Resultado: ${formatarMoeda(p.resultadoCentavos)}`,
+                ],
               }))}
             />
           ) : (
-            <p className="text-corpo text-texto-2">
-              Nenhuma despesa lançada neste mês.
+            <p className="text-corpo text-texto-2 max-w-[60ch]">
+              Os gráficos aparecem quando houver o primeiro recebimento ou a
+              primeira despesa. Os recebimentos entram sozinhos quando uma
+              cobrança é paga, e as despesas se lançam na tela de despesas.
             </p>
           )}
-        </section>
-      </div>
-
-      <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-2">
-        <section
-          aria-labelledby="fin-serie"
-          className="bg-superficie rounded-3 shadow-1 flex flex-col gap-3 p-5 lg:p-6"
-        >
-          <h2
-            id="fin-serie"
-            className="font-titulo text-2 text-texto flex items-center gap-3 font-medium"
-          >
-            <TileIcone tom="lavanda" forma="quadrado" tamanho="p">
-              <ChartColumn />
-            </TileIcone>
-            Resultado dos últimos {dre.serie.length} meses
-          </h2>
-          <Colunas
-            descricao={`Resultado de cada um dos últimos ${dre.serie.length} meses, em reais`}
-            dados={dre.serie.map((p) => ({
-              id: p.mes,
-              rotulo: nomeMes(p.mes).slice(0, 3),
-              valor: p.resultadoCentavos,
-              valorTexto:
-                p.mes === dre.mes
-                  ? formatarMoedaCurta(p.resultadoCentavos)
-                  : undefined,
-              detalhe: [
-                rotuloMes(p.mes),
-                `Recebimentos: ${formatarMoeda(p.receitaCentavos)}`,
-                `Despesas: ${formatarMoeda(p.despesasCentavos)}`,
-                `Resultado: ${formatarMoeda(p.resultadoCentavos)}`,
-              ],
-            }))}
-            minimo={menor}
-            eixo="moeda"
-          />
           <VerComoTabela
-            rotulo="Resultado por mês"
+            rotulo="Entrou e saiu por mês"
             colunas={[
               { chave: "mes", rotulo: "Mês", principal: true },
-              { chave: "receita", rotulo: "Recebimentos", numerica: true },
-              { chave: "despesas", rotulo: "Despesas", numerica: true },
+              { chave: "receita", rotulo: "Entrou", numerica: true },
+              { chave: "despesas", rotulo: "Saiu", numerica: true },
               { chave: "resultado", rotulo: "Resultado", numerica: true },
             ]}
             linhas={dre.serie.map((p) => ({
@@ -255,139 +267,132 @@ export function VisaoFinanceiraTela({ v }: { v: VisaoFinanceira }) {
               },
             }))}
           />
-        </section>
+        </Bloco>
 
-        {/* O que ainda vai entrar é tempo (lavanda, DESIGN.md 2.5). */}
-        <section
-          aria-labelledby="fin-prev"
-          className="bg-lavanda-clara rounded-3 flex flex-col gap-3 p-5 lg:p-6"
+        <Bloco
+          id="fin-destino"
+          titulo="Para onde foi o dinheiro"
+          apoio={`Despesas de ${rotuloMes(dre.mes)} por categoria.`}
         >
-          <div className="flex flex-col gap-1">
-            <h2
-              id="fin-prev"
-              className="font-titulo text-2 text-texto flex items-center gap-3 font-medium"
-            >
-              <TileIcone tom="lavanda" forma="quadrado" tamanho="p">
-                <CalendarClock />
-              </TileIcone>
-              Previsão de recebimentos
-            </h2>
-            <p className="text-corpo text-texto max-w-[68ch]">
+          {fatias.length > 0 ? (
+            <PizzaMoeda
+              rotulo={`Despesas de ${rotuloMes(dre.mes)} por categoria`}
+              fatias={fatias}
+            />
+          ) : (
+            <p className="text-corpo text-texto-2">
+              Nenhuma despesa lançada neste mês. Quando houver, a divisão por
+              categoria aparece aqui.
+            </p>
+          )}
+        </Bloco>
+      </div>
+
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
+        <Bloco
+          id="fin-prev"
+          titulo="Previsão de recebimentos"
+          apoio={
+            <>
               {previsao.aVencerCentavos > 0
                 ? `Vencem ${formatarMoeda(previsao.aVencerCentavos)} nos próximos ${previsao.meses.length} meses.`
                 : `Nenhuma cobrança em aberto vence nos próximos ${previsao.meses.length} meses.`}{" "}
               {previsao.atrasadasCentavos > 0
-                ? `Mais ${formatarMoeda(previsao.atrasadasCentavos)} já venceram e seguem em aberto.`
+                ? `Mais ${formatarMoeda(previsao.atrasadasCentavos)} já venceram e seguem em aberto. `
                 : ""}
+              Só entram as cobranças que já existem.
+            </>
+          }
+        >
+          {previsao.aVencerCentavos > 0 ? (
+            <ColunasMoeda
+              rotulo="Cobranças em aberto que vencem em cada mês, em reais"
+              tom="dourado"
+              itens={previsao.meses.map((m) => ({
+                rotulo: nomeMes(m.mes).slice(0, 3),
+                centavos: m.centavos,
+                dica: [
+                  rotuloMes(m.mes),
+                  `A vencer: ${formatarMoeda(m.centavos)}`,
+                  plural(m.qtd, "cobrança", "cobranças"),
+                ],
+              }))}
+            />
+          ) : (
+            <p className="text-corpo text-texto-2 max-w-[60ch]">
+              Quando um contrato gerar cobranças, as colunas mostram quanto
+              vence em cada mês.
             </p>
-            <p className="text-apoio text-texto-2 max-w-[68ch]">
-              Só entram as cobranças que já existem. Contrato assinado que ainda
-              não gerou cobrança não aparece aqui.
+          )}
+        </Bloco>
+
+        <Bloco
+          id="fin-inad"
+          titulo="Inadimplência"
+          apoio={fraseInadimplencia(v)}
+        >
+          {faixasComValor ? (
+            <BarrasHorizontais
+              rotulo="Cobranças em atraso por faixa de dias"
+              larguraRotulo="8rem"
+              itens={inadimplencia.faixas.map((f) => ({
+                rotulo: rotuloFaixa(f.deDias, f.ateDias),
+                valor: f.centavos,
+                tom: f.deDias > 30 ? "alerta" : "aviso",
+                nota: formatarMoedaCurta(f.centavos),
+                dica: `${rotuloFaixa(f.deDias, f.ateDias)}: ${formatarMoeda(f.centavos)}, ${plural(f.qtd, "cobrança", "cobranças")}`,
+              }))}
+            />
+          ) : (
+            <p className="text-corpo text-texto-2 max-w-[60ch]">
+              Nenhuma cobrança em atraso. Se alguma vencer sem pagamento, as
+              barras separam por quantos dias ela está atrasada.
             </p>
-          </div>
-          <Colunas
-            descricao="Valor das cobranças em aberto que vencem em cada mês"
-            dados={previsao.meses.map((m) => ({
-              id: m.mes,
-              rotulo: nomeMes(m.mes).slice(0, 3),
-              valor: m.centavos,
-              valorTexto:
-                m.centavos > 0 ? formatarMoedaCurta(m.centavos) : undefined,
-              detalhe: [
-                rotuloMes(m.mes),
-                `A vencer: ${formatarMoeda(m.centavos)}`,
-                plural(m.qtd, "cobrança", "cobranças"),
-              ],
-            }))}
-            eixo="moeda"
-          />
-        </section>
+          )}
+        </Bloco>
       </div>
 
-      <section
-        aria-labelledby="fin-inad"
-        className="min-[720px]:bg-superficie min-[720px]:rounded-3 min-[720px]:shadow-1 flex flex-col gap-4 min-[720px]:p-5 lg:p-6"
-      >
-        <div className="flex flex-col gap-1">
-          <h2
-            id="fin-inad"
-            className="font-titulo text-2 text-texto flex items-center gap-3 font-medium"
-          >
-            <TileIcone
-              tom="branco"
-              forma="quadrado"
-              tamanho="p"
-              className="border-linha border"
-            >
-              <ClockAlert />
-            </TileIcone>
-            Inadimplência
-          </h2>
-          <p className="text-corpo text-texto max-w-[68ch]">
-            {fraseInadimplencia(v)}
-          </p>
-        </div>
-        {inadimplencia.vencidasQtd > 0 ? (
-          <>
-            <BarrasHorizontais
-              descricao="Cobranças em atraso por faixa de dias"
-              dados={inadimplencia.faixas.map((f) => ({
-                id: `${f.deDias}`,
-                rotulo: rotuloFaixa(f.deDias, f.ateDias),
-                apoio: plural(f.qtd, "cobrança", "cobranças"),
-                valor: f.centavos,
-                valorTexto: formatarMoeda(f.centavos),
-              }))}
-            />
-            <TabelaLista
-              rotulo="Cobranças em atraso"
-              colunas={[
-                { chave: "familia", rotulo: "Família", principal: true },
-                { chave: "atraso", rotulo: "Atraso", canto: true },
-                { chave: "valor", rotulo: "Valor", numerica: true },
-                { chave: "vencimento", rotulo: "Vencimento" },
-              ]}
-              linhas={inadimplencia.itens.map((c) => ({
-                id: c.id,
-                valores: {
-                  familia: (
-                    <Link
-                      href={`/cobrancas/${c.id}`}
-                      className="text-texto font-semibold underline decoration-1 underline-offset-4"
-                    >
-                      {c.familiaNome}
-                    </Link>
-                  ),
-                  atraso: (
-                    <Selo variante={c.diasAtraso > 30 ? "alerta" : "aviso"}>
-                      {plural(c.diasAtraso, "dia", "dias")}
-                    </Selo>
-                  ),
-                  valor: formatarMoeda(c.valorCentavos),
-                  vencimento: formatarData(c.vencimento) ?? c.vencimento,
-                },
-              }))}
-            />
-          </>
-        ) : null}
-      </section>
+      {inadimplencia.vencidasQtd > 0 ? (
+        <Bloco id="fin-atraso" titulo="Cobranças em atraso">
+          <TabelaLista
+            rotulo="Cobranças em atraso"
+            colunas={[
+              { chave: "familia", rotulo: "Família", principal: true },
+              { chave: "atraso", rotulo: "Atraso", canto: true },
+              { chave: "valor", rotulo: "Valor", numerica: true },
+              { chave: "vencimento", rotulo: "Vencimento" },
+              { chave: "acao", rotulo: "Ação" },
+            ]}
+            linhas={inadimplencia.itens.map((c) => ({
+              id: c.id,
+              valores: {
+                familia: c.familiaNome,
+                atraso: (
+                  <Selo variante={c.diasAtraso > 30 ? "alerta" : "aviso"}>
+                    {plural(c.diasAtraso, "dia", "dias")}
+                  </Selo>
+                ),
+                valor: formatarMoeda(c.valorCentavos),
+                vencimento: formatarData(c.vencimento) ?? c.vencimento,
+                acao: (
+                  <Link
+                    href={`/cobrancas/${c.id}`}
+                    className="text-texto text-apoio min-h-toque inline-flex items-center font-semibold underline decoration-1 underline-offset-4"
+                  >
+                    Abrir cobrança
+                  </Link>
+                ),
+              },
+            }))}
+          />
+        </Bloco>
+      ) : null}
 
-      <section
-        aria-labelledby="fin-lanc"
-        className="bg-areia-clara rounded-3 flex flex-col gap-3 p-5 lg:p-6"
+      <Bloco
+        id="fin-lanc"
+        titulo={`Lançamentos de ${rotuloMes(lancamentos.mes)}`}
+        apoio={`A soma destas linhas é o resultado do DRE: ${formatarMoeda(lancamentos.saldoCentavos)}.`}
       >
-        <h2
-          id="fin-lanc"
-          className="font-titulo text-2 text-texto flex items-center gap-3 font-medium"
-        >
-          <TileIcone tom="areia" forma="quadrado" tamanho="p">
-            <ListOrdered />
-          </TileIcone>
-          Lançamentos de {rotuloMes(lancamentos.mes)}
-        </h2>
-        <p className="text-apoio text-texto-2 max-w-[68ch]">
-          {`A soma destas linhas é o resultado do DRE: ${formatarMoeda(lancamentos.saldoCentavos)}.`}
-        </p>
         {lancamentos.lancamentos.length === 0 ? (
           <EstadoVazio
             nivelTitulo="h3"
@@ -423,7 +428,7 @@ export function VisaoFinanceiraTela({ v }: { v: VisaoFinanceira }) {
             aberta
           />
         )}
-      </section>
+      </Bloco>
     </div>
   );
 }

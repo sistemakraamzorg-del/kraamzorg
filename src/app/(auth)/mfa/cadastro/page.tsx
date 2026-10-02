@@ -29,7 +29,7 @@ export default async function PaginaCadastroMfa({
   return (
     <>
       <div className="flex flex-col gap-2">
-        <h1 className="font-titulo text-display text-texto font-normal">
+        <h1 className="font-titulo text-display text-texto font-light">
           Proteja o seu acesso
         </h1>
         <p className="text-corpo text-texto">
@@ -53,7 +53,7 @@ export default async function PaginaCadastroMfa({
             </li>
             <li>Digite o código de 6 números que aparecer no aplicativo.</li>
           </ol>
-          <figure className="rounded-3 bg-superficie shadow-1 flex flex-col items-center gap-3 p-5">
+          <figure className="rounded-3 bg-[image:var(--brilho-superficie)] shadow-1 flex flex-col items-center gap-3 p-5">
             {/* O QR é um data URI de SVG gerado pelo Supabase Auth: next/image não se aplica. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img

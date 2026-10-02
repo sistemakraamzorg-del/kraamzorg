@@ -1,6 +1,6 @@
 /**
  * Fontes locais (P10, a partir de docs/design/DESIGN.md, seção 4).
- * Arquivos .woff2 copiados de docs/prototipo/assets/fonts (licença SIL OFL 1.1),
+ * Arquivos .woff2 copiados de docs/prototipo/assets/fonts e, para Jost 200 e 300 (títulos finos do guia da Drop), do Fontsource (licença SIL OFL 1.1),
  * subconjunto "latin": cobre todo acento do português (U+00C0 a U+00FF), então
  * o subconjunto "latin-ext" não entra aqui.
  *
@@ -12,6 +12,16 @@ import localFont from "next/font/local";
 
 export const jost = localFont({
   src: [
+    {
+      path: "./fonts/jost-latin-200-normal.woff2",
+      weight: "200",
+      style: "normal",
+    },
+    {
+      path: "./fonts/jost-latin-300-normal.woff2",
+      weight: "300",
+      style: "normal",
+    },
     {
       path: "./fonts/jost-latin-400-normal.woff2",
       weight: "400",

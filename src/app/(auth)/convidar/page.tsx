@@ -28,7 +28,7 @@ export default async function PaginaConvidar() {
         </Link>
       </Botao>
       <div className="flex flex-col gap-2">
-        <h1 className="font-titulo text-display text-texto font-normal">
+        <h1 className="font-titulo text-display text-texto font-light">
           Convidar pessoa
         </h1>
         <p className="text-corpo text-texto">

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { z } from "zod";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -53,19 +54,25 @@ export default async function PaginaEscala({
   const hoje = hojeEmBrasilia();
   const pedida = um(pesquisa.semana);
   const semana = inicioDaSemana(pedida && eDataValida(pedida) ? pedida : hoje);
-  const regiaoId = um(pesquisa.praca);
+  const pracaPedida = um(pesquisa.praca);
+  const regiaoId =
+    pracaPedida && z.uuid().safeParse(pracaPedida).success ? pracaPedida : null;
 
   let tela: EscalaTela | null = null;
   try {
     tela = await carregarEscala({ semana, regiaoId });
-  } catch {
+  } catch (erro) {
+    console.error(
+      "[tela-erro] /equipe/escala",
+      erro instanceof Error ? erro.message : erro,
+    );
     tela = null;
   }
 
   const anterior = somarDias(semana, -7);
   const proxima = somarDias(semana, 7);
   const fim = somarDias(semana, 6);
-  const sufixo = regiaoId ? `&praca=${regiaoId}` : "";
+  const sufixo = regiaoId ? `&praca=${encodeURIComponent(regiaoId)}` : "";
 
   return (
     <>

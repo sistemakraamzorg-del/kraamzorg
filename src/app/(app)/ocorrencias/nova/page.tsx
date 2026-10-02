@@ -56,12 +56,13 @@ export default async function PaginaNovaOcorrencia({
     const repos = await obterRepositorios();
     const [familias, equipe, responsaveis] = await Promise.all([
       repos.familias.listarFamilias({ limite: 300 }),
-      repos.equipe.obterEquipe(),
+      // A profissional é opcional no formulário: sem a equipe, ele abre sem o campo.
+      repos.equipe.obterEquipe().catch(() => null),
       repos.ocorrencias.responsaveis(),
     ]);
     dados = {
       familias: familias.map((f) => ({ valor: f.id, rotulo: f.nome })),
-      profissionais: equipe.profissionais.map((p) => ({
+      profissionais: (equipe?.profissionais ?? []).map((p) => ({
         valor: p.id,
         rotulo: p.nome,
       })),

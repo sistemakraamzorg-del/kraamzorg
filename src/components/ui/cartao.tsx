@@ -35,7 +35,8 @@ export interface CartaoProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 const classesVariante: Record<NonNullable<CartaoProps["variante"]>, string> = {
-  padrao: "bg-superficie shadow-1",
+  padrao:
+    "border border-linha bg-[image:var(--brilho-superficie)] bg-superficie shadow-1",
   plano: "bg-superficie border border-linha",
   areia: "bg-superficie-2",
   dourado: "bg-dourado-claro",

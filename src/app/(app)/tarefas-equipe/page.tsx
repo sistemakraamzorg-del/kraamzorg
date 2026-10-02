@@ -26,9 +26,22 @@ export default async function PaginaTarefasEquipe() {
 
   let visao: VisaoTarefasEquipe | null = null;
   let falhou = false;
+  const pessoas = new Map<string, string>();
+  const familias: { id: string; nome: string }[] = [];
   if (!semMfa) {
     try {
-      visao = await (await obterRepositorios()).relacao.tarefasEquipe.visao();
+      const repos = await obterRepositorios();
+      visao = await repos.relacao.tarefasEquipe.visao();
+      for (const p of visao.pessoas) pessoas.set(p.usuarioId, p.nome);
+      // Quem já tem tarefa aparece sempre; a diretoria também enxerga as demais pessoas ativas.
+      try {
+        for (const u of await repos.usuarios.listarUsuarios())
+          if (u.ativo) pessoas.set(u.id, u.nome);
+      } catch {}
+      try {
+        for (const f of await repos.familias.listarFamilias())
+          familias.push({ id: f.id, nome: f.nome });
+      } catch {}
     } catch (erro) {
       falhou = !(
         erro instanceof ErroRepositorio && erro.codigo === "sem_permissao"
@@ -43,9 +56,9 @@ export default async function PaginaTarefasEquipe() {
           Tarefas por equipe
         </h1>
         <p className="text-apoio text-texto-2 max-w-[60ch]">
-          Uma coluna por equipe e, dentro dela, as tarefas de cada pessoa. O que
-          venceu fica no topo; o que está sem responsável vem primeiro. Cada
-          tarefa se resolve na tela Tarefas de quem cuida dela.
+          Cada tarefa aberta numa coluna pelo estado em que está. Toque numa
+          tarefa para ver os detalhes e passar para outra pessoa. Arraste entre
+          as colunas, ou use os botões Começar e Concluir.
         </p>
       </div>
 
@@ -87,7 +100,11 @@ export default async function PaginaTarefasEquipe() {
             : "Suas próprias tarefas ficam na tela Tarefas."}
         </FaixaAlerta>
       ) : (
-        <QuadroEquipes quadro={montarQuadroEquipes(visao)} />
+        <QuadroEquipes
+          quadro={montarQuadroEquipes(visao)}
+          pessoas={[...pessoas].map(([id, nome]) => ({ id, nome }))}
+          familias={familias}
+        />
       )}
     </div>
   );

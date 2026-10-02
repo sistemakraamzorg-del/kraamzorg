@@ -8,6 +8,8 @@ import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { exigirSessao } from "@/lib/auth/sessao";
 import { obterRepositorios } from "@/lib/dados/fabrica";
 import type { ClassificacaoLead, NumeroPipeline } from "@/lib/dados/tipos";
+import { Cartao } from "@/components/ui/cartao";
+import { GraficosPipeline } from "@/modules/crm/pipeline/componentes/graficos-pipeline";
 import { FiltrosPipeline } from "@/modules/crm/pipeline/componentes/filtros-pipeline";
 import { FormularioLead } from "@/modules/crm/pipeline/componentes/formulario-lead";
 import { QuadroPipeline } from "@/modules/crm/pipeline/componentes/quadro-pipeline";
@@ -146,11 +148,29 @@ export default async function PaginaPipeline({
             equipe técnica.
           </FaixaAlerta>
         ) : (
-          <QuadroPipeline
-            pipeline={pipeline}
-            cartoes={cartoes}
-            papeis={sessao.papeis}
-          />
+          <>
+            <QuadroPipeline
+              pipeline={pipeline}
+              cartoes={cartoes}
+              papeis={sessao.papeis}
+            />
+            <GraficosPipeline cartoes={cartoes} pipeline={pipeline} />
+            {pipeline === 1 ? (
+              <>
+                <Cartao variante="dourado" className="shadow-halo mt-4">
+                  <p className="text-apoio">
+                    <b className="font-semibold">
+                      Nutrição não é arquivo morto.
+                    </b>{" "}
+                    É o maior pipeline do sistema por volume e o principal motor
+                    comercial. A régua acompanha a semana gestacional, não os
+                    dias desde o cadastro, e se recalcula sozinha quando a DPP
+                    muda.
+                  </p>
+                </Cartao>
+              </>
+            ) : null}
+          </>
         )}
       </div>
     </>

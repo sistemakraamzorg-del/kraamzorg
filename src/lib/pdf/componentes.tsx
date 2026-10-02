@@ -17,7 +17,7 @@ import { FAMILIA_CORPO, FAMILIA_DADO, FAMILIA_TITULO } from "./fontes";
 
 const CAMINHO_LOGO = path.join(
   process.cwd(),
-  "public/brand/logo-provisorio.png",
+  "public/brand/logo-vertical-marinho.png",
 );
 
 /**

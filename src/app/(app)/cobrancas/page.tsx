@@ -31,7 +31,11 @@ export default async function PaginaCobrancas({
   let tela: TelaListaCobrancas | null = null;
   try {
     tela = await obterTelaListaCobrancas(usuario, situacao);
-  } catch {
+  } catch (erro) {
+    console.error(
+      "[tela-erro] /cobrancas",
+      erro instanceof Error ? erro.message : erro,
+    );
     tela = null;
   }
 
@@ -76,7 +80,11 @@ export default async function PaginaCobrancas({
             status de cada uma no contrato da família.
           </FaixaAlerta>
         ) : (
-          <ListaCobrancasTela lista={tela.lista} situacao={situacao} />
+          <ListaCobrancasTela
+            lista={tela.lista}
+            todas={tela.todas}
+            situacao={situacao}
+          />
         )}
       </div>
     </>

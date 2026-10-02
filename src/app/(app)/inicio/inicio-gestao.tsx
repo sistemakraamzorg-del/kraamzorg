@@ -1,20 +1,14 @@
 import Link from "next/link";
 import {
   BarChart3,
-  CalendarDays,
-  ClipboardPen,
-  FileSignature,
   MapPin,
   MessagesSquare,
   Radar,
   Siren,
-  UserRoundCheck,
   Users,
 } from "lucide-react";
-import { CabecalhoSaudacao } from "@/components/shell/cabecalho-saudacao";
 import { saudacao } from "@/components/shell/saudacao";
 import { BlocoAba } from "@/components/ui/bloco-aba";
-import { CartaoResumo } from "@/components/ui/cartao-resumo";
 import { Selo } from "@/components/ui/selo";
 import {
   hojeEmBrasilia,
@@ -29,7 +23,29 @@ import type { AgendaPeriodo, EquipeVisao } from "@/lib/dados/tipos-equipe";
 import type { Radar as RadarDados } from "@/lib/dados/tipos-operacao";
 import type { CapacidadeVisao } from "@/lib/dados/tipos-gestao";
 import type { SessaoVenda } from "@/lib/dados/tipos-venda";
-import { formatarDiaSemanaEData } from "@/lib/formatacao";
+import { formatarDiaSemanaEData, formatarMoeda } from "@/lib/formatacao";
+import { dataCurta, formatarPct } from "@/lib/gestao/formato";
+import type { TomGrafico } from "@/components/graficos";
+import {
+  familiasPorGrupo,
+  ocupacaoPorSemana,
+  ROTULO_GRUPO,
+  visitasPorDia,
+  type GrupoFamilia,
+} from "@/modules/inicio/derivados";
+import {
+  AnelMeta,
+  BarrasHorizontais,
+  Colunas,
+  FaixaDoDia,
+  GradeGraficos,
+  GradeIndicadores,
+  PainelGrafico,
+  Rosca,
+  Sparkline,
+  type Indicador,
+} from "@/modules/inicio/painel-gestao";
+import type { Dre } from "@/lib/dados/tipos-gestao";
 import { ROTULO_ESTADO_SENSIVEL } from "@/modules/crm/ficha/rotulos";
 import { quandoSessao, separarAgenda } from "@/modules/crm/sessao-venda/agenda";
 import { obterTelaCapacidade } from "@/modules/operacao/capacidade/dados";
@@ -103,20 +119,32 @@ async function lerDoDia(): Promise<DadosDoDia> {
   return { hoje, equipe, semana, alertas };
 }
 
+const DIAS_CURTOS = ["seg", "ter", "qua", "qui", "sex", "sáb", "dom"];
+
+const TOM_GRUPO: Record<GrupoFamilia, TomGrafico> = {
+  negociacao: "areia",
+  contratada: "dourado",
+  espera: "aviso",
+  atendimento: "sucesso",
+  outras: "marinho",
+};
+
 export async function InicioCoordenacao({ sessao }: { sessao: SessaoUsuario }) {
   const repos = await obterRepositorios();
-  const [dia, radar, sessoes] = await Promise.all([
+  const [dia, radar, sessoes, capacidade] = await Promise.all([
     lerDoDia(),
     tentar(() => repos.operacao.radar(null)),
     tentar(() => repos.venda.listarSessoes()),
+    tentar(() => obterTelaCapacidade(sessao)),
   ]);
   const porEnfermeira = dia.semana
     ? visitasPorEnfermeira(dia.semana.visitas, dia.hoje)
     : [];
+  const visao = capacidade?.situacao === "ok" ? capacidade.visao : null;
 
   return (
     <>
-      <CabecalhoSaudacao
+      <FaixaDoDia
         saudacao={saudacao(sessao.nome)}
         titulo={formatarDiaSemanaEData(new Date()) ?? "Início"}
         frase={
@@ -124,11 +152,32 @@ export async function InicioCoordenacao({ sessao }: { sessao: SessaoUsuario }) {
             ? `Equipe agora: ${fraseSinteseEquipe(dia.equipe.resumo)}`
             : undefined
         }
-      >
-        <TrioDoDia dia={dia} porEnfermeira={porEnfermeira} />
-      </CabecalhoSaudacao>
-      <div className="grid grid-cols-1 gap-6 pt-8 lg:grid-cols-2">
+      />
+      <Decisao>
         <BlocoAlertas alertas={dia.alertas} />
+        <BlocoCapacidade visao={visao} />
+      </Decisao>
+      <GradeIndicadores
+        itens={indicadoresDoDia({
+          dia,
+          porEnfermeira,
+          radar,
+          mostrarOfertas: true,
+        })}
+      />
+      <GradeGraficos>
+        <GraficoVisitasEnfermeira
+          porEnfermeira={dia.semana ? porEnfermeira : null}
+          limite={dia.semana?.limiteVisitasDia ?? null}
+        />
+        <GraficoCapacidade visao={visao} />
+        <GraficoFamilias radar={radar} />
+      </GradeGraficos>
+      <GradeGraficos colunas={2}>
+        <GraficoRegioes visao={visao} />
+        <GraficoVisitasDia semana={dia.semana} hoje={dia.hoje} />
+      </GradeGraficos>
+      <div className="grid grid-cols-1 gap-6 pt-8 lg:grid-cols-2">
         <BlocoVisitasHoje
           porEnfermeira={dia.semana ? porEnfermeira : null}
           limite={dia.semana?.limiteVisitasDia ?? null}
@@ -141,19 +190,23 @@ export async function InicioCoordenacao({ sessao }: { sessao: SessaoUsuario }) {
 }
 
 export async function InicioDiretoria({ sessao }: { sessao: SessaoUsuario }) {
-  const [dia, painel, capacidade] = await Promise.all([
+  const repos = await obterRepositorios();
+  const [dia, painel, capacidade, radar, dre] = await Promise.all([
     lerDoDia(),
     tentar(() => obterTelaPainel(sessao, null)),
     tentar(() => obterTelaCapacidade(sessao)),
+    tentar(() => repos.operacao.radar(null)),
+    tentar(() => repos.gestao.dre(null)),
   ]);
   const porEnfermeira = dia.semana
     ? visitasPorEnfermeira(dia.semana.visitas, dia.hoje)
     : [];
   const dadosPainel = painel?.situacao === "ok" ? painel.dados : null;
+  const visao = capacidade?.situacao === "ok" ? capacidade.visao : null;
 
   return (
     <>
-      <CabecalhoSaudacao
+      <FaixaDoDia
         saudacao={saudacao(sessao.nome)}
         titulo={formatarDiaSemanaEData(new Date()) ?? "Início"}
         frase={
@@ -163,21 +216,42 @@ export async function InicioDiretoria({ sessao }: { sessao: SessaoUsuario }) {
               ? `Equipe agora: ${fraseSinteseEquipe(dia.equipe.resumo)}`
               : undefined
         }
-      >
-        {dadosPainel ? (
-          <TrioDoMes dados={dadosPainel} />
-        ) : (
-          <TrioDoDia dia={dia} porEnfermeira={porEnfermeira} />
-        )}
-      </CabecalhoSaudacao>
-      <div className="grid grid-cols-1 gap-6 pt-8 lg:grid-cols-2">
+      />
+      <Decisao>
         <BlocoAlertas alertas={dia.alertas} />
+        <BlocoCapacidade visao={visao} />
+      </Decisao>
+      <GradeIndicadores
+        itens={
+          dadosPainel
+            ? indicadoresDoMes({
+                dia,
+                porEnfermeira,
+                radar,
+                dados: dadosPainel,
+                dre,
+              })
+            : indicadoresDoDia({
+                dia,
+                porEnfermeira,
+                radar,
+                mostrarOfertas: true,
+              })
+        }
+      />
+      <GradeGraficos>
+        <GraficoFunil dados={dadosPainel} />
+        <GraficoCapacidade visao={visao} />
+        <GraficoFamilias radar={radar} />
+      </GradeGraficos>
+      <GradeGraficos colunas={2}>
+        <GraficoRegioes visao={visao} />
+        <GraficoMeta dados={dadosPainel} />
+      </GradeGraficos>
+      <div className="grid grid-cols-1 gap-6 pt-8 lg:grid-cols-2">
         <BlocoVisitasHoje
           porEnfermeira={dia.semana ? porEnfermeira : null}
           limite={dia.semana?.limiteVisitasDia ?? null}
-        />
-        <BlocoCapacidade
-          visao={capacidade?.situacao === "ok" ? capacidade.visao : null}
         />
         <BlocoPainel mostrarMes={Boolean(dadosPainel)} />
       </div>
@@ -185,143 +259,396 @@ export async function InicioDiretoria({ sessao }: { sessao: SessaoUsuario }) {
   );
 }
 
-// --- Trio de números ------------------------------------------------------------
-
-function Trio({ children }: { children: React.ReactNode }) {
+/** Primeiro o que exige decisão: alertas clínicos e capacidade (sobrevenda). */
+function Decisao({ children }: { children: React.ReactNode }) {
   return (
-    <div className="tablet:grid-cols-3 grid grid-cols-2 gap-2 lg:max-w-[760px] lg:gap-3">
+    <section
+      aria-label="O que pede decisão agora"
+      className="grid grid-cols-1 gap-4 pt-6 lg:grid-cols-2"
+    >
       {children}
-    </div>
+    </section>
   );
 }
 
-function TrioDoDia({
-  dia,
-  porEnfermeira,
-}: {
+// --- Indicadores -------------------------------------------------------------------
+
+function plural(n: number, um: string, varios: string): string {
+  return `${n} ${n === 1 ? um : varios}`;
+}
+
+interface EntradaIndicadores {
   dia: DadosDoDia;
   porEnfermeira: VisitasDaEnfermeira[];
-}) {
-  const visitasHoje = dia.semana
-    ? visitasQueContam(dia.semana.visitas).filter((v) => v.data === dia.hoje)
-        .length
-    : null;
-  const fichas = dia.semana ? fichasSemAssinatura(dia.semana.visitas) : null;
-  const ofertas = dia.equipe?.resumo.ofertaPendente ?? null;
-  return (
-    <Trio>
-      {visitasHoje !== null ? (
-        <CartaoResumo
-          destaque
-          className="tablet:col-span-1 col-span-2"
-          fundo="marinho"
-          tom="argila"
-          icone={<MapPin />}
-          valor={visitasHoje}
-          rotulo={visitasHoje === 1 ? "visita hoje" : "visitas hoje"}
-          contexto={contextoVisitasHoje(porEnfermeira)}
-          href="#inicio-visitas"
-        />
-      ) : null}
-      {fichas ? (
-        <CartaoResumo
-          fundo="medio"
-          tom="argila"
-          icone={<ClipboardPen />}
-          valor={fichas.length}
-          rotulo={
-            fichas.length === 1
-              ? "ficha sem assinatura"
-              : "fichas sem assinatura"
-          }
-          contexto={contextoFichas(fichas.length)}
-          href="/agenda"
-        />
-      ) : null}
-      {ofertas !== null ? (
-        <CartaoResumo
-          fundo="medio"
-          tom="lavanda"
-          icone={<UserRoundCheck />}
-          valor={ofertas}
-          rotulo={
-            ofertas === 1 ? "oferta sem resposta" : "ofertas sem resposta"
-          }
-          contexto={contextoOfertas(
-            ofertas,
-            dia.equipe?.resumo.ofertaMaisAntigaHoras ?? null,
-          )}
-          href="/equipe"
-        />
-      ) : null}
-    </Trio>
+  radar: RadarDados | null;
+  mostrarOfertas?: boolean;
+}
+
+/** Visitas hoje, com o ritmo da semana no mini gráfico (agenda real). */
+function indicadorVisitas({
+  dia,
+  porEnfermeira,
+}: EntradaIndicadores): Indicador | null {
+  if (!dia.semana) return null;
+  const contam = visitasQueContam(dia.semana.visitas);
+  const hoje = contam.filter((v) => v.data === dia.hoje).length;
+  return {
+    rotulo: hoje === 1 ? "Visita hoje" : "Visitas hoje",
+    valor: hoje,
+    contexto: contextoVisitasHoje(porEnfermeira),
+    href: "#inicio-visitas",
+    tom: "lavanda",
+    serie: visitasPorDia(contam, inicioDaSemana(dia.hoje)).map((d) => d.total),
+    rotuloSerie: "Visitas em cada dia da semana",
+    tomGrafico: "dourado",
+  };
+}
+
+function indicadorNascimento(radar: RadarDados | null): Indicador | null {
+  if (!radar) return null;
+  const esperando = radar.familias.filter(
+    (f) => f.estagioP2 === "aguardando_nascimento",
   );
+  const semConfirmar = esperando.filter((f) => f.dppSemConfirmacao).length;
+  return {
+    rotulo: "Aguardando nascimento",
+    valor: esperando.length,
+    contexto:
+      semConfirmar > 0
+        ? `${plural(semConfirmar, "família", "famílias")} sem confirmação`
+        : "todas dentro do esperado",
+    href: "/radar",
+    tom: "salvia",
+  };
+}
+
+function indicadoresDoDia(e: EntradaIndicadores): Indicador[] {
+  const fichas = e.dia.semana
+    ? fichasSemAssinatura(e.dia.semana.visitas)
+    : null;
+  const ofertas = e.dia.equipe?.resumo.ofertaPendente ?? null;
+  const itens: (Indicador | null)[] = [
+    indicadorVisitas(e),
+    fichas
+      ? {
+          rotulo:
+            fichas.length === 1
+              ? "Ficha sem assinatura"
+              : "Fichas sem assinatura",
+          valor: fichas.length,
+          contexto: contextoFichas(fichas.length),
+          href: "/agenda",
+          tom: "argila",
+        }
+      : null,
+    indicadorNascimento(e.radar),
+    ofertas !== null
+      ? {
+          rotulo:
+            ofertas === 1 ? "Oferta sem resposta" : "Ofertas sem resposta",
+          valor: ofertas,
+          contexto: contextoOfertas(
+            ofertas,
+            e.dia.equipe?.resumo.ofertaMaisAntigaHoras ?? null,
+          ),
+          href: "/equipe",
+          tom: "dourado",
+        }
+      : null,
+  ];
+  return itens.filter((i): i is Indicador => i !== null);
 }
 
 /** A frase de comparação vira contexto do cartão: minúscula, sem ponto. */
 function emContexto(frase: string): string {
   const sem = frase.replace(/\.$/, "");
-  return sem.charAt(0).toLowerCase() + sem.slice(1);
+  // Só baixa a primeira letra de palavra comum: "R$ 4.550" não vira "r$ 4.550".
+  return /^[A-ZÀ-Ý][a-zà-ÿ]/.test(sem)
+    ? sem.charAt(0).toLowerCase() + sem.slice(1)
+    : sem;
 }
 
-function TrioDoMes({ dados }: { dados: DadosPainel }) {
-  const { atual, anterior } = dados;
-  const c = atual.comercial;
+function indicadoresDoMes(
+  e: EntradaIndicadores & { dados: DadosPainel; dre: Dre | null },
+): Indicador[] {
+  const { atual, anterior } = e.dados;
   const o = atual.operacao;
+  const receita = atual.financeiro.recebimentosCentavos;
+  const comparacao = contraAnterior(
+    receita,
+    anterior?.financeiro.recebimentosCentavos,
+    atual.mes,
+    formatarMoeda,
+  );
+  const serieReceita = e.dre?.serie.map((p) => p.receitaCentavos / 100) ?? [];
+  const itens: (Indicador | null)[] = [
+    {
+      rotulo:
+        o.familiasAtivas === 1
+          ? "Família em atendimento"
+          : "Famílias em atendimento",
+      valor: o.familiasAtivas,
+      contexto:
+        o.familiasIniciadas === 1
+          ? "1 começou no mês"
+          : `${o.familiasIniciadas} começaram no mês`,
+      href: "/equipe",
+      tom: "argila",
+    },
+    indicadorVisitas(e),
+    indicadorNascimento(e.radar),
+    {
+      rotulo: "Recebido no mês",
+      valor: formatarMoeda(receita),
+      contexto: comparacao
+        ? emContexto(comparacao)
+        : "sem mês anterior para comparar",
+      href: "/painel",
+      tom: "dourado",
+      serie: serieReceita.length > 1 ? serieReceita : undefined,
+      rotuloSerie: "Recebimentos dos últimos meses",
+      tomGrafico: "sucesso",
+    },
+  ];
+  return itens.filter((i): i is Indicador => i !== null);
+}
+
+// --- Gráficos ------------------------------------------------------------------------
+
+const VAZIO_GENTIL =
+  "Ainda sem dados suficientes por aqui. Assim que houver, o gráfico aparece.";
+
+function GraficoFunil({ dados }: { dados: DadosPainel | null }) {
+  const c = dados?.atual.comercial;
   return (
-    <Trio>
-      <CartaoResumo
-        destaque
-        className="tablet:col-span-1 col-span-2"
-        fundo="marinho"
-        tom="argila"
-        icone={<FileSignature />}
-        valor={c.contratosAssinados}
-        rotulo={
-          c.contratosAssinados === 1
-            ? "contrato assinado no mês"
-            : "contratos assinados no mês"
-        }
-        contexto={`meta de ${atual.metas.contratosMes}`}
-        href="/painel"
-      />
-      <CartaoResumo
-        fundo="medio"
-        tom="argila"
-        icone={<Users />}
-        valor={o.familiasAtivas}
-        rotulo={
-          o.familiasAtivas === 1
-            ? "família em atendimento"
-            : "famílias em atendimento"
-        }
-        contexto={
-          o.familiasIniciadas === 1
-            ? "1 começou no mês"
-            : `${o.familiasIniciadas} começaram no mês`
-        }
-        href="/equipe"
-      />
-      <CartaoResumo
-        fundo="medio"
-        tom="lavanda"
-        icone={<CalendarDays />}
-        valor={o.visitasRealizadas}
-        rotulo={
-          o.visitasRealizadas === 1
-            ? "visita realizada no mês"
-            : "visitas realizadas no mês"
-        }
-        contexto={emContexto(
-          contraAnterior(
-            o.visitasRealizadas,
-            anterior?.operacao.visitasRealizadas,
-            atual.mes,
-          ) ?? "sem mês anterior para comparar",
-        )}
-        href="/agenda"
-      />
-    </Trio>
+    <PainelGrafico
+      titulo="Funil do mês"
+      nota="de lead a contrato assinado"
+      leitura="Barras maiores são etapas com mais famílias; compare uma etapa com a seguinte."
+      vazio={
+        c
+          ? undefined
+          : "Os números de venda pedem a verificação em duas etapas. Abra o painel executivo para confirmar."
+      }
+    >
+      {c ? (
+        <BarrasHorizontais
+          rotulo="Funil do mês"
+          larguraRotulo="6.5rem"
+          itens={[
+            { rotulo: "Leads", valor: c.leads, tom: "dourado" },
+            { rotulo: "Sessões", valor: c.sessoesRealizadas, tom: "aviso" },
+            {
+              rotulo: "Contratos",
+              valor: c.contratosAssinados,
+              tom: "sucesso",
+            },
+          ]}
+        />
+      ) : null}
+    </PainelGrafico>
+  );
+}
+
+function GraficoVisitasEnfermeira({
+  porEnfermeira,
+  limite,
+}: {
+  porEnfermeira: VisitasDaEnfermeira[] | null;
+  limite: number | null;
+}) {
+  const vazio =
+    porEnfermeira === null
+      ? "A agenda de hoje não carregou agora. Nada se perdeu: recarregue a página."
+      : porEnfermeira.length === 0
+        ? "Nenhuma visita marcada para hoje. Um dia mais calmo para a equipe."
+        : undefined;
+  return (
+    <PainelGrafico
+      titulo="Visitas por enfermeira"
+      nota={limite ? `hoje, limite de ${limite} por dia` : "hoje"}
+      leitura="Barra em tom de aviso: a enfermeira chegou ao limite do dia."
+      vazio={vazio}
+    >
+      {porEnfermeira ? (
+        <BarrasHorizontais
+          rotulo="Visitas de hoje por enfermeira"
+          larguraRotulo="6.5rem"
+          itens={porEnfermeira.map((e) => ({
+            rotulo: e.nome.split(" ")[0] ?? e.nome,
+            valor: e.visitas.length,
+            tom: limite && e.visitas.length >= limite ? "aviso" : "dourado",
+          }))}
+        />
+      ) : null}
+    </PainelGrafico>
+  );
+}
+
+function GraficoCapacidade({ visao }: { visao: CapacidadeVisao | null }) {
+  const semanas = visao ? ocupacaoPorSemana(visao) : [];
+  return (
+    <PainelGrafico
+      titulo="Capacidade por semana"
+      nota={
+        visao
+          ? `maior ocupação entre as regiões, atenção a partir de ${formatarPct(visao.limites.alertaPct)}`
+          : undefined
+      }
+      leitura="Cada coluna é uma semana; a linha de referência marca o limite de atenção."
+      vazio={semanas.length === 0 ? VAZIO_GENTIL : undefined}
+    >
+      {semanas.length > 0 ? (
+        <Colunas
+          rotulo="Ocupação por semana, em porcentagem"
+          itens={semanas.map((s) => ({
+            rotulo: dataCurta(s.semana),
+            valor: s.ocupacaoPct,
+          }))}
+        />
+      ) : null}
+    </PainelGrafico>
+  );
+}
+
+function GraficoFamilias({ radar }: { radar: RadarDados | null }) {
+  const grupos = radar ? familiasPorGrupo(radar.familias) : null;
+  const total = radar ? radar.familias.length : 0;
+  return (
+    <PainelGrafico
+      titulo="Onde estão as famílias"
+      nota={
+        radar ? `${plural(total, "família", "famílias")} no radar` : undefined
+      }
+      vazio={total === 0 ? VAZIO_GENTIL : undefined}
+    >
+      {grupos ? (
+        <Rosca
+          rotulo="Famílias por situação"
+          centro={{ valor: String(total), legenda: "famílias" }}
+          fatias={(Object.keys(grupos) as GrupoFamilia[])
+            .filter((g) => grupos[g] > 0)
+            .map((g) => ({
+              rotulo: ROTULO_GRUPO[g],
+              valor: grupos[g],
+              tom: TOM_GRUPO[g],
+            }))}
+        />
+      ) : null}
+    </PainelGrafico>
+  );
+}
+
+function GraficoRegioes({ visao }: { visao: CapacidadeVisao | null }) {
+  const semana = visao ? ocupacaoPorSemana(visao, 1)[0]?.semana : undefined;
+  const itens =
+    visao && semana
+      ? visao.regioes.flatMap((r) => {
+          const s = r.semanas.find((x) => x.semana === semana);
+          return s
+            ? [
+                {
+                  rotulo: r.regiao,
+                  valor: s.ocupacaoPct,
+                  nota: formatarPct(s.ocupacaoPct),
+                  tom: (s.nivel === "folga"
+                    ? "sucesso"
+                    : s.nivel === "atencao"
+                      ? "aviso"
+                      : "marinho") as TomGrafico,
+                },
+              ]
+            : [];
+        })
+      : [];
+  return (
+    <PainelGrafico
+      titulo="Ocupação por região"
+      nota={semana ? `semana de ${dataCurta(semana)}` : undefined}
+      leitura="Quanto da capacidade de cada região já está ocupada."
+      vazio={itens.length === 0 ? VAZIO_GENTIL : undefined}
+    >
+      {itens.length > 0 ? (
+        <BarrasHorizontais
+          rotulo="Ocupação por região, em porcentagem"
+          larguraRotulo="7rem"
+          itens={itens}
+        />
+      ) : null}
+    </PainelGrafico>
+  );
+}
+
+function GraficoVisitasDia({
+  semana,
+  hoje,
+}: {
+  semana: AgendaPeriodo | null;
+  hoje: string;
+}) {
+  const dias = semana
+    ? visitasPorDia(visitasQueContam(semana.visitas), inicioDaSemana(hoje))
+    : [];
+  const total = dias.reduce((s, d) => s + d.total, 0);
+  return (
+    <PainelGrafico
+      titulo="Ritmo da semana"
+      nota={
+        semana
+          ? `${plural(total, "visita", "visitas")} de segunda a domingo`
+          : undefined
+      }
+      vazio={!semana || total === 0 ? VAZIO_GENTIL : undefined}
+    >
+      {semana && total > 0 ? (
+        <div className="flex flex-col gap-1.5">
+          <Sparkline
+            valores={dias.map((d) => d.total)}
+            tom="dourado"
+            rotulo={`Visitas por dia: ${dias.map((d, i) => `${DIAS_CURTOS[i]} ${d.total}`).join(", ")}`}
+            className="h-28 w-full"
+          />
+          <div className="flex">
+            {dias.map((d, i) => (
+              <span
+                key={d.dia}
+                className={`text-apoio flex-1 text-center ${d.dia === hoje ? "text-texto font-semibold" : "text-texto-3"}`}
+              >
+                {DIAS_CURTOS[i]}
+              </span>
+            ))}
+          </div>
+        </div>
+      ) : null}
+    </PainelGrafico>
+  );
+}
+
+function GraficoMeta({ dados }: { dados: DadosPainel | null }) {
+  const a = dados?.atual;
+  return (
+    <PainelGrafico
+      titulo="Meta de contratos"
+      nota={a ? "contratos assinados no mês" : undefined}
+      vazio={
+        a
+          ? undefined
+          : "A meta do mês aparece aqui depois da verificação em duas etapas."
+      }
+    >
+      {a ? (
+        a.metas.contratosMes > 24 ? (
+          <p className="font-titulo text-3 text-texto">
+            {a.comercial.contratosAssinados} de {a.metas.contratosMes}
+          </p>
+        ) : (
+          <AnelMeta
+            feitos={a.comercial.contratosAssinados}
+            meta={a.metas.contratosMes}
+          />
+        )
+      ) : null}
+    </PainelGrafico>
   );
 }
 

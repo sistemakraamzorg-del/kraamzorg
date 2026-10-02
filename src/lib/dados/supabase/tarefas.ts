@@ -2,7 +2,7 @@ import "server-only";
 import { ErroRepositorio } from "../erros";
 import type { TarefasRepositorio } from "../repositorios";
 import type { FiltroTarefas, Tarefa } from "../tipos";
-import { exigir, type ContextoSupabase } from "./comum";
+import { exigir, rpcPendente, type ContextoSupabase } from "./comum";
 
 export function criarTarefasSupabase({
   cliente,
@@ -47,6 +47,16 @@ export function criarTarefasSupabase({
           "sem_permissao",
           "concluir tarefa sem sessão",
         );
+      // 0046: api.tarefa_concluir conclui e devolve o resultado, e a
+      // coordenação também pode (a política de public.tarefa não deixa).
+      try {
+        await rpcPendente(cliente, "tarefa_concluir", { tarefa_id: tarefaId });
+        return;
+      } catch (erro) {
+        // Antes de a 0046 ser aplicada, segue pelo UPDATE de sempre.
+        if (!(erro instanceof ErroRepositorio) || erro.codigo !== "funcao_pendente")
+          throw erro;
+      }
       exigir(
         await cliente
           .from("tarefa")

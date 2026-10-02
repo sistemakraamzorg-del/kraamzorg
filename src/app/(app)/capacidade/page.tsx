@@ -21,7 +21,8 @@ export default async function PaginaCapacidade() {
   let tela: Awaited<ReturnType<typeof obterTelaCapacidade>> | null = null;
   try {
     tela = await obterTelaCapacidade(usuario);
-  } catch {
+  } catch (erro) {
+    console.error("[tela-erro] /capacidade", erro instanceof Error ? erro.message : erro);
     tela = null;
   }
 

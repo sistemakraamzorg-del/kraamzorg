@@ -97,7 +97,8 @@ export default async function PaginaRadar({
   try {
     const { operacao } = await obterRepositorios();
     radar = await operacao.radar(null);
-  } catch {
+  } catch (erro) {
+    console.error("[tela-erro] /radar", erro instanceof Error ? erro.message : erro);
     radar = null;
   }
 

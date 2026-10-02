@@ -132,7 +132,7 @@ describe("proxy (src/proxy.ts)", () => {
     const regex = new RegExp(`^${padrao}$`);
     expect(regex.test("/pipeline")).toBe(true);
     expect(regex.test("/_next/static/chunk.js")).toBe(false);
-    expect(regex.test("/brand/logo-provisorio.png")).toBe(false);
+    expect(regex.test("/brand/logo-vertical-marinho.png")).toBe(false);
     expect(regex.test("/api/webhook")).toBe(false);
     expect(regex.test("/favicon.ico")).toBe(false);
     // Extensão no fim não tira a rota do proxy (rota dinâmica /familias/[id]).

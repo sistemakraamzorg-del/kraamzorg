@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowLeft, History, Users } from "lucide-react";
 import { BarraProgresso } from "@/components/ui/barra-progresso";
 import { TileIcone } from "@/components/ui/tile-icone";
+import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { notFound } from "next/navigation";
 import { Selo } from "@/components/ui/selo";
 import { exigirSessao } from "@/lib/auth/sessao";
@@ -32,8 +33,16 @@ export default async function PaginaManual({
     const { relacao } = await obterRepositorios();
     manual = await relacao.manuais.obter(id);
     if (manual && gestao) leituras = await relacao.manuais.leituras(id);
-  } catch {
-    manual = null;
+  } catch (erro) {
+    console.error(
+      "[tela-erro] /manuais/[id]",
+      erro instanceof Error ? erro.message : erro,
+    );
+    return (
+      <FaixaAlerta variante="erro" titulo="O manual não abriu agora">
+        Nada foi alterado. Confira a conexão e recarregue a página.
+      </FaixaAlerta>
+    );
   }
   if (!manual) notFound();
 

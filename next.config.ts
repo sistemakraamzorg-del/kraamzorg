@@ -1,12 +1,21 @@
 import type { NextConfig } from "next";
 import { CSP_API, cabecalhosFixos } from "./src/lib/seguranca/cabecalhos";
 
+const PDF_ARQUIVOS = ["./src/lib/pdf/fontes-arquivos/**", "./public/brand/**"];
+
 const nextConfig: NextConfig = {
   // O resumo da sessão de venda (P29) lê o prompt de um arquivo .md do
   // repositório no servidor; sem isto, o arquivo fica fora do pacote da
   // função na Vercel.
   outputFileTracingIncludes: {
     "/sessoes-venda/**": ["./src/modules/crm/prompts/**/*.md"],
+    // Os PDFs leem as fontes e o logo do disco; sem isto o rastreio da Vercel
+    // deixa esses arquivos fora da função e o render falha.
+    "/evolucoes/**": PDF_ARQUIVOS,
+    "/minhas-evolucoes/**": PDF_ARQUIVOS,
+    "/familias/**": PDF_ARQUIVOS,
+    "/notas/**": PDF_ARQUIVOS,
+    "/api/webhooks/autentique/**": PDF_ARQUIVOS,
   },
   async headers() {
     return [

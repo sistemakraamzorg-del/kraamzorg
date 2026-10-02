@@ -444,6 +444,43 @@ describe("tarefas por equipe (P51)", () => {
   });
 });
 
+describe("ações do quadro de tarefas (0046)", () => {
+  it("coordenação cria, atribui e muda o estado; quem não é gestão só cria para si", async () => {
+    const coord = repos("coordenacao");
+    const alvo = USUARIOS.find((u) => u.papeis.includes("marketing"))!;
+    const id = await coord.relacao.tarefasEquipe.criar({
+      titulo: "Tarefa de teste do quadro",
+      responsavelId: alvo.id,
+    });
+    const achar = async () =>
+      (await coord.relacao.tarefasEquipe.visao()).tarefas.find(
+        (t) => t.id === id,
+      );
+    expect((await achar())?.status).toBe("aberta");
+    await coord.relacao.tarefasEquipe.mudarEstado(id, "em_andamento");
+    expect((await achar())?.status).toBe("em_andamento");
+    const outro = USUARIOS.find((u) => u.id !== alvo.id && u.ativo)!;
+    await coord.relacao.tarefasEquipe.atribuir(id, outro.id);
+    expect((await achar())?.responsavel).toBe(outro.nome);
+    // Concluir tarefa de outra pessoa segue recusado até a 0046 ser aplicada
+    // (hoje a política de update de public.tarefa só deixa o responsável,
+    // o papel responsável ou a diretoria; api.tarefa_concluir muda isso).
+    await expect(coord.tarefas.concluirTarefa(id)).rejects.toThrow();
+    expect((await achar())?.status).toBe("em_andamento");
+
+    const mkt = repos("marketing");
+    await expect(
+      mkt.relacao.tarefasEquipe.criar({
+        titulo: "Para outra pessoa",
+        responsavelId: outro.id,
+      }),
+    ).rejects.toThrow("tarefa:so_para_voce");
+    await expect(
+      mkt.relacao.tarefasEquipe.criar({ titulo: "ab" }),
+    ).rejects.toThrow("tarefa:titulo_invalido");
+  });
+});
+
 describe("manuais, protocolos e trilhas (P51)", () => {
   it("texto novo gera versão nova e zera a confirmação; texto igual não", async () => {
     const coord = repos("coordenacao").relacao.manuais;

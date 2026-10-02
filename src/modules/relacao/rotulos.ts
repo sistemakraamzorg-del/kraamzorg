@@ -62,3 +62,24 @@ export const ROTULO_PAPEL_ALVO: Record<string, string> = {
   coordenacao: "Coordenação",
   diretoria: "Diretoria",
 };
+
+/** Por que a tarefa existe, em frase, para o painel de detalhes. */
+export const ROTULO_ORIGEM_TAREFA: Record<string, string> = {
+  nutricao_contato: "Régua de nutrição: hora de falar com a família de novo",
+  followup_comercial: "Acompanhamento comercial de uma conversa em andamento",
+  agendar_sessao: "Marcar a sessão de venda com a família",
+  enviar_formulario_contrato: "Enviar o formulário do contrato",
+  checkin_dpp: "Confirmar como a família está perto da data prevista",
+  agendar_prenatal: "Marcar a consulta pré-natal",
+  designar_profissional: "Escolher a profissional que vai atender a família",
+  obter_contato_medico: "Conseguir o contato do médico da família",
+  emitir_evolucao: "Emitir a evolução do atendimento",
+  escuta_neutro: "Escuta atenta, sem oferta, em um momento delicado",
+  enviar_pesquisa: "Enviar a pesquisa de satisfação",
+  enviar_guia: "Enviar o guia para a família",
+  cobranca_atraso: "Cobrança em atraso",
+  documento_vencendo: "Documento perto de vencer",
+  registrar_desfecho_sessao: "Registrar como terminou a sessão de venda",
+  responder_consulta_isadora: "Responder uma consulta que a Isadora encaminhou",
+  outro: "Tarefa avulsa, aberta por alguém da equipe ou pelo sistema",
+};

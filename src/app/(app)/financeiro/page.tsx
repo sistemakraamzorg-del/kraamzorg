@@ -35,7 +35,8 @@ export default async function PaginaFinanceiro({
   let tela: Awaited<ReturnType<typeof obterTelaVisaoFinanceira>> | null = null;
   try {
     tela = await obterTelaVisaoFinanceira(usuario, mes);
-  } catch {
+  } catch (erro) {
+    console.error("[tela-erro] /financeiro", erro instanceof Error ? erro.message : erro);
     tela = null;
   }
 

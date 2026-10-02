@@ -14,7 +14,7 @@ export default async function PaginaDefinirSenha() {
   return (
     <>
       <div className="flex flex-col gap-2">
-        <h1 className="font-titulo text-display text-texto font-normal">
+        <h1 className="font-titulo text-display text-texto font-light">
           Crie a sua senha
         </h1>
         <p className="text-corpo text-texto">
