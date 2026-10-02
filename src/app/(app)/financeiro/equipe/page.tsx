@@ -45,6 +45,7 @@ export default async function PaginaEquipe({
   return (
     <>
       <CabecalhoTela
+        sobretitulo="Financeiro"
         titulo="Pagamento da equipe"
         subtitulo={
           tela?.situacao === "ok"
@@ -53,8 +54,10 @@ export default async function PaginaEquipe({
         }
       />
       <div className="flex flex-col gap-6 pt-6">
-        <NavegacaoFinanceiro atual="/financeiro/equipe" mes={mes} />
-        <SeletorMes mes={mes} hoje={hoje} caminho="/financeiro/equipe" />
+        <div className="flex flex-wrap items-center gap-3">
+          <NavegacaoFinanceiro atual="/financeiro/equipe" mes={mes} />
+          <SeletorMes mes={mes} hoje={hoje} caminho="/financeiro/equipe" />
+        </div>
         {!tela ? (
           <FaixaAlerta variante="erro" titulo="Os pagamentos não abriram agora">
             Confira a conexão e recarregue a página. Nada foi alterado.

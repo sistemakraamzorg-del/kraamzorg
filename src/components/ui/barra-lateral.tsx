@@ -67,77 +67,80 @@ export function BarraLateral({
     <nav
       aria-label={rotulo}
       className={cn(
-        "bg-marinho text-texto-inverso rounded-3 shadow-2 flex flex-col gap-5 overflow-y-auto bg-[image:var(--brilho-marinho)] px-3 py-6",
+        "bg-marinho text-texto-inverso rounded-3 shadow-2 flex flex-col overflow-hidden bg-[image:var(--brilho-marinho)]",
         posicao === "fixa" &&
           "sticky top-3 m-3 h-[calc(100dvh-24px)] w-[calc(var(--container-lateral)-24px)]",
         visivelEm === "computador" && "hidden lg:flex",
         className,
       )}
     >
-      <div className="border-texto-inverso/10 flex flex-col items-start gap-1 border-b px-3 pb-5">
+      <div className="border-texto-inverso/10 mx-4 flex shrink-0 flex-col items-center border-b pt-7 pb-6">
         <Image
           src={logoSrc}
           alt=""
           width={120}
           height={103}
           priority
+          className="mx-auto"
           style={{ height: "auto" }}
         />
         <span className="sr-only">{nomeMarca}</span>
       </div>
 
-      {grupos.map((grupo) => {
-        const idGrupo = `barra-lateral-grupo-${grupo.titulo.toLowerCase().replace(/\s+/g, "-")}`;
-        return (
-          <div key={grupo.titulo} className="flex flex-col gap-0.5">
-            <span
-              id={idGrupo}
-              className="text-mini text-texto-inverso-2 px-4 pb-1 font-medium tracking-[0.12em] uppercase"
-            >
-              {grupo.titulo}
-            </span>
-            <ul aria-labelledby={idGrupo} className="flex flex-col gap-0.5">
-              {grupo.itens.map((item) => (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    aria-current={item.ativo ? "page" : undefined}
-                    className={cn(
-                      "min-h-toque rounded-pilula text-apoio ease-estado flex items-center gap-3 px-4 font-medium no-underline transition-[background-color,color,box-shadow] duration-140",
-                      "[&>svg]:size-5",
-                      item.ativo
-                        ? "bg-dourado/20 text-creme shadow-halo [&>svg]:text-dourado font-semibold"
-                        : "text-texto-inverso hover:bg-texto-inverso/8 [&>svg]:text-texto-inverso-2 hover:[&>svg]:text-dourado",
-                    )}
-                  >
-                    {item.icone}
-                    <span>{item.rotulo}</span>
-                    {item.contador ? (
-                      <span
-                        aria-hidden="true"
-                        className={cn(
-                          "text-mini ml-auto font-mono",
-                          item.contadorAlerta
-                            ? "rounded-pilula bg-alerta text-branco px-2"
-                            : "rounded-pilula bg-dourado text-marinho px-2 font-semibold",
-                        )}
-                      >
-                        {item.contador}
-                      </span>
-                    ) : null}
-                    {item.contador && item.rotuloContador ? (
-                      <span className="sr-only">, {item.rotuloContador}</span>
-                    ) : null}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        );
-      })}
+      <div className="rolagem-fina-inversa rolagem-esmaecida flex min-h-0 flex-1 [scrollbar-gutter:stable_both-edges] flex-col gap-5 overflow-y-auto px-3 py-4">
+        {grupos.map((grupo) => {
+          const idGrupo = `barra-lateral-grupo-${grupo.titulo.toLowerCase().replace(/\s+/g, "-")}`;
+          return (
+            <div key={grupo.titulo} className="flex flex-col gap-0.5">
+              <span
+                id={idGrupo}
+                className="text-mini text-texto-inverso-2 px-4 pb-1 font-medium tracking-[0.12em] uppercase"
+              >
+                {grupo.titulo}
+              </span>
+              <ul aria-labelledby={idGrupo} className="flex flex-col gap-0.5">
+                {grupo.itens.map((item) => (
+                  <li key={item.href}>
+                    <Link
+                      href={item.href}
+                      aria-current={item.ativo ? "page" : undefined}
+                      className={cn(
+                        "min-h-toque rounded-pilula text-apoio ease-estado flex items-center gap-3 px-4 font-medium no-underline transition-[background-color,color,box-shadow] duration-140",
+                        "[&>svg]:size-5",
+                        item.ativo
+                          ? "bg-dourado/20 text-creme shadow-halo [&>svg]:text-dourado font-semibold"
+                          : "text-texto-inverso hover:bg-texto-inverso/8 [&>svg]:text-texto-inverso-2 hover:[&>svg]:text-dourado",
+                      )}
+                    >
+                      {item.icone}
+                      <span>{item.rotulo}</span>
+                      {item.contador ? (
+                        <span
+                          aria-hidden="true"
+                          className={cn(
+                            "text-mini ml-auto font-mono",
+                            item.contadorAlerta
+                              ? "rounded-pilula bg-alerta text-branco px-2"
+                              : "rounded-pilula bg-dourado text-marinho px-2 font-semibold",
+                          )}
+                        >
+                          {item.contador}
+                        </span>
+                      ) : null}
+                      {item.contador && item.rotuloContador ? (
+                        <span className="sr-only">, {item.rotuloContador}</span>
+                      ) : null}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          );
+        })}
+      </div>
 
       {rodape ? (
-        <div className="border-texto-inverso/10 text-apoio mt-auto border-t px-1 pt-4">
+        <div className="border-texto-inverso/10 text-apoio mx-4 shrink-0 border-t pt-4 pb-5">
           {rodape}
         </div>
       ) : null}

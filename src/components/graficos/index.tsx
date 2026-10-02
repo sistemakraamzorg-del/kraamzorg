@@ -82,7 +82,7 @@ export function Sparkline({
       preserveAspectRatio="none"
       role="img"
       aria-label={rotulo}
-      className={className ?? "h-9 w-full"}
+      className={`grafico-revelar ${className ?? "h-9 w-full"}`}
     >
       <defs>
         <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
@@ -134,7 +134,7 @@ export function BarrasHorizontais({
       aria-label={`${rotulo}: ${itens.map((i) => `${i.rotulo} ${escrever(formato, i.valor)}`).join(", ")}`}
       className="flex flex-col gap-2.5"
     >
-      {itens.map((i) => {
+      {itens.map((i, k) => {
         const pct = total > 0 ? Math.round((i.valor / total) * 100) : 0;
         return (
           <li
@@ -148,10 +148,11 @@ export function BarrasHorizontais({
             </span>
             <span className="bg-areia-clara rounded-pilula h-4 overflow-hidden">
               <span
-                className="rounded-pilula block h-full transition-[filter] duration-150 group-hover:brightness-95"
+                className="grafico-largura rounded-pilula block h-full transition-[filter] duration-150 group-hover:brightness-95"
                 style={{
                   width: `${Math.max((i.valor / max) * 100, i.valor > 0 ? 3 : 0)}%`,
                   background: COR[i.tom ?? "dourado"],
+                  animationDelay: `${k * 50}ms`,
                 }}
               />
             </span>
@@ -250,17 +251,18 @@ export function Colunas({
           </span>
         ) : null}
         <div className="absolute inset-0 flex items-end gap-3">
-          {itens.map((i) => (
+          {itens.map((i, k) => (
             <div
               key={i.rotulo}
               className="group relative flex h-full flex-1 items-end justify-center gap-1 outline-none"
               tabIndex={0}
             >
               <span
-                className="rounded-t-1 relative w-full max-w-8 transition-[filter] duration-150 group-hover:brightness-95"
+                className="grafico-altura rounded-t-1 relative w-full max-w-8 transition-[filter] duration-150 group-hover:brightness-95"
                 style={{
                   height: `${(Math.max(i.valor, 0) / max) * 100}%`,
                   background: COR[tom],
+                  animationDelay: `${k * 50}ms`,
                 }}
               >
                 {(escreve && !dupla) || i.valorTexto ? (
@@ -277,10 +279,11 @@ export function Colunas({
               </span>
               {dupla ? (
                 <span
-                  className="rounded-t-1 relative w-full max-w-8 transition-[filter] duration-150 group-hover:brightness-95"
+                  className="grafico-altura rounded-t-1 relative w-full max-w-8 transition-[filter] duration-150 group-hover:brightness-95"
                   style={{
                     height: `${(Math.max(i.valor2 ?? 0, 0) / max) * 100}%`,
                     background: COR[tom2],
+                    animationDelay: `${k * 50}ms`,
                   }}
                 ></span>
               ) : null}
@@ -412,7 +415,14 @@ export function Rosca({
               transform="rotate(-90 60 60)"
               onMouseEnter={() => setAtiva(i)}
               onMouseLeave={() => setAtiva(null)}
-              style={{ transition: "stroke-width 150ms" }}
+              className="grafico-arco"
+              style={
+                {
+                  transition: "stroke-width 150ms",
+                  "--circunferencia": c,
+                  animationDelay: `${i * 80}ms`,
+                } as React.CSSProperties
+              }
             >
               <title>{`${f.rotulo}: ${escrever(formato, f.valor)} (${Math.round((f.valor / total) * 100)}%)`}</title>
             </circle>
@@ -456,7 +466,7 @@ export function Rosca({
               className="rounded-pilula size-2.5 shrink-0"
               style={{ background: COR[f.tom] }}
             />
-            <span className="truncate">{f.rotulo}</span>
+            <span className="min-w-0 break-words">{f.rotulo}</span>
             <span className="text-texto ml-auto font-mono whitespace-nowrap tabular-nums">
               {escrever(formato, f.valor)}
               <span className="text-texto-3 ml-1">

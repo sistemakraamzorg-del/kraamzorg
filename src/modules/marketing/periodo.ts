@@ -32,3 +32,22 @@ export function atalhosDePeriodo(hoje = hojeBrasilia()) {
     },
   };
 }
+
+const DIA_MS = 86_400_000;
+const paraIso = (ms: number) => new Date(ms).toISOString().slice(0, 10);
+
+/**
+ * Período imediatamente anterior, com o mesmo número de dias, para comparar.
+ * Sem as duas pontas não há como medir o tamanho do período: devolve nulo.
+ */
+export function periodoAnterior(p: FiltroPeriodo): FiltroPeriodo | null {
+  if (!p.desde || !p.ate) return null;
+  const desde = Date.parse(p.desde);
+  const ate = Date.parse(p.ate);
+  if (Number.isNaN(desde) || Number.isNaN(ate) || ate < desde) return null;
+  const dias = Math.round((ate - desde) / DIA_MS) + 1;
+  return {
+    desde: paraIso(desde - dias * DIA_MS),
+    ate: paraIso(desde - DIA_MS),
+  };
+}

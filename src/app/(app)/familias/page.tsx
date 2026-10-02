@@ -61,6 +61,7 @@ export default async function PaginaFamilias({
     <>
       <CabecalhoTela
         titulo="Famílias"
+        subtitulo="Busque pelo nome ou pelo telefone e abra a ficha da família. Cada ficha reúne a linha do tempo, o comercial e as conversas."
         lateral={
           <Botao
             asChild

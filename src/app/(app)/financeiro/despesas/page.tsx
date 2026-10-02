@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
 import { CabecalhoTela } from "@/components/shell/cabecalho-tela";
 import { AvisoAcesso } from "@/components/shell/aviso-acesso";
-import { Plus } from "lucide-react";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
-import { TileIcone } from "@/components/ui/tile-icone";
 import { exigirSessao } from "@/lib/auth/sessao";
 import { hojeEmBrasilia } from "@/lib/agenda/datas";
 import { buscaParaMes, mesParaBusca } from "@/lib/gestao/formato";
 import { inicioDoMes } from "@/lib/gestao/financeiro";
+import { PainelGrafico } from "@/modules/inicio/painel-gestao";
 import { obterTelaDespesas } from "@/modules/financeiro/gestao/dados";
 import { FormDespesa } from "@/modules/financeiro/gestao/componentes/form-despesa";
 import {
@@ -50,6 +49,7 @@ export default async function PaginaDespesas({
   return (
     <>
       <CabecalhoTela
+        sobretitulo="Financeiro"
         titulo="Despesas"
         subtitulo={
           tela?.situacao === "ok"
@@ -58,34 +58,31 @@ export default async function PaginaDespesas({
         }
       />
       <div className="flex flex-col gap-6 pt-6">
-        <NavegacaoFinanceiro atual="/financeiro/despesas" mes={mes} />
-        <SeletorMes mes={mes} hoje={hoje} caminho="/financeiro/despesas" />
+        <div className="flex flex-wrap items-center gap-3">
+          <NavegacaoFinanceiro atual="/financeiro/despesas" mes={mes} />
+          <SeletorMes mes={mes} hoje={hoje} caminho="/financeiro/despesas" />
+        </div>
         {!tela ? (
           <FaixaAlerta variante="erro" titulo="As despesas não abriram agora">
             Confira a conexão e recarregue a página. Nada foi alterado.
           </FaixaAlerta>
         ) : tela.situacao === "ok" ? (
           <>
-            <section
-              aria-labelledby="desp-form"
-              className="bg-superficie rounded-3 shadow-1 flex max-w-[720px] flex-col gap-4 p-5 lg:p-6"
-            >
-              <h2
-                id="desp-form"
-                className="font-titulo text-2 text-texto flex items-center gap-3 font-medium"
+            <div className="max-w-[720px]">
+              <PainelGrafico
+                titulo={
+                  emCorrecao ? "Corrigir a despesa" : "Lançar uma despesa"
+                }
+                nota="Entra no resultado do mês escolhido acima, na data do pagamento."
               >
-                <TileIcone tom="dourado" forma="quadrado" tamanho="p">
-                  <Plus />
-                </TileIcone>
-                {emCorrecao ? "Corrigir a despesa" : "Lançar uma despesa"}
-              </h2>
-              <FormDespesa
-                key={emCorrecao?.id ?? "nova"}
-                hoje={hoje}
-                despesa={emCorrecao}
-                voltarPara={`/financeiro/despesas?mes=${mesParaBusca(mes)}`}
-              />
-            </section>
+                <FormDespesa
+                  key={emCorrecao?.id ?? "nova"}
+                  hoje={hoje}
+                  despesa={emCorrecao}
+                  voltarPara={`/financeiro/despesas?mes=${mesParaBusca(mes)}`}
+                />
+              </PainelGrafico>
+            </div>
             <ListaDespesasTela lista={tela.dados} />
           </>
         ) : (

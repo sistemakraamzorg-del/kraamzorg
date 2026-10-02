@@ -32,7 +32,7 @@ export function FormularioCandidata({
     <form
       ref={ref}
       onSubmit={acao}
-      className="rounded-3 bg-superficie shadow-1 flex w-full max-w-[560px] flex-col gap-4 p-5 lg:p-6"
+      className="rounded-3 bg-superficie border-linha flex w-full flex-col gap-4 border p-5 lg:p-6"
     >
       <h3 className="font-titulo text-2 text-texto flex items-center gap-3 font-medium">
         <TileIcone tom="dourado" forma="quadrado" tamanho="p">

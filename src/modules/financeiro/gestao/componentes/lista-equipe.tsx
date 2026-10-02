@@ -1,11 +1,9 @@
-import type * as React from "react";
-import { CircleCheck, Lock, UserRound, Wallet } from "lucide-react";
-import { SecaoBloco } from "@/components/blocos/secao-bloco";
 import { MantaDobrada } from "@/components/ilustracoes";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
-import { TileIcone } from "@/components/ui/tile-icone";
-import type { Tom } from "@/components/ui/tons";
-import { cn } from "@/lib/utils";
+import {
+  GradeIndicadores,
+  PainelGrafico,
+} from "@/modules/inicio/painel-gestao";
 import { Selo } from "@/components/ui/selo";
 import type {
   PagamentoEquipe,
@@ -86,74 +84,79 @@ export function ListaEquipe({
       />
     );
   }
-  // Três blocos pela situação (DESIGN.md, 6.1): o que dá para pagar agora
-  // vem primeiro (dourado, o agora), depois o que espera as evoluções e, no
-  // fim, o que já foi pago (sálvia, o feito). Cada pagamento é um cartão
-  // com a pessoa num tile e o valor em número grande.
+  // Faixa-resumo no desenho do Painel e, abaixo, três painéis pela situação:
+  // o que dá para pagar agora vem primeiro, depois o que espera as
+  // evoluções e, no fim, o que já foi pago.
+  const r = dados.resumo;
   return (
-    <div className="flex flex-col gap-10">
+    <div className="flex flex-col gap-6">
+      <div className="[&>ul]:mt-0">
+        <GradeIndicadores
+          itens={[
+            {
+              rotulo: "Liberados para pagar",
+              valor: formatarMoeda(r.liberadoCentavos),
+              contexto: `${plural(r.liberadoQtd, "pagamento liberado", "pagamentos liberados")}.`,
+              href: "#equipe-liberado",
+              tom: "dourado",
+            },
+            {
+              rotulo: "Esperando as evoluções",
+              valor: formatarMoeda(r.bloqueadoCentavos),
+              contexto: `${plural(r.bloqueadoQtd, "pagamento bloqueado", "pagamentos bloqueados")} até o envio aos médicos.`,
+              href: "#equipe-bloqueado",
+              tom: "areia",
+            },
+            {
+              rotulo: `Pagos em ${rotuloMes(r.mes)}`,
+              valor: formatarMoeda(r.pagoNoMesCentavos),
+              contexto: `${plural(r.pagoNoMesQtd, "pagamento feito", "pagamentos feitos")} no mês.`,
+              href: "#equipe-pago",
+              tom: "salvia",
+            },
+          ]}
+        />
+      </div>
       {GRUPOS.map((grupo) => {
         const doGrupo = dados.pagamentos.filter(
           (p) => p.status === grupo.status,
         );
         if (doGrupo.length === 0) return null;
         return (
-          <SecaoBloco
+          <div
             key={grupo.status}
-            idTitulo={`equipe-${grupo.status}`}
-            titulo={grupo.titulo}
-            icone={grupo.icone}
-            tom={grupo.tom ?? "areia"}
-            semTom={!grupo.tom}
-            contagem={doGrupo.length}
+            id={`equipe-${grupo.status}`}
+            className="scroll-mt-24"
           >
-            <ul className="grid grid-cols-1 items-start gap-3 lg:grid-cols-2">
-              {doGrupo.map((p) => (
-                <CartaoPagamento key={p.id} p={p} hoje={hoje} />
-              ))}
-            </ul>
-          </SecaoBloco>
+            <PainelGrafico
+              titulo={grupo.titulo}
+              nota={plural(doGrupo.length, "pagamento", "pagamentos")}
+            >
+              <ul className="grid grid-cols-1 items-start gap-3 lg:grid-cols-2">
+                {doGrupo.map((p) => (
+                  <CartaoPagamento key={p.id} p={p} hoje={hoje} />
+                ))}
+              </ul>
+            </PainelGrafico>
+          </div>
         );
       })}
     </div>
   );
 }
 
-const GRUPOS: {
-  status: PagamentoEquipe["status"];
-  titulo: string;
-  icone: React.ReactNode;
-  tom?: Tom;
-}[] = [
-  {
-    status: "liberado",
-    titulo: "Liberados para pagar",
-    icone: <Wallet />,
-    tom: "dourado",
-  },
-  { status: "bloqueado", titulo: "Esperando as evoluções", icone: <Lock /> },
-  {
-    status: "pago",
-    titulo: "Pagos no mês",
-    icone: <CircleCheck />,
-    tom: "salvia",
-  },
+const GRUPOS: { status: PagamentoEquipe["status"]; titulo: string }[] = [
+  { status: "liberado", titulo: "Liberados para pagar" },
+  { status: "bloqueado", titulo: "Esperando as evoluções" },
+  { status: "pago", titulo: "Pagos no mês" },
 ];
 
 function CartaoPagamento({ p, hoje }: { p: PagamentoEquipe; hoje: string }) {
   return (
-    <li
-      className={cn(
-        "rounded-3 flex flex-col gap-3 p-5",
-        p.status === "pago" ? "bg-salvia-clara" : "bg-superficie shadow-1",
-      )}
-    >
+    <li className="rounded-2 border-linha bg-superficie flex flex-col gap-3 border p-4">
       <div className="flex items-start gap-3">
-        <TileIcone tom="argila" forma="quadrado">
-          <UserRound />
-        </TileIcone>
         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <h3 className="font-titulo text-2 text-texto font-medium">
+          <h3 className="font-titulo text-3 text-texto font-medium">
             {p.profissionalNome}
           </h3>
           <p className="text-apoio text-texto-2">
@@ -164,7 +167,7 @@ function CartaoPagamento({ p, hoje }: { p: PagamentoEquipe; hoje: string }) {
           {ROTULO_STATUS_PAGAMENTO[p.status]}
         </Selo>
       </div>
-      <p className="font-titulo text-display text-texto font-medium tabular-nums">
+      <p className="font-titulo text-numero-sm text-texto font-medium tabular-nums">
         {formatarMoeda(p.totalCentavos)}
       </p>
       <Conta p={p} />

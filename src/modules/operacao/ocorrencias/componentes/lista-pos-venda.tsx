@@ -1,20 +1,29 @@
 "use client";
 
 import * as React from "react";
-import { Copy, House, MessageSquareText, Send, Hourglass } from "lucide-react";
+import { Copy } from "lucide-react";
 import { MantaDobrada } from "@/components/ilustracoes";
 import { AbasPilula } from "@/components/ui/abas-pilula";
 import { Botao } from "@/components/ui/botao";
 import { CampoTexto } from "@/components/ui/campo-texto";
-import { CartaoResumo } from "@/components/ui/cartao-resumo";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
-import { Cartao } from "@/components/ui/cartao";
 import { Selo } from "@/components/ui/selo";
-import { TileIcone } from "@/components/ui/tile-icone";
-import type { ListaPosVenda, PosVendaItem } from "@/lib/dados/tipos-ocorrencia";
+import { BarrasHorizontais, Colunas, Rosca } from "@/components/graficos";
+import type {
+  EstagioPosVenda,
+  ListaPosVenda,
+  PosVendaItem,
+} from "@/lib/dados/tipos-ocorrencia";
 import { formatarData, formatarDataHora } from "@/lib/formatacao";
+import { nomeMes } from "@/lib/gestao/formato";
+import type { SerieNps } from "@/lib/gestao/nps-mensal";
 import { cn } from "@/lib/utils";
+import { GradeGraficos, PainelGrafico } from "@/modules/inicio/painel-gestao";
+import {
+  Avatar,
+  FaixaResumo,
+} from "@/modules/relacao/componentes/faixa-resumo";
 import {
   acaoAvancarPosVenda,
   acaoGerarLinkPesquisa,
@@ -68,36 +77,21 @@ function ItemPosVenda({ item }: { item: PosVendaItem }) {
   }
 
   const bloqueada = item.bloqueio !== null;
-  // A cor diz a etapa (direção "Colo"): esperando a família é tempo
-  // (lavanda), a ação feita é sálvia, o resto é trabalho (branco). Família
-  // em estado sensível e nota baixa ficam neutras, sem tom (DESIGN.md 11.8).
   const neutra = bloqueada || item.classificacao === "detrator";
-  const variante = neutra
-    ? "plano"
-    : item.estagio === "pesquisa_enviada"
-      ? "lavanda"
-      : item.estagio === "acao_executada" || item.estagio === "arquivado"
-        ? "salvia"
-        : "padrao";
-  const tomTile =
-    variante === "lavanda"
-      ? "lavanda"
-      : variante === "salvia"
-        ? "salvia"
-        : "areia";
 
   return (
-    <Cartao variante={variante} className="flex h-full flex-col gap-4">
+    <div
+      className={cn(
+        "rounded-2 border-linha bg-superficie flex flex-col gap-3 border p-3",
+        bloqueada && "border-sensivel",
+      )}
+    >
       <div className="flex flex-wrap items-start gap-x-3 gap-y-2">
-        {neutra ? null : (
-          <TileIcone tom={tomTile}>
-            <House />
-          </TileIcone>
-        )}
+        <Avatar nome={item.familiaNome} />
         <div className="min-w-0 flex-1">
-          <h2 className="font-titulo text-2 text-texto font-medium">
+          <h3 className="font-titulo text-3 text-texto font-medium">
             {item.familiaNome}
-          </h2>
+          </h3>
           <p className="text-apoio text-texto-2">
             {item.pesquisaRespondidaEm ? (
               <>
@@ -221,7 +215,7 @@ function ItemPosVenda({ item }: { item: PosVendaItem }) {
         </div>
       ) : null}
 
-      <div className="mt-auto flex flex-wrap gap-3">
+      <div className="flex flex-wrap gap-2">
         {item.podeGerarLink && !bloqueada ? (
           <Botao
             className="max-w-full text-balance whitespace-normal"
@@ -265,57 +259,184 @@ function ItemPosVenda({ item }: { item: PosVendaItem }) {
           </Botao>
         ) : null}
       </div>
-    </Cartao>
+    </div>
   );
 }
+
+const COLUNAS: { id: string; rotulo: string; estagios: EstagioPosVenda[] }[] = [
+  {
+    id: "enviar",
+    rotulo: "Pesquisa a enviar",
+    estagios: ["protocolo_ultimo_dia_concluido"],
+  },
+  {
+    id: "aguardando",
+    rotulo: "Aguardando resposta",
+    estagios: ["pesquisa_enviada"],
+  },
+  {
+    id: "respondidas",
+    rotulo: "Respondidas",
+    estagios: ["pesquisa_respondida", "classificado"],
+  },
+  { id: "feita", rotulo: "Ação feita", estagios: ["acao_executada"] },
+  { id: "arquivado", rotulo: "Arquivadas", estagios: ["arquivado"] },
+];
+
+const PONTO: Record<string, string> = {
+  enviar: "bg-dourado",
+  aguardando: "bg-aviso",
+  respondidas: "bg-marinho",
+  feita: "bg-sucesso",
+  arquivado: "bg-marinho-50",
+};
 
 export function ListaPosVendaTela({
   lista,
   situacao,
+  npsMensal,
 }: {
   lista: ListaPosVenda;
   situacao: "abertos" | "todos";
+  npsMensal: SerieNps | null;
 }) {
+  const r = lista.resumo;
+  const plural = (n: number, um: string, varios: string) =>
+    n === 1 ? um : varios;
   return (
     <div className="flex flex-col gap-6">
-      <div className="tablet:grid-cols-3 grid grid-cols-2 gap-2 lg:gap-3">
-        <CartaoResumo
-          destaque
-          className="tablet:col-span-1 col-span-2"
-          tom="dourado"
-          icone={<Send />}
-          valor={lista.resumo.aguardandoEnvio}
-          rotulo={
-            lista.resumo.aguardandoEnvio === 1
-              ? "pesquisa a enviar"
-              : "pesquisas a enviar"
+      <FaixaResumo
+        rotulo="Resumo do pós-venda"
+        itens={[
+          {
+            rotulo: "Famílias no pós-venda",
+            valor: lista.itens.length,
+            contexto:
+              situacao === "abertos"
+                ? "em aberto agora. Em Todos entram as arquivadas"
+                : `${lista.itens.filter((i) => i.estagio === "arquivado").length} já arquivadas`,
+            destaque: true,
+          },
+          {
+            rotulo: "NPS da amostra",
+            valor: r.nps === null ? "sem nota" : r.nps,
+            contexto:
+              r.respondidas === 0
+                ? "nenhuma resposta ainda"
+                : `${r.promotores} ${plural(r.promotores, "promotor", "promotores")} contra ${r.detratores} ${plural(r.detratores, "detrator", "detratores")}, em ${r.respondidas} ${plural(r.respondidas, "resposta", "respostas")}`,
+          },
+          {
+            rotulo: plural(
+              r.aguardandoEnvio,
+              "Pesquisa a enviar",
+              "Pesquisas a enviar",
+            ),
+            valor: r.aguardandoEnvio,
+            contexto: "a coordenação gera o link e manda",
+          },
+          {
+            rotulo: "Aguardando resposta",
+            valor: r.aguardandoResposta,
+            contexto:
+              r.respondidas === 0
+                ? "a família responde pelo link"
+                : `${r.respondidas} ${plural(r.respondidas, "já respondeu", "já responderam")}`,
+          },
+        ]}
+      />
+      <p className="sr-only">{fraseResumoPosVenda(r)}</p>
+
+      <GradeGraficos colunas={2}>
+        <PainelGrafico
+          titulo="Classificação das pesquisas"
+          nota={`${r.respondidas} ${plural(r.respondidas, "resposta", "respostas")} na amostra`}
+          leitura="Promotor nota 9 ou 10, neutro 7 ou 8, detrator até 6."
+          vazio={
+            r.respondidas === 0
+              ? "Quando a primeira família responder, a classificação aparece aqui."
+              : undefined
           }
-          contexto="a coordenação gera o link e manda"
-        />
-        <CartaoResumo
-          tom="lavanda"
-          icone={<Hourglass />}
-          valor={lista.resumo.aguardandoResposta}
-          rotulo={
-            lista.resumo.aguardandoResposta === 1
-              ? "espera a família"
-              : "esperam a família"
+        >
+          <Rosca
+            rotulo="Classificação das pesquisas"
+            centro={{
+              valor: r.nps === null ? "sem nota" : String(r.nps),
+              legenda: "NPS",
+            }}
+            fatias={[
+              { rotulo: "Promotores", valor: r.promotores, tom: "sucesso" },
+              { rotulo: "Neutros", valor: r.neutros, tom: "aviso" },
+              { rotulo: "Detratores", valor: r.detratores, tom: "alerta" },
+            ]}
+          />
+        </PainelGrafico>
+        <PainelGrafico
+          titulo="NPS mês a mês"
+          nota="Últimos 6 meses, pelo dia da resposta"
+          leitura="NPS é promotores menos detratores, em pontos. Mês com poucas respostas mostra só a contagem."
+          vazio={
+            npsMensal === null
+              ? "Não foi possível ler as respostas agora. Recarregue a página; nada foi alterado."
+              : npsMensal.meses.every((m) => m.respostas === 0)
+                ? "Quando as famílias responderem, o NPS de cada mês aparece aqui."
+                : undefined
           }
-          contexto="a família responde pelo link"
-        />
-        <CartaoResumo
-          tom="salvia"
-          icone={<MessageSquareText />}
-          valor={lista.resumo.respondidas}
-          rotulo={lista.resumo.respondidas === 1 ? "respondida" : "respondidas"}
-          contexto={
-            lista.resumo.respondidas === 0
-              ? "nenhuma resposta ainda"
-              : `${lista.resumo.promotores} ${lista.resumo.promotores === 1 ? "promotor" : "promotores"}, ${lista.resumo.neutros} ${lista.resumo.neutros === 1 ? "neutro" : "neutros"}, ${lista.resumo.detratores} ${lista.resumo.detratores === 1 ? "detrator" : "detratores"}${lista.resumo.nps !== null ? `. NPS de ${lista.resumo.nps} pontos` : ""}`
+        >
+          {npsMensal ? (
+            <Colunas
+              rotulo="NPS por mês"
+              altura={150}
+              itens={npsMensal.meses.map((m) => ({
+                rotulo: nomeMes(m.mes).slice(0, 3),
+                valor: m.nps ?? 0,
+                valorTexto:
+                  m.nps === null
+                    ? m.respostas === 0
+                      ? "sem respostas"
+                      : "poucas respostas"
+                    : undefined,
+                dica:
+                  m.nps === null
+                    ? [
+                        `${nomeMes(m.mes)}: sem número`,
+                        `${m.respostas} de ${npsMensal.amostraMinima} respostas`,
+                      ]
+                    : [
+                        `${nomeMes(m.mes)}: NPS ${m.nps}`,
+                        `${m.respostas} ${m.respostas === 1 ? "resposta" : "respostas"}`,
+                        `${m.promotores} promotores e ${m.detratores} detratores`,
+                      ],
+              }))}
+            />
+          ) : null}
+        </PainelGrafico>
+        <PainelGrafico
+          titulo="Famílias por etapa"
+          nota={`${lista.itens.length} ${plural(lista.itens.length, "família", "famílias")} na lista`}
+          vazio={
+            lista.itens.length === 0
+              ? "Sem famílias no pós-venda agora."
+              : undefined
           }
-        />
-      </div>
-      <p className="sr-only">{fraseResumoPosVenda(lista.resumo)}</p>
+        >
+          <BarrasHorizontais
+            rotulo="Famílias por etapa"
+            larguraRotulo="9rem"
+            itens={COLUNAS.map((c) => ({
+              rotulo: c.rotulo,
+              valor: lista.itens.filter((i) => c.estagios.includes(i.estagio))
+                .length,
+              tom:
+                c.id === "feita"
+                  ? "sucesso"
+                  : c.id === "enviar"
+                    ? "dourado"
+                    : "marinho",
+            }))}
+          />
+        </PainelGrafico>
+      </GradeGraficos>
+
       <AbasPilula
         rotulo="Filtrar pós-venda"
         ativa={situacao}
@@ -334,16 +455,57 @@ export function ListaPosVendaTela({
           nivelTitulo="h2"
           ilustracao={<MantaDobrada tamanho={112} />}
           titulo="Nenhum pós-venda em andamento"
-          texto="Quando uma família terminar o último dia contratado, o pós-venda dela abre aqui com a pesquisa a enviar."
+          texto="Quando uma família terminar o último dia contratado, o pós-venda dela abre aqui. A coordenação gera o link da pesquisa, manda pela conversa pessoal e acompanha a resposta nesta tela."
         />
       ) : (
-        <ul className="grid grid-cols-1 items-start gap-4 xl:grid-cols-2">
-          {lista.itens.map((item) => (
-            <li key={item.id}>
-              <ItemPosVenda item={item} />
-            </li>
-          ))}
-        </ul>
+        <div className="-mx-4 flex snap-x snap-mandatory items-start gap-3 overflow-x-auto px-4 pb-1 lg:mx-0 lg:px-0">
+          {COLUNAS.filter(
+            (c) => situacao === "todos" || c.id !== "arquivado",
+          ).map((c) => {
+            const itens = lista.itens.filter((i) =>
+              c.estagios.includes(i.estagio),
+            );
+            return (
+              <section
+                key={c.id}
+                aria-labelledby={`pv-${c.id}`}
+                className="rounded-3 border-linha bg-areia-clara flex max-h-[70dvh] w-[19rem] flex-none snap-start flex-col gap-2 border p-2 lg:w-[20rem]"
+              >
+                <div className="flex min-h-9 flex-none items-center gap-2 pl-1">
+                  <span
+                    aria-hidden="true"
+                    className={cn(
+                      "size-2.5 flex-none rounded-full",
+                      PONTO[c.id],
+                    )}
+                  />
+                  <h2
+                    id={`pv-${c.id}`}
+                    className="font-titulo text-3 min-w-0 flex-1 truncate font-medium"
+                  >
+                    {c.rotulo}
+                  </h2>
+                  <span className="rounded-pilula bg-superficie text-apoio border-linha inline-flex min-h-8 min-w-8 items-center justify-center border px-2 font-mono font-medium">
+                    {itens.length}
+                  </span>
+                </div>
+                {itens.length === 0 ? (
+                  <p className="text-apoio text-texto-2 px-2 pb-2">
+                    Nenhuma família nesta etapa.
+                  </p>
+                ) : (
+                  <ul className="flex min-h-0 flex-col gap-2 overflow-y-auto overscroll-contain pr-0.5">
+                    {itens.map((item) => (
+                      <li key={item.id}>
+                        <ItemPosVenda item={item} />
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </section>
+            );
+          })}
+        </div>
       )}
     </div>
   );

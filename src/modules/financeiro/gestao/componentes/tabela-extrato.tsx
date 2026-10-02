@@ -1,8 +1,7 @@
 import Link from "next/link";
-import { Landmark, ListChecks } from "lucide-react";
 import { FolhaLupa } from "@/components/ilustracoes";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
-import { TileIcone } from "@/components/ui/tile-icone";
+import { PainelGrafico } from "@/modules/inicio/painel-gestao";
 import { Selo } from "@/components/ui/selo";
 import { TabelaLista } from "@/components/ui/tabela-lista";
 import { cn } from "@/lib/utils";
@@ -93,16 +92,10 @@ export function VisaoExtrato({
   return (
     <div className="flex flex-col gap-6">
       {visao.importacoes.length > 0 ? (
-        <section aria-labelledby="ext-lista" className="flex flex-col gap-3">
-          <h2
-            id="ext-lista"
-            className="font-titulo text-2 text-texto flex items-center gap-3 font-medium"
-          >
-            <TileIcone tom="areia" forma="quadrado">
-              <Landmark />
-            </TileIcone>
-            Extratos importados
-          </h2>
+        <PainelGrafico
+          titulo="Extratos importados"
+          nota="Abra um para ver a conferência, linha por linha."
+        >
           <ul className="flex flex-col gap-2">
             {visao.importacoes.map((i) => {
               const aberta = i.id === importacaoId;
@@ -116,12 +109,11 @@ export function VisaoExtrato({
                     }
                     aria-current={aberta ? "page" : undefined}
                     className={cn(
-                      "rounded-3 ease-estado flex flex-wrap items-center justify-between gap-x-4 gap-y-2 p-4 no-underline transition-[box-shadow] duration-140",
-                      // O extrato aberto é o agora (dourado-claro); os
-                      // outros ficam guardados em areia.
+                      "rounded-2 border-linha ease-estado min-h-toque hover:border-dourado flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border p-4 no-underline transition-colors duration-140",
+                      // O extrato aberto leva o único acento dourado.
                       aberta
-                        ? "bg-dourado-claro"
-                        : "bg-areia-clara hover:shadow-1",
+                        ? "border-dourado bg-areia-clara"
+                        : "bg-superficie",
                     )}
                   >
                     <span className="text-corpo text-texto font-semibold">
@@ -143,33 +135,26 @@ export function VisaoExtrato({
               );
             })}
           </ul>
-        </section>
+        </PainelGrafico>
       ) : null}
 
       {importacaoId ? (
-        <section aria-labelledby="ext-linhas" className="flex flex-col gap-3">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2
-              id="ext-linhas"
-              className="font-titulo text-2 text-texto flex items-center gap-3 font-medium"
-            >
-              <TileIcone tom="salvia" forma="quadrado">
-                <ListChecks />
-              </TileIcone>
-              Conferência
-            </h2>
+        <PainelGrafico
+          titulo="Conferência"
+          nota="O par que o sistema encontrou para cada lançamento do banco."
+        >
+          <div className="flex flex-col gap-4">
             <ReconferirExtrato importacaoId={importacaoId} />
-          </div>
-          {visao.linhas.length === 0 ? (
-            <EstadoVazio
-              nivelTitulo="h3"
-              ilustracao={<FolhaLupa tamanho={96} />}
-              titulo="Esse extrato não tem lançamentos para mostrar"
-              texto="Escolha outro extrato da lista ou importe um arquivo novo."
-            />
-          ) : (
-            <div className="min-[720px]:rounded-3 min-[720px]:bg-superficie min-[720px]:shadow-1 min-[720px]:p-2 lg:px-4 lg:py-3">
+            {visao.linhas.length === 0 ? (
+              <EstadoVazio
+                nivelTitulo="h3"
+                ilustracao={<FolhaLupa tamanho={96} />}
+                titulo="Esse extrato não tem lançamentos para mostrar"
+                texto="Escolha outro extrato da lista ou importe um arquivo novo."
+              />
+            ) : (
               <TabelaLista
+                className="[&_thead_th]:bg-areia-clara"
                 rotulo="Lançamentos do extrato e o par de cada um"
                 colunas={[
                   { chave: "descricao", rotulo: "Lançamento", principal: true },
@@ -193,9 +178,9 @@ export function VisaoExtrato({
                   },
                 }))}
               />
-            </div>
-          )}
-        </section>
+            )}
+          </div>
+        </PainelGrafico>
       ) : null}
     </div>
   );

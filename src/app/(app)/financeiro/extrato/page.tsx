@@ -2,10 +2,9 @@ import type { Metadata } from "next";
 import { z } from "zod";
 import { CabecalhoTela } from "@/components/shell/cabecalho-tela";
 import { AvisoAcesso } from "@/components/shell/aviso-acesso";
-import { FileUp } from "lucide-react";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
-import { TileIcone } from "@/components/ui/tile-icone";
 import { exigirSessao } from "@/lib/auth/sessao";
+import { PainelGrafico } from "@/modules/inicio/painel-gestao";
 import { obterTelaExtrato } from "@/modules/financeiro/gestao/dados";
 import { ImportarExtrato } from "@/modules/financeiro/gestao/componentes/importar-extrato";
 import { NavegacaoFinanceiro } from "@/modules/financeiro/gestao/componentes/navegacao-financeiro";
@@ -43,6 +42,7 @@ export default async function PaginaExtrato({
   return (
     <>
       <CabecalhoTela
+        sobretitulo="Financeiro"
         titulo="Extrato do banco"
         subtitulo={
           tela?.situacao === "ok"
@@ -58,21 +58,14 @@ export default async function PaginaExtrato({
           </FaixaAlerta>
         ) : tela.situacao === "ok" ? (
           <>
-            <section
-              aria-labelledby="ext-importar"
-              className="bg-superficie rounded-3 shadow-1 flex max-w-[720px] flex-col gap-4 p-5 lg:p-6"
-            >
-              <h2
-                id="ext-importar"
-                className="font-titulo text-2 text-texto flex items-center gap-3 font-medium"
+            <div className="max-w-[720px]">
+              <PainelGrafico
+                titulo="Importar um extrato"
+                nota="Serve para conferir o que o banco mostra. Nunca dá baixa em cobrança."
               >
-                <TileIcone tom="dourado" forma="quadrado" tamanho="p">
-                  <FileUp />
-                </TileIcone>
-                Importar um extrato
-              </h2>
-              <ImportarExtrato />
-            </section>
+                <ImportarExtrato />
+              </PainelGrafico>
+            </div>
             <VisaoExtrato visao={tela.dados} importacaoId={importacaoId} />
           </>
         ) : (

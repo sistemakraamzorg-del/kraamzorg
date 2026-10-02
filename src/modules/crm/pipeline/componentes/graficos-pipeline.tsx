@@ -93,10 +93,10 @@ export function GraficosPipeline({
   const comPontuacao = fatias.reduce((a, f) => a + f.valor, 0);
 
   return (
-    <div className="grid gap-4 pt-4 lg:grid-cols-2">
+    <div className="grid gap-3 pt-2 lg:grid-cols-2 xl:grid-cols-3">
       <Cartao variante="areia-clara">
         <h2 className="font-titulo text-3 font-medium">Famílias por estágio</h2>
-        <p className="text-apoio text-texto-2 mb-4">
+        <p className="text-apoio text-texto-2 mb-2">
           Para onde o movimento está indo.
         </p>
         {funil.length > 0 ? (
@@ -113,7 +113,7 @@ export function GraficosPipeline({
         <h2 className="font-titulo text-3 font-medium">
           Como estão as pontuações
         </h2>
-        <p className="text-apoio text-texto-2 mb-4">
+        <p className="text-apoio text-texto-2 mb-2">
           Quantas famílias estão quentes, mornas e frias.
         </p>
         {comPontuacao > 0 ? (
@@ -132,7 +132,7 @@ export function GraficosPipeline({
             <h2 className="font-titulo text-3 font-medium">
               Famílias por semana gestacional
             </h2>
-            <p className="text-apoio text-texto-2 mb-4">
+            <p className="text-apoio text-texto-2 mb-2">
               Onde a família está hoje, pela DPP.
             </p>
             {temSemanas ? (
@@ -150,7 +150,7 @@ export function GraficosPipeline({
           </Cartao>
           <Cartao>
             <h2 className="font-titulo text-3 font-medium">Motivos de perda</h2>
-            <p className="text-apoio text-texto-2 mb-4">
+            <p className="text-apoio text-texto-2 mb-2">
               Das famílias que aparecem nesta lista.
             </p>
             {motivos.length > 0 ? (

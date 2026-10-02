@@ -1,7 +1,6 @@
 /**
- * Carregando o painel da Isadora: o modo e a retomada lado a lado, os
- * números do mês e a base de conhecimento, cada um no bloco do tom dele
- * (direção "Colo").
+ * Carregando o painel da Isadora: a faixa de números e os painéis, no
+ * mesmo cartão branco com fio fino das outras telas de gestão.
  */
 export default function CarregandoAgente() {
   return (
@@ -11,12 +10,13 @@ export default function CarregandoAgente() {
       className="flex flex-col gap-6 pt-2 motion-safe:animate-pulse"
     >
       <div className="bg-marinho-14 rounded-pilula h-8 w-32" />
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="bg-dourado-claro rounded-3 h-48" />
-        <div className="bg-lavanda-clara rounded-3 h-48" />
+      <div className="tablet:grid-cols-2 grid grid-cols-1 gap-3 lg:grid-cols-4">
+        {[0, 1, 2, 3].map((i) => (
+          <div key={i} className="bg-areia-clara rounded-3 h-28" />
+        ))}
       </div>
-      <div className="bg-argila-clara rounded-3 h-40" />
       <div className="bg-areia-clara rounded-3 h-56" />
+      <div className="bg-areia-clara rounded-3 h-40" />
     </div>
   );
 }

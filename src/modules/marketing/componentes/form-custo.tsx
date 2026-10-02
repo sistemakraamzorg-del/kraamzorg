@@ -24,7 +24,7 @@ export function FormularioCusto({
   return (
     <form
       onSubmit={acao}
-      className="rounded-3 bg-superficie shadow-1 flex max-w-[560px] flex-col gap-4 p-5"
+      className="rounded-3 border-linha bg-superficie flex max-w-[560px] flex-col gap-4 border p-5"
     >
       <h3 className="font-titulo text-2 text-texto font-medium">
         Custo do mês por canal

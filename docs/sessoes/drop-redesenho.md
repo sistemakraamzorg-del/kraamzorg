@@ -29,6 +29,15 @@ Branch: `drop/redesenho-camila` (local; nada foi enviado ao GitHub).
 - Pipeline: origem do lead no cartão (via `api.lead_origem`, que já existia) e abas Atendimento e Pós-venda somente leitura (estágios mudam por registros e automações).
 - Portal que a família acessa: progresso, atalhos, frases de apoio por bloco, próxima visita em destaque e botão fixo "Fale com a equipe". Modo sensível intocado.
 
+## Rodada 3 (retorno da cliente)
+
+- Barra lateral: logo centralizada, rolagem dentro do arredondado (cabeçalho e rodapé fixos), esmaecido no topo e no fim. Animações suaves de troca de tela e de entrada dos gráficos, desligadas com `prefers-reduced-motion`.
+- Pipeline: colunas com altura máxima e rolagem interna, gráficos logo abaixo em grid de 3 colunas (sem o vão). Tarefas e Tarefas por equipe presas à altura da janela, com Concluída recolhível.
+- Pré-natal em bento grid, com Concluídas recolhida por padrão.
+- Banco de talentos, Pós-venda, Financeiro, Marketing (pizza e funil com conversão) e Isadora no mesmo padrão do Painel e das Cobranças.
+- NPS mês a mês também no Pós-venda (reaproveita `src/lib/gestao/nps-mensal.ts`).
+- Varredura de UX: só Famílias ganhou frase de apoio; o restante já estava no padrão. Recomendações abertas (baixa): componente único para "link de volta + título" nas telas de detalhe; copy do Copiloto cita "pipeline 1".
+
 ## Decisões
 
 - Direção "institucional, legível, acolhedor na medida" depois do retorno da cliente (sem degradê decorativo).

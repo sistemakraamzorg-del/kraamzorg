@@ -1,8 +1,10 @@
 import Link from "next/link";
-import { ListOrdered } from "lucide-react";
-import { SecaoBloco } from "@/components/blocos/secao-bloco";
 import { MantaDobrada } from "@/components/ilustracoes";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
+import {
+  GradeIndicadores,
+  PainelGrafico,
+} from "@/modules/inicio/painel-gestao";
 import { Selo } from "@/components/ui/selo";
 import { TabelaLista } from "@/components/ui/tabela-lista";
 import type { ListaDespesas } from "@/lib/dados/tipos-gestao";
@@ -45,35 +47,53 @@ export function ListaDespesasTela({ lista }: { lista: ListaDespesas }) {
   const fatias = fatiasDeDespesa(
     [...porCategoria].map(([rotulo, centavos]) => ({ rotulo, centavos })),
   );
+  const maior = [...porCategoria].sort((a, b) => b[1] - a[1])[0]!;
+  const pctMaior = Math.round(
+    (maior[1] / Math.max(lista.totalCentavos, 1)) * 100,
+  );
   return (
     <>
-      <section
-        aria-labelledby="desp-comp"
-        className="bg-superficie border-linha rounded-3 flex flex-col gap-4 border p-5 lg:p-6"
-      >
-        <h2
-          id="desp-comp"
-          className="font-titulo text-2 text-texto font-medium"
-        >
-          Como as despesas se dividem
-        </h2>
-        <Rosca
-          formato="moeda"
-          espessura={44}
-          centro={{ valor: "", legenda: "" }}
-          rotulo={`Despesas de ${rotuloMes(lista.mes)} por categoria`}
-          fatias={fatias}
+      <div className="[&>ul]:mt-0">
+        <GradeIndicadores
+          itens={[
+            {
+              rotulo: "Total do mês",
+              valor: formatarMoeda(lista.totalCentavos),
+              contexto: `${plural(lista.despesas.length, "despesa lançada", "despesas lançadas")} em ${rotuloMes(lista.mes)}.`,
+              href: "#desp-lista",
+              tom: "areia",
+            },
+            {
+              rotulo: "Maior categoria",
+              valor: formatarMoeda(maior[1]),
+              contexto: `${maior[0]}, ${pctMaior}% do total do mês.`,
+              href: "#desp-comp",
+              tom: "areia",
+            },
+          ]}
         />
-      </section>
-      <SecaoBloco
-        idTitulo="desp-lista"
-        titulo={`Lançadas em ${rotuloMes(lista.mes)}`}
-        icone={<ListOrdered />}
-        tom="areia"
-        contagem={lista.despesas.length}
-      >
-        <div className="min-[720px]:rounded-3 min-[720px]:bg-superficie min-[720px]:shadow-1 min-[720px]:p-2 lg:px-4 lg:py-3">
+      </div>
+      <div id="desp-comp" className="scroll-mt-24">
+        <PainelGrafico
+          titulo="Como as despesas se dividem"
+          nota={`Despesas de ${rotuloMes(lista.mes)} por categoria.`}
+        >
+          <Rosca
+            formato="moeda"
+            espessura={44}
+            centro={{ valor: "", legenda: "" }}
+            rotulo={`Despesas de ${rotuloMes(lista.mes)} por categoria`}
+            fatias={fatias}
+          />
+        </PainelGrafico>
+      </div>
+      <div id="desp-lista" className="scroll-mt-24">
+        <PainelGrafico
+          titulo={`Lançadas em ${rotuloMes(lista.mes)}`}
+          nota={plural(lista.despesas.length, "despesa", "despesas")}
+        >
           <TabelaLista
+            className="[&_thead_th]:bg-areia-clara"
             rotulo={`Despesas de ${rotuloMes(lista.mes)}`}
             colunas={[
               { chave: "descricao", rotulo: "O que foi pago", principal: true },
@@ -126,8 +146,8 @@ export function ListaDespesasTela({ lista }: { lista: ListaDespesas }) {
               },
             }))}
           />
-        </div>
-      </SecaoBloco>
+        </PainelGrafico>
+      </div>
     </>
   );
 }

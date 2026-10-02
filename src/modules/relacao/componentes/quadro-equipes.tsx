@@ -337,6 +337,9 @@ export function QuadroEquipes({
   const [movidas, definirMovidas] = React.useState<Record<string, Coluna>>({});
   const [, iniciar] = React.useTransition();
   const [novaAberta, definirNovaAberta] = React.useState(false);
+  const [verConcluidas, definirVerConcluidas] = React.useState<boolean | null>(
+    null,
+  );
 
   // Chegou dado novo do servidor: o otimista cumpriu o papel.
   const [vistos, definirVistos] = React.useState(quadro);
@@ -436,7 +439,10 @@ export function QuadroEquipes({
   }
 
   return (
-    <section aria-label="Tarefas por equipe" className="flex flex-col gap-5">
+    <section
+      aria-label="Tarefas por equipe"
+      className="flex h-[calc(100dvh-9rem)] min-h-[30rem] flex-col gap-3 lg:h-[calc(100dvh-8rem)]"
+    >
       <p className="text-3 text-texto max-w-[60ch]">
         {fraseQuadroEquipes(quadro)}
       </p>
@@ -498,7 +504,7 @@ export function QuadroEquipes({
           role="region"
           aria-label="Colunas por estado. Arraste uma tarefa entre as colunas ou use os botões do cartão."
           tabIndex={0}
-          className="-mx-4 flex snap-x snap-mandatory items-start gap-3 overflow-x-auto px-4 pb-3 lg:mx-0 lg:grid lg:grid-cols-3 lg:overflow-visible lg:px-0"
+          className="-mx-4 flex min-h-0 flex-1 snap-x snap-mandatory items-stretch gap-3 overflow-x-auto px-4 pb-1 lg:mx-0 lg:grid lg:grid-cols-3 lg:grid-rows-[minmax(0,1fr)] lg:overflow-x-hidden lg:px-0"
         >
           {COLUNAS.map((coluna) => {
             const doEstado =
@@ -509,6 +515,10 @@ export function QuadroEquipes({
                       !concluidas.includes(t.id) && colunaDe(t) === coluna.id,
                   );
             const destacado = alvo === coluna.id && arrastando !== null;
+            // Concluída começa recolhida quando tem mais de cinco itens.
+            const recolhida =
+              coluna.id === "concluida" &&
+              (verConcluidas === null ? doEstado.length > 5 : !verConcluidas);
             const total =
               coluna.id === "concluida"
                 ? doEstado.length + concluidas7d
@@ -531,13 +541,13 @@ export function QuadroEquipes({
                   soltar(coluna.id);
                 }}
                 className={cn(
-                  "rounded-3 bg-areia-clara flex min-h-40 w-[17.5rem] flex-none snap-start flex-col gap-3 border p-3 lg:w-auto",
+                  "rounded-3 bg-areia-clara flex min-h-0 w-[17.5rem] flex-none snap-start flex-col gap-2 border p-2 lg:w-auto",
                   destacado
                     ? "border-dourado bg-dourado-claro"
                     : "border-linha",
                 )}
               >
-                <div className="flex min-h-10 items-center gap-2 pl-1">
+                <div className="flex min-h-9 flex-none items-center gap-2 pl-1">
                   <h2
                     id={`coluna-${coluna.id}`}
                     className="font-titulo text-3 min-w-0 flex-1 font-medium"
@@ -561,8 +571,18 @@ export function QuadroEquipes({
                     {destacado ? "Solte aqui." : coluna.vazio}
                   </p>
                 ) : null}
-                <ul className="flex flex-col gap-2">
-                  {doEstado.map((tarefa) => (
+                {coluna.id === "concluida" && doEstado.length > 0 ? (
+                  <button
+                    type="button"
+                    aria-expanded={!recolhida}
+                    onClick={() => definirVerConcluidas(recolhida)}
+                    className="rounded-pilula text-apoio border-linha bg-superficie hover:bg-marinho-08 focus-visible:outline-dourado min-h-11 flex-none border px-4 font-semibold focus-visible:outline-2 focus-visible:outline-offset-2"
+                  >
+                    {recolhida ? "Ver concluídas" : "Recolher concluídas"}
+                  </button>
+                ) : null}
+                <ul className="flex min-h-0 flex-col gap-2 overflow-y-auto overscroll-contain pr-0.5">
+                  {(recolhida ? [] : doEstado).map((tarefa) => (
                     <CartaoTarefa
                       key={tarefa.id}
                       tarefa={tarefa}

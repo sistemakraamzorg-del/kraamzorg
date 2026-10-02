@@ -74,7 +74,7 @@ export function CartaoOportunidadePipeline({
         aoAbrir ? "cursor-pointer" : ""
       } ${emFreio ? "bg-sensivel-lavado border-sensivel-borda border" : ""}`}
     >
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-1.5">
         <div className="flex items-start justify-between gap-2">
           <button
             type="button"

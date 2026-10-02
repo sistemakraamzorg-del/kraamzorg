@@ -1,12 +1,11 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { MantaDobrada } from "@/components/ilustracoes";
 import {
-  BarrasHorizontais,
-  Colunas,
-  Rosca,
-  Sparkline,
-} from "@/components/graficos";
+  GradeIndicadores,
+  PainelGrafico,
+} from "@/modules/inicio/painel-gestao";
+import { MantaDobrada } from "@/components/ilustracoes";
+import { BarrasHorizontais, Colunas, Rosca } from "@/components/graficos";
 import { VerComoTabela } from "@/components/graficos/ver-como-tabela";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
 import { Selo } from "@/components/ui/selo";
@@ -49,42 +48,32 @@ function fraseInadimplencia(v: VisaoFinanceira): string {
   }.`;
 }
 
+const CABECALHO_AREIA = "[&_thead_th]:bg-areia-clara";
+
 function rotuloFaixa(deDias: number, ateDias: number | null): string {
   if (ateDias === null) return `Mais de ${deDias - 1} dias`;
   if (deDias === 1) return `Até ${ateDias} ${ateDias === 1 ? "dia" : "dias"}`;
   return `De ${deDias} a ${ateDias} dias`;
 }
 
-const CARTAO = "bg-superficie border-linha rounded-3 border p-5 lg:p-6";
-
+/** Painel do mesmo desenho do Painel executivo: cabeçalho em areia clara e corpo branco. */
 function Bloco({
   id,
   titulo,
   apoio,
   children,
-  className,
 }: {
   id: string;
   titulo: string;
-  apoio?: ReactNode;
+  apoio?: string;
   children: ReactNode;
-  className?: string;
 }) {
   return (
-    <section
-      aria-labelledby={id}
-      className={`${CARTAO} flex flex-col gap-4 ${className ?? ""}`}
-    >
-      <div className="flex flex-col gap-1">
-        <h2 id={id} className="font-titulo text-2 text-texto font-medium">
-          {titulo}
-        </h2>
-        {apoio ? (
-          <p className="text-apoio text-texto-2 max-w-[68ch]">{apoio}</p>
-        ) : null}
-      </div>
-      {children}
-    </section>
+    <div id={id} className="scroll-mt-24">
+      <PainelGrafico titulo={titulo} nota={apoio}>
+        <div className="flex flex-col gap-4">{children}</div>
+      </PainelGrafico>
+    </div>
   );
 }
 
@@ -93,58 +82,12 @@ function delta(
   atual: number,
   anterior: number | undefined,
   mes: string,
-  melhorSeSobe: boolean,
-): { texto: string; bom: boolean | null } {
-  if (anterior === undefined) {
-    return { texto: "Sem mês anterior para comparar.", bom: null };
-  }
+): string {
+  if (anterior === undefined) return "Sem mês anterior para comparar.";
   const dif = atual - anterior;
   const antes = nomeMes(somarMeses(mes, -1));
-  if (dif === 0) return { texto: `Igual a ${antes}.`, bom: null };
-  const texto = `${formatarMoeda(Math.abs(dif))} ${dif > 0 ? "a mais" : "a menos"} que em ${antes}.`;
-  return { texto, bom: dif > 0 === melhorSeSobe };
-}
-
-function CartaoDre({
-  rotulo,
-  valor,
-  comparacao,
-  serie,
-  tom,
-  destaque,
-}: {
-  rotulo: string;
-  valor: string;
-  comparacao: { texto: string; bom: boolean | null };
-  serie: number[];
-  tom: "marinho" | "dourado" | "sucesso" | "aviso";
-  destaque?: boolean;
-}) {
-  return (
-    <div
-      className={`${CARTAO} flex flex-col gap-2 ${destaque ? "border-l-dourado border-l-4" : ""}`}
-    >
-      <p className="text-apoio text-texto-2 font-medium">{rotulo}</p>
-      <p className="font-titulo text-numero-sm text-texto font-medium tabular-nums">
-        {valor}
-      </p>
-      <Sparkline
-        valores={serie.map((v) => Math.max(v, 0))}
-        tom={tom}
-        rotulo={`${rotulo} nos últimos ${serie.length} meses`}
-      />
-      <p
-        className={`text-mini ${comparacao.bom === null ? "text-texto-2" : comparacao.bom ? "text-sucesso" : "text-aviso"}`}
-      >
-        {comparacao.bom === null
-          ? ""
-          : comparacao.bom
-            ? "Subiu: "
-            : "Atenção: "}
-        {comparacao.texto}
-      </p>
-    </div>
-  );
+  if (dif === 0) return `Igual a ${antes}.`;
+  return `${formatarMoeda(Math.abs(dif))} ${dif > 0 ? "a mais" : "a menos"} que em ${antes}.`;
 }
 
 /**
@@ -170,60 +113,72 @@ export function VisaoFinanceiraTela({ v }: { v: VisaoFinanceira }) {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* DRE resumida: quatro cartões, cada um com a linha dos últimos meses
-          e o quanto mudou desde o mês anterior. */}
-      <div className="grid grid-cols-1 gap-3 min-[600px]:grid-cols-2 lg:grid-cols-4">
-        <CartaoDre
-          destaque
-          rotulo="Resultado do mês"
-          valor={formatarMoeda(dre.resultadoCentavos)}
-          comparacao={delta(
-            dre.resultadoCentavos,
-            ant?.resultadoCentavos,
-            dre.mes,
-            true,
-          )}
-          serie={dre.serie.map((p) => p.resultadoCentavos)}
-          tom="dourado"
+      {/* Faixa-resumo no mesmo desenho do Painel e do Início: quatro
+          indicadores, cada um com a linha dos últimos meses e a comparação
+          com o mês anterior escrita embaixo. */}
+      <div className="[&>ul]:mt-0">
+        <GradeIndicadores
+          itens={[
+            {
+              rotulo: "Resultado do mês",
+              valor: formatarMoeda(dre.resultadoCentavos),
+              contexto: delta(
+                dre.resultadoCentavos,
+                ant?.resultadoCentavos,
+                dre.mes,
+              ),
+              href: "#fin-serie",
+              tom: "dourado",
+              serie: dre.serie.map((p) => Math.max(p.resultadoCentavos, 0)),
+              rotuloSerie: `Resultado nos últimos ${dre.serie.length} meses`,
+              tomGrafico: "dourado",
+            },
+            {
+              rotulo: "Entraram",
+              valor: formatarMoeda(dre.receitaCentavos),
+              contexto: delta(
+                dre.receitaCentavos,
+                ant?.receitaCentavos,
+                dre.mes,
+              ),
+              href: "#fin-lanc",
+              tom: "salvia",
+              serie: dre.serie.map((p) => Math.max(p.receitaCentavos, 0)),
+              rotuloSerie: `Entradas nos últimos ${dre.serie.length} meses`,
+              tomGrafico: "sucesso",
+            },
+            {
+              rotulo: "Saíram",
+              valor: formatarMoeda(dre.despesasCentavos),
+              contexto: delta(
+                dre.despesasCentavos,
+                ant?.despesasCentavos,
+                dre.mes,
+              ),
+              href: "/financeiro/despesas",
+              tom: "areia",
+              serie: dre.serie.map((p) => Math.max(p.despesasCentavos, 0)),
+              rotuloSerie: `Saídas nos últimos ${dre.serie.length} meses`,
+              tomGrafico: "marinho",
+            },
+            {
+              rotulo: "Margem",
+              valor:
+                dre.margemPct !== null
+                  ? formatarPct(dre.margemPct)
+                  : "sem número",
+              contexto:
+                dre.margemPct !== null
+                  ? "Resultado dividido pelo que entrou no mês."
+                  : "Sem recebimento no mês, ainda não há margem para calcular.",
+              href: "#fin-serie",
+              tom: "areia",
+            },
+          ]}
         />
-        <CartaoDre
-          rotulo="Entraram"
-          valor={formatarMoeda(dre.receitaCentavos)}
-          comparacao={delta(
-            dre.receitaCentavos,
-            ant?.receitaCentavos,
-            dre.mes,
-            true,
-          )}
-          serie={dre.serie.map((p) => p.receitaCentavos)}
-          tom="sucesso"
-        />
-        <CartaoDre
-          rotulo="Saíram"
-          valor={formatarMoeda(dre.despesasCentavos)}
-          comparacao={delta(
-            dre.despesasCentavos,
-            ant?.despesasCentavos,
-            dre.mes,
-            false,
-          )}
-          serie={dre.serie.map((p) => p.despesasCentavos)}
-          tom="marinho"
-        />
-        <div className={`${CARTAO} flex flex-col gap-2`}>
-          <p className="text-apoio text-texto-2 font-medium">Margem</p>
-          <p className="font-titulo text-numero-sm text-texto font-medium tabular-nums">
-            {dre.margemPct !== null ? formatarPct(dre.margemPct) : "sem número"}
-          </p>
-          <p className="text-mini text-texto-2">
-            {dre.margemPct !== null
-              ? "Resultado dividido pelo que entrou no mês."
-              : "Sem recebimento no mês, ainda não há margem para calcular."}
-          </p>
-        </div>
       </div>
 
-      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[62fr_38fr]">
+      <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[62fr_38fr]">
         <Bloco
           id="fin-serie"
           titulo={`Entrou e saiu nos últimos ${dre.serie.length} meses`}
@@ -299,21 +254,19 @@ export function VisaoFinanceiraTela({ v }: { v: VisaoFinanceira }) {
         </Bloco>
       </div>
 
-      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
         <Bloco
           id="fin-prev"
           titulo="Previsão de recebimentos"
-          apoio={
-            <>
-              {previsao.aVencerCentavos > 0
-                ? `Vencem ${formatarMoeda(previsao.aVencerCentavos)} nos próximos ${previsao.meses.length} meses.`
-                : `Nenhuma cobrança em aberto vence nos próximos ${previsao.meses.length} meses.`}{" "}
-              {previsao.atrasadasCentavos > 0
-                ? `Mais ${formatarMoeda(previsao.atrasadasCentavos)} já venceram e seguem em aberto. `
-                : ""}
-              Só entram as cobranças que já existem.
-            </>
-          }
+          apoio={`${
+            previsao.aVencerCentavos > 0
+              ? `Vencem ${formatarMoeda(previsao.aVencerCentavos)} nos próximos ${previsao.meses.length} meses.`
+              : `Nenhuma cobrança em aberto vence nos próximos ${previsao.meses.length} meses.`
+          } ${
+            previsao.atrasadasCentavos > 0
+              ? `Mais ${formatarMoeda(previsao.atrasadasCentavos)} já venceram e seguem em aberto. `
+              : ""
+          }Só entram as cobranças que já existem.`}
         >
           {previsao.aVencerCentavos > 0 ? (
             <Colunas
@@ -369,6 +322,7 @@ export function VisaoFinanceiraTela({ v }: { v: VisaoFinanceira }) {
       {inadimplencia.vencidasQtd > 0 ? (
         <Bloco id="fin-atraso" titulo="Cobranças em atraso">
           <TabelaLista
+            className={CABECALHO_AREIA}
             rotulo="Cobranças em atraso"
             colunas={[
               { chave: "familia", rotulo: "Família", principal: true },
@@ -415,7 +369,8 @@ export function VisaoFinanceiraTela({ v }: { v: VisaoFinanceira }) {
             texto="Os recebimentos aparecem sozinhos quando uma cobrança é paga. As despesas você lança na tela de despesas."
           />
         ) : (
-          <VerComoTabela
+          <TabelaLista
+            className={CABECALHO_AREIA}
             rotulo="Lançamentos do mês"
             colunas={[
               { chave: "data", rotulo: "Dia" },
@@ -439,7 +394,6 @@ export function VisaoFinanceiraTela({ v }: { v: VisaoFinanceira }) {
                     : `-${formatarMoeda(l.valorCentavos)}`,
               },
             }))}
-            aberta
           />
         )}
       </Bloco>

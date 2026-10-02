@@ -75,6 +75,7 @@ export function ListaTarefas({
   detalhada?: boolean;
 }) {
   const [feitas, setFeitas] = useState<TarefaFeita[]>([]);
+  const [recolhidos, setRecolhidos] = useState<string[]>([]);
   const aoFeita = useCallback((feita: TarefaFeita) => {
     setFeitas((anteriores) =>
       anteriores.some((f) => f.id === feita.id)
@@ -160,6 +161,23 @@ export function ListaTarefas({
                     ? "1 tarefa"
                     : `${grupo.tarefas.length} tarefas`}
                 </span>
+                {detalhada ? (
+                  <button
+                    type="button"
+                    aria-expanded={!recolhidos.includes(grupo.balde)}
+                    aria-controls={`grupo-${grupo.balde}`}
+                    onClick={() =>
+                      setRecolhidos((r) =>
+                        r.includes(grupo.balde)
+                          ? r.filter((b) => b !== grupo.balde)
+                          : [...r, grupo.balde],
+                      )
+                    }
+                    className="rounded-pilula text-apoio border-linha hover:bg-marinho-08 focus-visible:outline-dourado ml-auto min-h-11 border px-4 font-semibold focus-visible:outline-2 focus-visible:outline-offset-2"
+                  >
+                    {recolhidos.includes(grupo.balde) ? "Mostrar" : "Recolher"}
+                  </button>
+                ) : null}
               </div>
             )}
             {detalhada && !umGrupoSo ? (
@@ -167,22 +185,24 @@ export function ListaTarefas({
                 {APOIO_BALDE[grupo.balde]}
               </p>
             ) : null}
-            <div
-              className={
-                colunas && !detalhada
-                  ? "grid grid-cols-1 items-start gap-3 lg:grid-cols-2"
-                  : "flex flex-col gap-3"
-              }
-            >
-              {grupo.tarefas.map((tarefa) => (
-                <CartaoTarefa
-                  key={tarefa.id}
-                  tarefa={tarefa}
-                  aoFeita={aoFeita}
-                  explicada={detalhada}
-                />
-              ))}
-            </div>
+            {detalhada && recolhidos.includes(grupo.balde) ? null : (
+              <div
+                className={
+                  colunas && !detalhada
+                    ? "grid grid-cols-1 items-start gap-3 lg:grid-cols-2"
+                    : "flex flex-col gap-3"
+                }
+              >
+                {grupo.tarefas.map((tarefa) => (
+                  <CartaoTarefa
+                    key={tarefa.id}
+                    tarefa={tarefa}
+                    aoFeita={aoFeita}
+                    explicada={detalhada}
+                  />
+                ))}
+              </div>
+            )}
           </section>
         ))
       )}

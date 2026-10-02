@@ -7,7 +7,6 @@ import { CampoTexto } from "@/components/ui/campo-texto";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { Plus } from "lucide-react";
 import { Selo } from "@/components/ui/selo";
-import { TileIcone } from "@/components/ui/tile-icone";
 import type { CanaisMarketing, CanalCaptacao } from "@/lib/dados/tipos-relacao";
 import { CampoSelecao } from "@/modules/configuracoes/componentes/campo-selecao";
 import { BotaoCopiar } from "@/modules/relacao/botao-copiar";
@@ -33,7 +32,7 @@ function CartaoCanal({
   const whatsapp = linkWhatsAppDoCanal(canais, canal);
   return (
     <li
-      className="rounded-3 bg-superficie shadow-1 flex flex-col gap-4 p-5"
+      className="rounded-3 border-linha bg-superficie flex flex-col gap-4 border p-5"
       data-canal={canal.codigo}
     >
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
@@ -128,12 +127,10 @@ function FormularioNovoCanal() {
     <form
       ref={ref}
       onSubmit={acao}
-      className="rounded-3 bg-dourado-claro flex max-w-[560px] flex-col gap-4 p-5 lg:p-6"
+      className="rounded-3 border-linha bg-superficie flex max-w-[560px] flex-col gap-4 border p-5 lg:p-6"
     >
       <h3 className="font-titulo text-2 text-texto flex items-center gap-3 font-medium">
-        <TileIcone tom="dourado" forma="quadrado" tamanho="p">
-          <Plus />
-        </TileIcone>
+        <Plus className="text-dourado size-5" aria-hidden="true" />
         Novo canal
       </h3>
       <CampoTexto

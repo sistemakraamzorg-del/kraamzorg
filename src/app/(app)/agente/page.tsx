@@ -9,10 +9,13 @@ import {
   Settings2,
 } from "lucide-react";
 import { CabecalhoTela } from "@/components/shell/cabecalho-tela";
-import { cn } from "@/lib/utils";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { exigirSessao } from "@/lib/auth/sessao";
 import { Botao } from "@/components/ui/botao";
+import {
+  GradeIndicadores,
+  PainelGrafico,
+} from "@/modules/inicio/painel-gestao";
 import { Selo } from "@/components/ui/selo";
 import { listarConversasTela } from "@/modules/agente/conversas/dados";
 import {
@@ -49,44 +52,19 @@ function Avancado({
   children: React.ReactNode;
 }) {
   return (
-    <details className="group border-linha rounded-2 bg-superficie border">
-      <summary className="focus-visible:outline-foco flex min-h-11 cursor-pointer list-none items-center gap-3 px-4 py-2 [&::-webkit-details-marker]:hidden">
-        <span className="text-dourado [&_svg]:size-5">{icone}</span>
-        <span className="text-texto flex-1 font-medium">{titulo}</span>
+    <details className="group border-linha rounded-3 bg-superficie overflow-hidden border">
+      <summary className="focus-visible:outline-foco bg-areia-clara group-open:border-linha flex min-h-11 cursor-pointer list-none items-center gap-3 px-5 py-3 group-open:border-b [&::-webkit-details-marker]:hidden">
+        <span className="text-texto-2 [&_svg]:size-5">{icone}</span>
+        <span className="font-titulo text-2 text-texto flex-1 font-medium">
+          {titulo}
+        </span>
         <ChevronDown
           aria-hidden
           className="text-texto-2 size-5 transition-transform group-open:rotate-180"
         />
       </summary>
-      <div className="flex flex-col gap-4 px-4 pt-1 pb-4">{children}</div>
+      <div className="flex flex-col gap-4 p-5">{children}</div>
     </details>
-  );
-}
-
-function Numero({
-  valor,
-  rotulo,
-  href,
-  destaque,
-}: {
-  valor: number | null;
-  rotulo: string;
-  href: string;
-  destaque?: boolean;
-}) {
-  return (
-    <Link
-      href={href}
-      className={cn(
-        "rounded-3 border-linha bg-superficie focus-visible:outline-foco flex min-h-11 flex-col gap-1 border p-4",
-        destaque && valor ? "border-dourado" : null,
-      )}
-    >
-      <span className="font-titulo text-texto text-4 font-medium">
-        {valor ?? "sem dado"}
-      </span>
-      <span className="text-apoio text-texto-2">{rotulo}</span>
-    </Link>
   );
 }
 
@@ -152,6 +130,7 @@ export default async function PaginaAgente() {
   return (
     <>
       <CabecalhoTela
+        sobretitulo="Atendimento"
         titulo="Isadora"
         subtitulo="Quem espera uma resposta da equipe e como estão as conversas."
         lateral={
@@ -175,27 +154,38 @@ export default async function PaginaAgente() {
           <h2 id="titulo-situacao" className="sr-only">
             Situação das conversas
           </h2>
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <Numero
-              valor={esperando}
-              rotulo="Esperando a equipe"
-              href="/conversas?filtro=esperando"
-              destaque
-            />
-            <Numero
-              valor={contar("isadora")}
-              rotulo="Com a Isadora"
-              href="/conversas?filtro=isadora"
-            />
-            <Numero
-              valor={contar("equipe")}
-              rotulo="Com a equipe"
-              href="/conversas?filtro=equipe"
-            />
-            <Numero
-              valor={contar("pausada")}
-              rotulo="Isadora pausada"
-              href="/conversas?filtro=pausada"
+          <div className="[&>ul]:mt-0">
+            <GradeIndicadores
+              itens={[
+                {
+                  rotulo: "Esperando a equipe",
+                  valor: esperando ?? "sem dado",
+                  contexto: "Conversas que pedem uma pessoa da equipe.",
+                  href: "/conversas?filtro=esperando",
+                  tom: "dourado",
+                },
+                {
+                  rotulo: "Com a Isadora",
+                  valor: contar("isadora") ?? "sem dado",
+                  contexto: "Conversas que ela está atendendo agora.",
+                  href: "/conversas?filtro=isadora",
+                  tom: "areia",
+                },
+                {
+                  rotulo: "Com a equipe",
+                  valor: contar("equipe") ?? "sem dado",
+                  contexto: "Conversas que uma pessoa assumiu.",
+                  href: "/conversas?filtro=equipe",
+                  tom: "areia",
+                },
+                {
+                  rotulo: "Isadora pausada",
+                  valor: contar("pausada") ?? "sem dado",
+                  contexto: "Conversas em que ela espera até a pausa acabar.",
+                  href: "/conversas?filtro=pausada",
+                  tom: "areia",
+                },
+              ]}
             />
           </div>
           <p className="text-apoio text-texto-2">
@@ -204,57 +194,48 @@ export default async function PaginaAgente() {
           </p>
         </section>
 
-        <section
-          aria-labelledby="titulo-recentes"
-          className="flex flex-col gap-3"
-        >
-          <div className="flex items-center justify-between gap-3">
-            <h2
-              id="titulo-recentes"
-              className="font-titulo text-2 text-texto font-medium"
-            >
-              Conversas recentes
-            </h2>
-            <Link
-              href="/conversas"
-              className="text-apoio text-texto focus-visible:outline-foco underline underline-offset-4"
-            >
-              Ver todas
-            </Link>
-          </div>
-          {recentes.length === 0 ? (
-            <p className="text-corpo text-texto-2 rounded-3 border-linha bg-superficie border p-4">
-              {conversas
+        <PainelGrafico
+          titulo="Conversas recentes"
+          nota="As cinco últimas famílias que escreveram."
+          vazio={
+            recentes.length === 0
+              ? conversas
                 ? "Ainda não há conversas. Quando uma família escrever, ela aparece aqui."
-                : "Não foi possível carregar as conversas agora."}
-            </p>
-          ) : (
-            <ul className="rounded-3 border-linha bg-superficie divide-linha divide-y border">
-              {recentes.map((c) => (
-                <li key={c.id}>
-                  <Link
-                    href={`/conversas/${c.id}`}
-                    className="focus-visible:outline-foco flex min-h-11 items-center gap-3 px-4 py-3"
-                  >
-                    <MessageCircle
-                      aria-hidden
-                      className="text-dourado size-5 shrink-0"
-                    />
-                    <span className="text-texto min-w-0 flex-1 truncate font-medium">
-                      {nomeDaConversa(c)}
-                    </span>
-                    <Selo variante="neutro">
-                      {rotuloDaSituacao(c.situacao, c.agenteEncerradoMotivo)}
-                    </Selo>
-                    <span className="text-apoio text-texto-2 w-12 shrink-0 text-right">
-                      {quandoNaLista(c.ultimaEntradaEm ?? c.ultimaSaidaEm)}
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+                : "Não foi possível carregar as conversas agora."
+              : undefined
+          }
+        >
+          <ul className="divide-linha -mx-5 -mt-5 divide-y">
+            {recentes.map((c) => (
+              <li key={c.id}>
+                <Link
+                  href={`/conversas/${c.id}`}
+                  className="focus-visible:outline-foco hover:bg-areia-clara ease-estado flex min-h-11 items-center gap-3 px-5 py-3 no-underline transition-colors duration-140"
+                >
+                  <MessageCircle
+                    aria-hidden
+                    className="text-texto-2 size-5 shrink-0"
+                  />
+                  <span className="text-texto min-w-0 flex-1 truncate font-medium">
+                    {nomeDaConversa(c)}
+                  </span>
+                  <Selo variante="neutro">
+                    {rotuloDaSituacao(c.situacao, c.agenteEncerradoMotivo)}
+                  </Selo>
+                  <span className="text-apoio text-texto-2 w-12 shrink-0 text-right">
+                    {quandoNaLista(c.ultimaEntradaEm ?? c.ultimaSaidaEm)}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+          <Link
+            href="/conversas"
+            className="text-apoio text-texto focus-visible:outline-foco min-h-toque mt-3 inline-flex items-center font-semibold underline decoration-1 underline-offset-4"
+          >
+            Ver todas as conversas
+          </Link>
+        </PainelGrafico>
 
         <section
           aria-labelledby="titulo-avancado"

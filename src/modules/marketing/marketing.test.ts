@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { LinhaExportacaoMarketing } from "@/lib/dados/tipos-relacao";
 import { celulaCsv, CABECALHO_CSV, csvDaExportacao } from "./csv";
 import { codigoDeOrigem, linkDaPagina, linkWhatsAppDoCanal } from "./links";
-import { atalhosDePeriodo, periodoDaBusca } from "./periodo";
+import { atalhosDePeriodo, periodoAnterior, periodoDaBusca } from "./periodo";
 
 describe("links de captação (P47)", () => {
   const canais = {
@@ -105,5 +105,24 @@ describe("período (P47)", () => {
       desde: "2028-02-01",
       ate: "2028-02-29",
     });
+  });
+});
+
+describe("período anterior do marketing", () => {
+  it("é o período de mesmo tamanho logo antes", () => {
+    expect(periodoAnterior({ desde: "2026-09-01", ate: "2026-09-30" })).toEqual(
+      { desde: "2026-08-02", ate: "2026-08-31" },
+    );
+    expect(periodoAnterior({ desde: "2026-10-05", ate: "2026-10-05" })).toEqual(
+      { desde: "2026-10-04", ate: "2026-10-04" },
+    );
+  });
+
+  it("sem as duas pontas não há como comparar", () => {
+    expect(periodoAnterior({ desde: "2026-09-01", ate: null })).toBeNull();
+    expect(periodoAnterior({ desde: null, ate: null })).toBeNull();
+    expect(
+      periodoAnterior({ desde: "2026-09-10", ate: "2026-09-01" }),
+    ).toBeNull();
   });
 });

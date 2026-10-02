@@ -62,8 +62,8 @@ export default async function PaginaTarefas() {
         titulo="Tarefas"
         subtitulo="Agrupadas pelo prazo. Cada tarefa diz por que existe, o que fazer e tem a ação ao lado."
       />
-      <div className="flex flex-col gap-8 pt-6">
-        <details className="rounded-3 bg-areia-clara group max-w-[62rem]">
+      <div className="flex h-[calc(100dvh-13rem)] min-h-[26rem] flex-col gap-4 pt-3 lg:h-[calc(100dvh-10rem)]">
+        <details className="rounded-3 bg-areia-clara group max-w-[62rem] flex-none">
           <summary className="min-h-toque rounded-3 flex cursor-pointer list-none items-center gap-3 px-4 py-3 lg:px-5 [&::-webkit-details-marker]:hidden">
             <TileIcone tom="areia" forma="quadrado" tamanho="p">
               <CircleHelp />
@@ -90,7 +90,9 @@ export default async function PaginaTarefas() {
         </details>
 
         {tela ? (
-          <ListaTarefas grupos={tela.grupos} detalhada />
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1">
+            <ListaTarefas grupos={tela.grupos} detalhada />
+          </div>
         ) : (
           <FaixaAlerta
             variante="prioritario"

@@ -50,7 +50,7 @@ export default async function PaginaTarefasEquipe() {
   }
 
   return (
-    <div className="flex flex-col gap-8 pt-2">
+    <div className="flex flex-col gap-3 pt-2">
       <div className="flex flex-col gap-2">
         <h1 className="font-titulo text-display lg:text-display-lg text-texto font-normal">
           Tarefas por equipe

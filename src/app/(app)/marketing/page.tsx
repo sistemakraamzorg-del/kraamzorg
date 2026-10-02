@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Coins, Download, Link2, LockKeyhole } from "lucide-react";
+import { LockKeyhole } from "lucide-react";
 import { CabecalhoTela } from "@/components/shell/cabecalho-tela";
 import { Botao } from "@/components/ui/botao";
-import { TileIcone } from "@/components/ui/tile-icone";
+import { PainelGrafico } from "@/modules/inicio/painel-gestao";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { exigirSessao } from "@/lib/auth/sessao";
 import { hojeBrasilia } from "@/modules/crm/pipeline/idade-gestacional";
@@ -53,6 +53,7 @@ export default async function PaginaMarketing({
   return (
     <>
       <CabecalhoTela
+        sobretitulo="Gestão"
         titulo="Marketing"
         subtitulo="De onde as famílias chegam, quanto cada canal custou e o que virou contrato."
       />
@@ -109,6 +110,7 @@ export default async function PaginaMarketing({
                 <RelatorioMarketingTela
                   relatorio={tela.relatorio}
                   periodo={tela.periodo}
+                  anterior={tela.anterior}
                 />
               ) : (
                 <FaixaAlerta
@@ -126,45 +128,22 @@ export default async function PaginaMarketing({
                 ) : null}
 
                 {tela.canais ? (
-                  <section
-                    aria-labelledby="links"
-                    className="flex flex-col gap-4"
+                  <PainelGrafico
+                    titulo="Links por canal"
+                    nota="Cada canal tem um código que vai no texto da primeira mensagem. Quando a família escreve, a origem já entra certa no cadastro."
                   >
-                    <h2
-                      id="links"
-                      className="font-titulo text-2 text-texto flex items-center gap-3 font-medium"
-                    >
-                      <TileIcone tom="areia" forma="quadrado">
-                        <Link2 />
-                      </TileIcone>
-                      Links por canal
-                    </h2>
-                    <p className="text-corpo text-texto-2 max-w-[64ch]">
-                      Cada canal tem um código que vai no texto da primeira
-                      mensagem. Quando a família escreve, a origem já entra
-                      certa no cadastro.
-                    </p>
                     <GeradorLinks
                       canais={tela.canais}
                       enderecoBase={tela.enderecoBase}
                     />
-                  </section>
+                  </PainelGrafico>
                 ) : null}
 
                 {tela.podeLancarCusto && tela.relatorio ? (
-                  <section
-                    aria-labelledby="custo"
-                    className="flex flex-col gap-4"
+                  <PainelGrafico
+                    titulo="Custo por canal"
+                    nota="O custo do mês entra no custo por lead e por contrato do relatório."
                   >
-                    <h2
-                      id="custo"
-                      className="font-titulo text-2 text-texto flex items-center gap-3 font-medium"
-                    >
-                      <TileIcone tom="areia" forma="quadrado">
-                        <Coins />
-                      </TileIcone>
-                      Custo por canal
-                    </h2>
                     <FormularioCusto
                       canais={tela.relatorio.porCanal.map((c) => ({
                         id: c.canalId,
@@ -172,28 +151,14 @@ export default async function PaginaMarketing({
                       }))}
                       mesAtual={hojeBrasilia().slice(0, 7)}
                     />
-                  </section>
+                  </PainelGrafico>
                 ) : null}
 
                 {tela.podeExportar ? (
-                  <section
-                    aria-labelledby="exportar"
-                    className="rounded-3 bg-areia-clara flex flex-col gap-3 p-5 lg:p-6"
+                  <PainelGrafico
+                    titulo="Exportar famílias"
+                    nota="O arquivo traz só famílias que podem receber contato de marketing: sem estado sensível e sem quem pediu para não ser contatada. Nunca leva endereço nem histórico de saúde."
                   >
-                    <h2
-                      id="exportar"
-                      className="font-titulo text-2 text-texto flex items-center gap-3 font-medium"
-                    >
-                      <TileIcone tom="areia" forma="quadrado">
-                        <Download />
-                      </TileIcone>
-                      Exportar famílias
-                    </h2>
-                    <p className="text-corpo text-texto-2 max-w-[64ch]">
-                      O arquivo traz só famílias que podem receber contato de
-                      marketing: sem estado sensível e sem quem pediu para não
-                      ser contatada. Nunca leva endereço nem histórico de saúde.
-                    </p>
                     <Botao
                       asChild
                       variante="secundario"
@@ -206,7 +171,7 @@ export default async function PaginaMarketing({
                         Baixar arquivo CSV
                       </a>
                     </Botao>
-                  </section>
+                  </PainelGrafico>
                 ) : null}
               </>
             )}

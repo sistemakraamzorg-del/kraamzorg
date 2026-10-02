@@ -1,12 +1,9 @@
 import Link from "next/link";
-import { CircleCheck, Coins, Compass, Filter, Radio } from "lucide-react";
-import { BarrasHorizontais } from "@/components/graficos/barras-horizontais";
-import { Rosca, type FatiaRosca } from "@/components/graficos";
-import { Broto, FolhaLupa } from "@/components/ilustracoes";
-import { CartaoResumo } from "@/components/ui/cartao-resumo";
-import { EstadoVazio } from "@/components/ui/estado-vazio";
 import { TabelaLista } from "@/components/ui/tabela-lista";
-import { TileIcone } from "@/components/ui/tile-icone";
+import {
+  GradeIndicadores,
+  PainelGrafico,
+} from "@/modules/inicio/painel-gestao";
 import type {
   ContagensMarketing,
   FiltroPeriodo,
@@ -15,13 +12,18 @@ import type {
 import { formatarData, formatarMoeda } from "@/lib/formatacao";
 import { ROTULO_ORIGEM } from "@/modules/relacao/rotulos";
 import { atalhosDePeriodo } from "../periodo";
+import {
+  FunilMarketing,
+  PizzaCanais,
+  fatiasDeCanais,
+} from "./graficos-marketing";
 
 const dividir = (a: number | null, b: number | null): number | null =>
   a !== null && b !== null && b > 0 ? Math.round(a / b) : null;
 
-/** Atalho de período em pílula, dentro do bloco lavanda. */
+/** Atalho de período em pílula, no mesmo desenho das abas. */
 const ATALHO =
-  "rounded-pilula text-apoio text-texto hover:bg-lavanda-media min-h-toque ease-estado inline-flex items-center px-3.5 font-semibold no-underline transition-colors duration-140";
+  "rounded-pilula text-apoio text-texto hover:bg-areia-clara min-h-toque ease-estado inline-flex items-center px-3.5 font-semibold no-underline transition-colors duration-140";
 
 const dinheiro = (v: number | null) =>
   v === null ? "sem acesso" : formatarMoeda(v);
@@ -75,74 +77,59 @@ function celulasValores(c: ContagensMarketing) {
   };
 }
 
-const TONS_PIZZA: FatiaRosca["tom"][] = [
-  "dourado",
-  "marinho",
-  "sucesso",
-  "aviso",
-  "sensivel",
-  "alerta",
-];
-const MAX_FATIAS = TONS_PIZZA.length;
+/** Poucos leads: um lead a mais muda muito os percentuais. */
+const POUCOS_LEADS = 10;
 
-/** Pizza de leads por canal: os maiores em cor própria, o resto junto em "Outros". */
-function PizzaCanais({ relatorio }: { relatorio: RelatorioMarketing }) {
-  const canais = [...relatorio.porCanal]
-    .filter((c) => c.leads > 0)
-    .sort((a, b) => b.leads - a.leads);
-  if (canais.length === 0) {
-    return (
-      <EstadoVazio
-        nivelTitulo="h3"
-        ilustracao={<Broto tamanho={96} />}
-        titulo="Nenhum lead por canal neste período"
-        texto="Quando uma família escrever pelo link de um canal, a fatia dele aparece aqui."
-      />
-    );
-  }
-  const topo = canais.slice(0, MAX_FATIAS - 1);
-  const resto = canais.slice(MAX_FATIAS - 1);
-  const fatias: FatiaRosca[] = topo.map((c, i) => ({
-    rotulo: c.nome,
-    valor: c.leads,
-    tom: TONS_PIZZA[i]!,
-  }));
-  if (resto.length > 0) {
-    fatias.push({
-      rotulo: "Outros canais",
-      valor: resto.reduce((a, c) => a + c.leads, 0),
-      tom: "areia",
-    });
-  }
-  return (
-    <Rosca
-      espessura={44}
-      rotulo="Leads por canal"
-      centro={{ valor: String(relatorio.total.leads), legenda: "leads" }}
-      fatias={fatias}
-    />
-  );
+const plural = (n: number, um: string, varios: string) =>
+  `${n} ${n === 1 ? um : varios}`;
+
+/** Comparação com o período anterior, em frase. Sem período anterior, ensina como obter. */
+function comparar(
+  atual: number | null,
+  anterior: number | null | undefined,
+  tem: boolean,
+  moeda = false,
+): string {
+  if (!tem)
+    return "Escolha um período de início e fim para comparar com o anterior.";
+  if (atual === null || anterior === null || anterior === undefined)
+    return "Sem dado do período anterior para comparar.";
+  const dif = atual - anterior;
+  if (dif === 0) return "Igual ao período anterior.";
+  const valor = moeda ? formatarMoeda(Math.abs(dif)) : String(Math.abs(dif));
+  return `${valor} ${dif > 0 ? "a mais" : "a menos"} que no período anterior.`;
 }
 
-/** Aba "Visão geral": período, frase, funil, pizza de canais e o dinheiro. */
+/** Aba "Visão geral": período, frase, indicadores, canais, funil e o dinheiro. */
 export function RelatorioMarketingTela({
   relatorio,
   periodo,
+  anterior,
 }: {
   relatorio: RelatorioMarketing;
   periodo: FiltroPeriodo;
+  /** Mesmo relatório no período anterior, quando o período tem as duas pontas. */
+  anterior?: RelatorioMarketing | null;
 }) {
   const atalhos = atalhosDePeriodo();
-  const custoLead = dividir(
-    relatorio.total.custoCentavos,
-    relatorio.total.leads,
-  );
+  const t = relatorio.total;
+  const ant = anterior?.total ?? null;
+  const tem = Boolean(periodo.desde && periodo.ate);
+  const custoLead = dividir(t.custoCentavos, t.leads);
+  const custoContrato = dividir(t.custoCentavos, t.contratosPagos);
+  const filtro =
+    periodo.desde || periodo.ate
+      ? `&desde=${periodo.desde ?? ""}&ate=${periodo.ate ?? ""}`
+      : "";
+  const fatias = fatiasDeCanais(relatorio.porCanal);
+  const anteriorPorCanal = anterior
+    ? new Map(anterior.porCanal.map((c) => [c.canalId, c.leads]))
+    : null;
   return (
-    <div className="flex flex-col gap-5">
-      {/* O período num bloco de tempo (lavanda, DESIGN.md 2.5). */}
+    <div className="flex flex-col gap-6">
       <form
         method="get"
-        className="rounded-3 bg-lavanda-clara flex flex-wrap items-end gap-3 p-4"
+        className="rounded-3 border-linha bg-superficie flex flex-wrap items-end gap-3 border p-4"
         aria-label="Período do relatório"
       >
         <label className="text-apoio text-texto flex flex-col gap-1 font-semibold">
@@ -169,7 +156,7 @@ export function RelatorioMarketingTela({
         >
           Ver período
         </button>
-        <span className="flex flex-wrap gap-1">
+        <span className="bg-areia rounded-pilula flex flex-wrap gap-1 p-1">
           <Link
             className={ATALHO}
             href={`/marketing?desde=${atalhos.esteMes.desde}&ate=${atalhos.esteMes.ate}`}
@@ -189,7 +176,7 @@ export function RelatorioMarketingTela({
       </form>
 
       <p
-        className="text-corpo text-texto max-w-[64ch]"
+        className="text-3 text-texto max-w-[64ch]"
         data-teste="frase-relatorio"
       >
         <span className="text-texto-2">{textoPeriodo(periodo)}. </span>
@@ -204,84 +191,125 @@ export function RelatorioMarketingTela({
         </p>
       ) : null}
 
-      {/* Pizza de origem dos leads ao lado do funil. */}
-      <div className="grid grid-cols-1 items-start gap-3 lg:grid-cols-2">
-        <section
-          aria-labelledby="pizza-canais"
-          className="rounded-3 bg-superficie border-linha flex flex-col gap-4 border p-5"
-        >
-          <h3
-            id="pizza-canais"
-            className="font-titulo text-2 text-texto flex items-center gap-3 font-medium"
-          >
-            <TileIcone tom="areia" forma="quadrado" tamanho="p">
-              <Radio />
-            </TileIcone>
-            De onde vêm os leads
-          </h3>
-          <PizzaCanais relatorio={relatorio} />
-        </section>
+      <div className="[&>ul]:mt-0">
+        <GradeIndicadores
+          itens={[
+            {
+              rotulo: "Leads",
+              valor: t.leads,
+              contexto: comparar(t.leads, ant?.leads, tem),
+              href: `/marketing?aba=canais${filtro}`,
+              tom: "areia",
+            },
+            {
+              rotulo: "Qualificados",
+              valor: t.qualificados,
+              contexto:
+                t.leads > 0
+                  ? `${Math.round((t.qualificados / t.leads) * 100)}% dos leads. ${comparar(t.qualificados, ant?.qualificados, tem)}`
+                  : comparar(t.qualificados, ant?.qualificados, tem),
+              href: "#funil",
+              tom: "areia",
+            },
+            {
+              rotulo: "Com contrato",
+              valor: t.ganhos,
+              contexto:
+                t.qualificados > 0
+                  ? `${Math.round((t.ganhos / t.qualificados) * 100)}% dos qualificados. ${comparar(t.ganhos, ant?.ganhos, tem)}`
+                  : comparar(t.ganhos, ant?.ganhos, tem),
+              href: "#funil",
+              tom: "areia",
+            },
+            ...(relatorio.veValores
+              ? [
+                  {
+                    rotulo: "Recebido",
+                    valor: dinheiro(t.receitaCentavos),
+                    contexto: `${plural(t.contratosPagos ?? 0, "contrato pago", "contratos pagos")}. ${comparar(t.receitaCentavos, ant?.receitaCentavos, tem, true)}`,
+                    href: `/marketing?aba=canais${filtro}`,
+                    tom: "salvia" as const,
+                  },
+                ]
+              : []),
+          ]}
+        />
+      </div>
 
-        <section
-          aria-labelledby="funil"
-          className="rounded-3 bg-superficie border-linha flex flex-col gap-4 border p-5"
+      <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
+        <PainelGrafico
+          titulo="De onde vêm os leads"
+          nota="Leads do período, por canal."
+          leitura={
+            t.leads > 0 && t.leads < POUCOS_LEADS
+              ? "Poucos leads no período: um a mais muda muito os percentuais."
+              : undefined
+          }
+          vazio={
+            fatias.length === 0
+              ? "Nenhum lead por canal neste período. Quando uma família escrever pelo link de um canal, a fatia dele aparece aqui."
+              : undefined
+          }
         >
-          <h3
-            id="funil"
-            className="font-titulo text-2 text-texto flex items-center gap-3 font-medium"
+          <PizzaCanais fatias={fatias} anteriorPorCanal={anteriorPorCanal} />
+        </PainelGrafico>
+
+        <div id="funil" className="scroll-mt-24">
+          <PainelGrafico
+            titulo="Do lead ao contrato"
+            nota="Quantas famílias chegam a cada etapa e quantas seguem para a próxima."
+            vazio={
+              t.leads === 0
+                ? "Nenhum lead neste período. Quando entrar o primeiro, o funil mostra quantos qualificam e quantos fecham contrato."
+                : undefined
+            }
           >
-            <TileIcone tom="argila" forma="quadrado" tamanho="p">
-              <Filter />
-            </TileIcone>
-            Do lead ao contrato
-          </h3>
-          <BarrasHorizontais
-            descricao="Leads do período, quantos foram qualificados e quantos viraram contrato"
-            dados={[
-              {
-                id: "leads",
-                rotulo: "Leads",
-                valor: relatorio.total.leads,
-                valorTexto: String(relatorio.total.leads),
-              },
-              {
-                id: "qualificados",
-                rotulo: "Qualificados",
-                valor: relatorio.total.qualificados,
-                valorTexto: String(relatorio.total.qualificados),
-              },
-              {
-                id: "ganhos",
-                rotulo: "Com contrato",
-                valor: relatorio.total.ganhos,
-                valorTexto: String(relatorio.total.ganhos),
-              },
-            ]}
-          />
-        </section>
+            <FunilMarketing atual={t} anterior={ant} />
+          </PainelGrafico>
+        </div>
       </div>
 
       {relatorio.veValores ? (
-        <div className="tablet:grid-cols-2 grid grid-cols-1 gap-3">
-          <CartaoResumo
-            tom="salvia"
-            arranjo="linha"
-            icone={<CircleCheck />}
-            valor={dinheiro(relatorio.total.receitaCentavos)}
-            rotulo="recebidos"
-            contexto={`de ${relatorio.total.contratosPagos ?? 0} ${relatorio.total.contratosPagos === 1 ? "contrato" : "contratos"}`}
-          />
-          <CartaoResumo
-            tom="areia"
-            arranjo="linha"
-            icone={<Coins />}
-            valor={dinheiro(relatorio.total.custoCentavos)}
-            rotulo="de custo lançado"
-            contexto={
-              custoLead !== null
-                ? `${formatarMoeda(custoLead)} por lead`
-                : "sem lead para dividir"
-            }
+        <div className="[&>ul]:mt-0">
+          <GradeIndicadores
+            itens={[
+              {
+                rotulo: "Custo lançado",
+                valor: dinheiro(t.custoCentavos),
+                contexto: comparar(
+                  t.custoCentavos,
+                  ant?.custoCentavos,
+                  tem,
+                  true,
+                ),
+                href: "/marketing?aba=canais",
+                tom: "areia",
+              },
+              {
+                rotulo: "Custo por lead",
+                valor:
+                  custoLead !== null ? formatarMoeda(custoLead) : "sem número",
+                contexto:
+                  custoLead !== null
+                    ? `Custo lançado dividido por ${plural(t.leads, "lead", "leads")}.`
+                    : "Sem lead ou sem custo lançado para dividir.",
+                href: "/marketing?aba=canais",
+                tom: "areia",
+              },
+              {
+                rotulo: "Custo por contrato",
+                valor:
+                  custoContrato !== null
+                    ? formatarMoeda(custoContrato)
+                    : "sem número",
+                contexto:
+                  custoContrato !== null
+                    ? `Custo lançado dividido por ${plural(t.contratosPagos ?? 0, "contrato pago", "contratos pagos")}.`
+                    : "Sem contrato pago ou sem custo lançado para dividir.",
+                href: "/marketing?aba=canais",
+                tom: "areia",
+              },
+            ]}
           />
         </div>
       ) : null}
@@ -313,86 +341,65 @@ export function TabelasCanaisMarketing({
         },
       ]
     : [];
+  const areia = "[&_thead_th]:bg-areia-clara";
 
   return (
-    <div className="flex flex-col gap-6">
-      <section aria-labelledby="por-canal" className="flex flex-col gap-3">
-        <h2
-          id="por-canal"
-          className="font-titulo text-2 text-texto flex items-center gap-3 font-medium"
-        >
-          <TileIcone tom="areia" forma="quadrado" tamanho="p">
-            <Radio />
-          </TileIcone>
-          Por canal
-        </h2>
-        {relatorio.porCanal.length === 0 ? (
-          <EstadoVazio
-            nivelTitulo="h3"
-            ilustracao={<Broto tamanho={96} />}
-            titulo="Nenhum canal ainda"
-            texto="Crie um canal na aba de links para começar a medir de onde as famílias chegam."
-          />
-        ) : (
-          <div className="min-[720px]:rounded-3 min-[720px]:bg-superficie min-[720px]:shadow-1 min-[720px]:p-2 lg:px-4 lg:py-3">
-            <TabelaLista
-              rotulo="Leads e receita por canal"
-              colunas={[
-                ...colunasBase.map((c) =>
-                  c.chave === "nome" ? { ...c, rotulo: "Canal" } : c,
-                ),
-                ...colunasValores,
-              ]}
-              linhas={relatorio.porCanal.map((c) => ({
-                id: c.canalId,
-                valores: {
-                  nome: `${c.nome} (${c.codigo})`,
-                  ...celulasValores(c),
-                },
-              }))}
-            />
-          </div>
-        )}
-      </section>
+    <div className="flex flex-col gap-4">
+      <PainelGrafico
+        titulo="Por canal"
+        nota="Leads, receita e custo de cada canal de captação."
+        vazio={
+          relatorio.porCanal.length === 0
+            ? "Nenhum canal ainda. Crie um canal abaixo, em Links por canal, para começar a medir de onde as famílias chegam."
+            : undefined
+        }
+      >
+        <TabelaLista
+          className={areia}
+          rotulo="Leads e receita por canal"
+          colunas={[
+            ...colunasBase.map((c) =>
+              c.chave === "nome" ? { ...c, rotulo: "Canal" } : c,
+            ),
+            ...colunasValores,
+          ]}
+          linhas={relatorio.porCanal.map((c) => ({
+            id: c.canalId,
+            valores: {
+              nome: `${c.nome} (${c.codigo})`,
+              ...celulasValores(c),
+            },
+          }))}
+        />
+      </PainelGrafico>
 
-      <section aria-labelledby="por-origem" className="flex flex-col gap-3">
-        <h2
-          id="por-origem"
-          className="font-titulo text-2 text-texto flex items-center gap-3 font-medium"
-        >
-          <TileIcone tom="areia" forma="quadrado" tamanho="p">
-            <Compass />
-          </TileIcone>
-          Por origem
-        </h2>
-        {relatorio.porOrigem.length === 0 ? (
-          <EstadoVazio
-            nivelTitulo="h3"
-            ilustracao={<FolhaLupa tamanho={96} />}
-            titulo="Nenhuma origem neste período"
-            texto="Quando entrar um lead, ele aparece aqui na origem que o canal ou a indicação gravou."
-          />
-        ) : (
-          <div className="min-[720px]:rounded-3 min-[720px]:bg-superficie min-[720px]:shadow-1 min-[720px]:p-2 lg:px-4 lg:py-3">
-            <TabelaLista
-              rotulo="Leads e receita por origem"
-              colunas={[
-                ...colunasBase.map((c) =>
-                  c.chave === "nome" ? { ...c, rotulo: "Origem" } : c,
-                ),
-                ...colunasValores,
-              ]}
-              linhas={relatorio.porOrigem.map((o) => ({
-                id: o.origem,
-                valores: {
-                  nome: ROTULO_ORIGEM[o.origem],
-                  ...celulasValores(o),
-                },
-              }))}
-            />
-          </div>
-        )}
-      </section>
+      <PainelGrafico
+        titulo="Por origem"
+        nota="A origem que o canal ou a indicação gravou no cadastro."
+        vazio={
+          relatorio.porOrigem.length === 0
+            ? "Nenhuma origem neste período. Quando entrar um lead, ele aparece aqui na origem que o canal ou a indicação gravou."
+            : undefined
+        }
+      >
+        <TabelaLista
+          className={areia}
+          rotulo="Leads e receita por origem"
+          colunas={[
+            ...colunasBase.map((c) =>
+              c.chave === "nome" ? { ...c, rotulo: "Origem" } : c,
+            ),
+            ...colunasValores,
+          ]}
+          linhas={relatorio.porOrigem.map((o) => ({
+            id: o.origem,
+            valores: {
+              nome: ROTULO_ORIGEM[o.origem],
+              ...celulasValores(o),
+            },
+          }))}
+        />
+      </PainelGrafico>
     </div>
   );
 }

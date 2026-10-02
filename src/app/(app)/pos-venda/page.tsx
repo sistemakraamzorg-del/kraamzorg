@@ -34,6 +34,7 @@ export default async function PaginaPosVenda({
   return (
     <>
       <CabecalhoTela
+        sobretitulo="Operação"
         titulo="Pós-venda"
         subtitulo="A pesquisa de cada família que terminou o acompanhamento, a nota e o que vem depois."
       />
@@ -50,7 +51,11 @@ export default async function PaginaPosVenda({
             O pós-venda é da coordenação e da diretoria.
           </FaixaAlerta>
         ) : (
-          <ListaPosVendaTela lista={tela.lista} situacao={situacao} />
+          <ListaPosVendaTela
+            lista={tela.lista}
+            situacao={situacao}
+            npsMensal={tela.npsMensal}
+          />
         )}
       </div>
     </>

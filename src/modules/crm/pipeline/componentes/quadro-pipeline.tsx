@@ -159,7 +159,7 @@ export function QuadroPipeline({
         </div>
       ) : null}
       <div
-        className="-mx-4 flex snap-x snap-mandatory items-start gap-3 overflow-x-auto px-4 pt-2 pb-3 lg:mx-0 lg:px-0"
+        className="-mx-4 flex snap-x snap-mandatory items-start gap-3 overflow-x-auto px-4 pt-1 pb-1 lg:mx-0 lg:px-0"
         role="region"
         aria-label={`Estágios do pipeline ${pipeline === 1 ? "de entrada" : "de venda"}. Arraste um cartão para outra coluna ou use o botão Mover para.`}
         tabIndex={0}
@@ -196,11 +196,11 @@ export function QuadroPipeline({
                 e.preventDefault();
                 aoSoltar(grupo.estagio);
               }}
-              className={`rounded-3 border-linha bg-areia-clara shadow-1 flex min-h-40 w-[17.5rem] flex-none snap-start flex-col gap-3 border p-3 motion-safe:transition-[box-shadow,opacity] motion-safe:duration-140 lg:w-[19rem] ${
+              className={`rounded-3 border-linha bg-areia-clara shadow-1 flex max-h-[65dvh] w-[17.5rem] flex-none snap-start flex-col gap-2 border p-2 motion-safe:transition-[box-shadow,opacity] motion-safe:duration-140 lg:w-[19rem] ${
                 destacado ? "border-dourado bg-dourado-claro" : ""
               } ${arrastando && !permitido && arrastando.origem !== grupo.estagio ? "opacity-60" : ""}`}
             >
-              <div className="flex min-h-10 items-center gap-2 pl-1">
+              <div className="flex min-h-9 flex-none items-center gap-2 pl-1">
                 <span
                   aria-hidden="true"
                   className={`size-2.5 flex-none rounded-full ${TOM_ESTAGIO[grupo.estagio] ?? "bg-areia"}`}
@@ -232,7 +232,7 @@ export function QuadroPipeline({
                     : "Nenhuma família neste estágio agora."}
                 </p>
               ) : null}
-              <div className="flex flex-col gap-3">
+              <div className="flex min-h-0 flex-col gap-2 overflow-y-auto overscroll-contain pr-0.5">
                 {grupo.cartoes.map((cartao) => (
                   <div
                     key={cartao.oportunidadeId}

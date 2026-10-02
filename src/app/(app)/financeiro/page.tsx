@@ -36,13 +36,17 @@ export default async function PaginaFinanceiro({
   try {
     tela = await obterTelaVisaoFinanceira(usuario, mes);
   } catch (erro) {
-    console.error("[tela-erro] /financeiro", erro instanceof Error ? erro.message : erro);
+    console.error(
+      "[tela-erro] /financeiro",
+      erro instanceof Error ? erro.message : erro,
+    );
     tela = null;
   }
 
   return (
     <>
       <CabecalhoTela
+        sobretitulo="Visão do mês"
         titulo="Financeiro"
         subtitulo={
           tela?.situacao === "ok"
@@ -51,8 +55,10 @@ export default async function PaginaFinanceiro({
         }
       />
       <div className="flex flex-col gap-6 pt-6">
-        <NavegacaoFinanceiro atual="/financeiro" mes={mes} />
-        <SeletorMes mes={mes} hoje={hoje} caminho="/financeiro" />
+        <div className="flex flex-wrap items-center gap-3">
+          <NavegacaoFinanceiro atual="/financeiro" mes={mes} />
+          <SeletorMes mes={mes} hoje={hoje} caminho="/financeiro" />
+        </div>
         {!tela ? (
           <FaixaAlerta variante="erro" titulo="O financeiro não abriu agora">
             Confira a conexão e recarregue a página. Nada foi alterado.

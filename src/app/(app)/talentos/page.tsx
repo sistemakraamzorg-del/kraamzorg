@@ -1,22 +1,41 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { LockKeyhole, Users } from "lucide-react";
+import { LockKeyhole } from "lucide-react";
+import { BarrasHorizontais, type ItemBarra } from "@/components/graficos";
 import { Botao } from "@/components/ui/botao";
-import { SecaoBloco } from "@/components/blocos/secao-bloco";
 import { ChaveDeCasa } from "@/components/ilustracoes";
 import { CabecalhoTela } from "@/components/shell/cabecalho-tela";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
-import { Selo } from "@/components/ui/selo";
-import { TabelaLista } from "@/components/ui/tabela-lista";
 import { exigeMfa } from "@/lib/auth/papeis";
 import { exigirSessao } from "@/lib/auth/sessao";
 import { ErroRepositorio } from "@/lib/dados/erros";
 import { obterRepositorios } from "@/lib/dados/fabrica";
-import type { ListaTalentos } from "@/lib/dados/tipos-relacao";
-import { formatarData } from "@/lib/formatacao";
+import type { EstadoCandidata, ListaTalentos } from "@/lib/dados/tipos-relacao";
+import { GradeGraficos, PainelGrafico } from "@/modules/inicio/painel-gestao";
+import {
+  FaixaResumo,
+  type ItemFaixa,
+} from "@/modules/relacao/componentes/faixa-resumo";
 import { ROTULO_ESTADO_CANDIDATA } from "@/modules/relacao/rotulos";
+import { QuadroTalentos } from "@/modules/talentos/componentes/quadro-talentos";
 import { FormularioCandidata } from "@/modules/talentos/componentes/form-candidata";
+
+const ORDEM_ETAPAS: EstadoCandidata[] = [
+  "nova",
+  "em_triagem",
+  "entrevista_agendada",
+  "entrevistada",
+  "aprovada",
+  "banco_reserva",
+  "nao_seguiu",
+  "desistiu",
+];
+
+function chegaramEm30Dias(c: { criadoEm: string }[]) {
+  const corte = Date.now() - 30 * 86_400_000;
+  return c.filter((x) => new Date(x.criadoEm).getTime() >= corte).length;
+}
 
 export const metadata: Metadata = { title: "Banco de talentos · Kraamzorg OS" };
 
@@ -41,9 +60,61 @@ export default async function PaginaTalentos() {
     }
   }
 
+  const candidatas = lista?.candidatas ?? [];
+  const total = candidatas.length;
+  const conta = (...e: EstadoCandidata[]) =>
+    candidatas.filter((c) => e.includes(c.estado)).length;
+  const novas30 = chegaramEm30Dias(candidatas);
+  const notas = candidatas
+    .map((c) => c.mediaGeral)
+    .filter((m): m is number => m !== null);
+  const mediaGeral = notas.length
+    ? notas.reduce((a, n) => a + n, 0) / notas.length
+    : null;
+  const pct = (n: number) => (total ? Math.round((n / total) * 100) : 0);
+  const resumo: ItemFaixa[] = [
+    {
+      rotulo: "Candidatas no banco",
+      valor: total,
+      contexto: `${novas30} ${novas30 === 1 ? "chegou" : "chegaram"} nos últimos 30 dias`,
+      destaque: true,
+    },
+    {
+      rotulo: "Em entrevista",
+      valor: conta("entrevista_agendada", "entrevistada"),
+      contexto: `${conta("entrevista_agendada")} agendada${conta("entrevista_agendada") === 1 ? "" : "s"}, ${conta("entrevistada")} já entrevistada${conta("entrevistada") === 1 ? "" : "s"}`,
+    },
+    {
+      rotulo: "Aprovadas",
+      valor: conta("aprovada"),
+      contexto: `${pct(conta("aprovada"))}% das candidatas, mais ${conta("banco_reserva")} no banco de reserva`,
+    },
+    {
+      rotulo: "Média das entrevistas",
+      valor:
+        mediaGeral === null
+          ? "sem nota"
+          : mediaGeral.toFixed(1).replace(".", ","),
+      contexto: `${notas.length} de ${total} ${total === 1 ? "candidata tem" : "candidatas têm"} nota`,
+    },
+  ];
+  const porEtapa: ItemBarra[] = ORDEM_ETAPAS.map((e) => ({
+    rotulo: ROTULO_ESTADO_CANDIDATA[e],
+    valor: conta(e),
+    tom: e === "aprovada" ? "sucesso" : e === "nova" ? "dourado" : "marinho",
+  }));
+  const cidades = new Map<string, number>();
+  for (const c of candidatas)
+    if (c.cidade) cidades.set(c.cidade, (cidades.get(c.cidade) ?? 0) + 1);
+  const porCidade: ItemBarra[] = [...cidades.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 6)
+    .map(([rotulo, valor]) => ({ rotulo, valor, tom: "marinho" as const }));
+
   return (
     <>
       <CabecalhoTela
+        sobretitulo="Relacionamento"
         titulo="Banco de talentos"
         subtitulo="As candidatas em seleção, a etapa de cada uma e a nota da entrevista."
       />
@@ -99,78 +170,59 @@ export default async function PaginaTalentos() {
                 ? "Quem se candidatar pelo site entra aqui como Nova."
                 : "Por enquanto ninguém se candidata pelo site. Para abrir, a diretoria liga o parâmetro da página de candidatura em Configurações."}
             </FaixaAlerta>
-            {/* Computador: as candidatas à esquerda, o cadastro ao lado. */}
-            <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-[62fr_38fr]">
-              {lista.candidatas.length === 0 ? (
-                <EstadoVazio
-                  nivelTitulo="h2"
-                  ilustracao={<ChaveDeCasa tamanho={104} />}
-                  titulo="Nenhuma candidata ainda"
-                  texto="Cadastre a primeira abaixo. A entrevista e as notas ficam na ficha de cada uma."
-                />
-              ) : (
-                <SecaoBloco
-                  idTitulo="t-candidatas"
-                  titulo="Em seleção"
-                  icone={<Users />}
-                  tom="argila"
-                  contagem={lista.candidatas.length}
-                >
-                  <div className="min-[720px]:rounded-3 min-[720px]:bg-superficie min-[720px]:shadow-1 min-[720px]:p-2 lg:px-4 lg:py-3">
-                    <TabelaLista
-                      rotulo="Candidatas"
-                      colunas={[
-                        { chave: "nome", rotulo: "Candidata", principal: true },
-                        { chave: "estado", rotulo: "Etapa", canto: true },
-                        { chave: "cidade", rotulo: "Cidade" },
-                        { chave: "chegou", rotulo: "Chegou em" },
-                        {
-                          chave: "avaliacoes",
-                          rotulo: "Entrevistas",
-                          numerica: true,
-                        },
-                        { chave: "media", rotulo: "Média", numerica: true },
-                      ]}
-                      linhas={lista.candidatas.map((c) => ({
-                        id: c.id,
-                        valores: {
-                          nome: (
-                            <Link
-                              href={`/talentos/${c.id}`}
-                              className="text-texto underline underline-offset-4"
-                            >
-                              {c.nome}
-                            </Link>
-                          ),
-                          estado: (
-                            <Selo
-                              variante={
-                                c.estado === "aprovada"
-                                  ? "sucesso"
-                                  : c.estado === "nova"
-                                    ? "destaque"
-                                    : c.estado === "nao_seguiu" ||
-                                        c.estado === "desistiu"
-                                      ? "contorno"
-                                      : "neutro"
-                              }
-                            >
-                              {ROTULO_ESTADO_CANDIDATA[c.estado]}
-                            </Selo>
-                          ),
-                          cidade: c.cidade ?? "",
-                          chegou: formatarData(c.criadoEm),
-                          avaliacoes: String(c.avaliacoes),
-                          media:
-                            c.mediaGeral === null
-                              ? "sem nota"
-                              : c.mediaGeral.toFixed(1).replace(".", ","),
-                        },
-                      }))}
+            {lista.candidatas.length === 0 ? (
+              <EstadoVazio
+                nivelTitulo="h2"
+                ilustracao={<ChaveDeCasa tamanho={104} />}
+                titulo="Nenhuma candidata ainda"
+                texto="Cadastre a primeira no formulário abaixo. A entrevista pelo roteiro e as notas ficam na ficha de cada uma, e o funil por etapa aparece aqui."
+              />
+            ) : (
+              <>
+                <FaixaResumo rotulo="Resumo das candidatas" itens={resumo} />
+                <GradeGraficos colunas={2}>
+                  <PainelGrafico
+                    titulo="Candidatas por etapa"
+                    nota={`${total} no banco`}
+                    leitura="Cada barra é uma etapa do processo de seleção."
+                  >
+                    <BarrasHorizontais
+                      rotulo="Candidatas por etapa"
+                      larguraRotulo="9rem"
+                      itens={porEtapa}
                     />
-                  </div>
-                </SecaoBloco>
-              )}
+                  </PainelGrafico>
+                  <PainelGrafico
+                    titulo="Candidatas por cidade"
+                    nota="As cidades com mais candidatas"
+                    vazio={
+                      porCidade.length === 0
+                        ? "Ainda não há cidade informada. Preencha na ficha de cada candidata."
+                        : undefined
+                    }
+                  >
+                    <BarrasHorizontais
+                      rotulo="Candidatas por cidade"
+                      larguraRotulo="9rem"
+                      itens={porCidade}
+                    />
+                  </PainelGrafico>
+                </GradeGraficos>
+                <section
+                  aria-labelledby="t-funil"
+                  className="flex flex-col gap-3"
+                >
+                  <h2
+                    id="t-funil"
+                    className="font-titulo text-2 text-texto font-medium"
+                  >
+                    Funil de seleção
+                  </h2>
+                  <QuadroTalentos candidatas={lista.candidatas} />
+                </section>
+              </>
+            )}
+            <div className="max-w-[640px]">
               <FormularioCandidata />
             </div>
           </>

@@ -54,15 +54,15 @@ export function SeletorMes({
   const podeSeguir = seguinte <= `${hoje.slice(0, 7)}-01`;
   const link = (m: string) => `${caminho}?mes=${mesParaBusca(m)}`;
   return (
-    // O mês como um calendário de bolso (direção "Colo"): trilha lavanda
-    // (o tempo), o mês em vista numa pílula branca e os vizinhos com a seta.
+    // Mesma trilha em pílula das abas e dos filtros: areia, o mês em vista
+    // numa pílula branca e os vizinhos com a seta.
     <nav
       aria-label="Escolher o mês"
-      className="rounded-pilula bg-lavanda-clara flex w-fit max-w-full flex-wrap items-center gap-1 p-1"
+      className="rounded-pilula bg-areia flex w-fit max-w-full flex-wrap items-center gap-1 p-1"
     >
       <Link
         href={link(anterior)}
-        className="rounded-pilula text-texto hover:bg-lavanda-media min-h-toque text-apoio ease-estado inline-flex items-center gap-1.5 pr-4 pl-3 font-semibold no-underline transition-colors duration-140"
+        className="rounded-pilula text-texto hover:bg-areia-clara min-h-toque text-apoio ease-estado inline-flex items-center gap-1.5 pr-4 pl-3 font-semibold no-underline transition-colors duration-140"
       >
         <ChevronLeft aria-hidden="true" className="size-4" strokeWidth={1.75} />
         {rotuloMes(anterior)}
@@ -76,7 +76,7 @@ export function SeletorMes({
       {podeSeguir ? (
         <Link
           href={link(seguinte)}
-          className="rounded-pilula text-texto hover:bg-lavanda-media min-h-toque text-apoio ease-estado inline-flex items-center gap-1.5 pr-3 pl-4 font-semibold no-underline transition-colors duration-140"
+          className="rounded-pilula text-texto hover:bg-areia-clara min-h-toque text-apoio ease-estado inline-flex items-center gap-1.5 pr-3 pl-4 font-semibold no-underline transition-colors duration-140"
         >
           {rotuloMes(seguinte)}
           <ChevronRight

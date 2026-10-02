@@ -35,10 +35,10 @@ export function GraficosSomenteLeitura({
   );
 
   return (
-    <div className="grid gap-4 pt-4 lg:grid-cols-2">
+    <div className="grid gap-3 pt-2 lg:grid-cols-2 xl:grid-cols-3">
       <Cartao variante="areia-clara">
         <h2 className="font-titulo text-3 font-medium">Famílias por estágio</h2>
-        <p className="text-apoio text-texto-2 mb-4">
+        <p className="text-apoio text-texto-2 mb-2">
           Onde cada família está agora.
         </p>
         {funil.length > 0 ? (
@@ -56,7 +56,7 @@ export function GraficosSomenteLeitura({
           <h2 className="font-titulo text-3 font-medium">
             Como as famílias avaliaram
           </h2>
-          <p className="text-apoio text-texto-2 mb-4">
+          <p className="text-apoio text-texto-2 mb-2">
             Classificação das pesquisas já respondidas.
           </p>
           {respondidas > 0 ? (

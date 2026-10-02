@@ -4,6 +4,7 @@ import { exigeMfa } from "@/lib/auth/papeis";
 import type { SessaoUsuario } from "@/lib/auth/tipos";
 import { ErroRepositorio } from "@/lib/dados/erros";
 import { obterRepositorios } from "@/lib/dados/fabrica";
+import { periodoAnterior } from "./periodo";
 import type {
   CanaisMarketing,
   FiltroPeriodo,
@@ -23,6 +24,8 @@ export type TelaMarketing =
       periodo: FiltroPeriodo;
       canais: CanaisMarketing | null;
       relatorio: RelatorioMarketing | null;
+      /** Mesmo relatório no período anterior, só quando o período tem as duas pontas. */
+      anterior: RelatorioMarketing | null;
       podeLancarCusto: boolean;
       podeExportar: boolean;
       enderecoBase: string;
@@ -62,11 +65,18 @@ export async function obterTelaMarketing(
     ouNulo(() => relacao.marketing.canais()),
     ouNulo(() => relacao.marketing.relatorio(periodo)),
   ]);
+  // A comparação é um extra: se falhar, a tela segue sem ela.
+  const pAnterior = periodoAnterior(periodo);
+  const anterior =
+    relatorio && pAnterior
+      ? await relacao.marketing.relatorio(pAnterior).catch(() => null)
+      : null;
   return {
     situacao: "ok",
     periodo,
     canais,
     relatorio,
+    anterior,
     podeLancarCusto:
       usuario.papeis.includes("financeiro") ||
       usuario.papeis.includes("diretoria"),

@@ -38,7 +38,7 @@ export function FormularioAvaliacao({
       {roteiro.blocos.map((bloco) => (
         <fieldset
           key={bloco.id}
-          className="rounded-3 bg-superficie shadow-1 flex flex-col gap-4 p-5"
+          className="rounded-3 bg-superficie border-linha flex flex-col gap-4 border p-5"
         >
           <legend className="font-titulo text-2 text-texto px-1 font-medium">
             {bloco.nome}
@@ -57,7 +57,7 @@ export function FormularioAvaliacao({
         </fieldset>
       ))}
 
-      <fieldset className="rounded-3 bg-superficie shadow-1 flex flex-col gap-4 p-5">
+      <fieldset className="rounded-3 bg-superficie border-linha flex flex-col gap-4 border p-5">
         <legend className="font-titulo text-2 text-texto px-1 font-medium">
           Critérios, nota de {roteiro.escala.min} a {roteiro.escala.max}
         </legend>

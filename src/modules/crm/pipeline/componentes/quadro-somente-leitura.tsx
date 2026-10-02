@@ -63,9 +63,9 @@ export function QuadroSomenteLeitura({
             <section
               key={coluna.estagio}
               aria-labelledby={`titulo-${coluna.estagio}`}
-              className="rounded-3 border-linha bg-areia-clara shadow-1 flex min-h-40 w-[17.5rem] flex-none snap-start flex-col gap-3 border p-3 lg:w-[19rem]"
+              className="rounded-3 border-linha bg-areia-clara shadow-1 flex max-h-[65dvh] w-[17.5rem] flex-none snap-start flex-col gap-2 border p-2 lg:w-[19rem]"
             >
-              <div className="flex min-h-10 items-center gap-2 pl-1">
+              <div className="flex min-h-9 flex-none items-center gap-2 pl-1">
                 <span
                   aria-hidden="true"
                   className="bg-dourado size-2.5 flex-none rounded-full"
@@ -90,7 +90,7 @@ export function QuadroSomenteLeitura({
                   Nenhuma família neste estágio agora.
                 </p>
               ) : null}
-              <div className="flex flex-col gap-3">
+              <div className="flex min-h-0 flex-col gap-2 overflow-y-auto overscroll-contain pr-0.5">
                 {itens.map((c) => (
                   <CartaoLeitura
                     key={c.id}
@@ -182,7 +182,7 @@ function CartaoLeitura({
         cartao.emFreio ? "bg-sensivel-lavado border-sensivel-borda border" : ""
       }`}
     >
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-1">
         <button
           type="button"
           onClick={aoAbrir}
