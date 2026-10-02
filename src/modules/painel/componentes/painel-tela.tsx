@@ -11,14 +11,17 @@ import {
 import { BarrasHorizontais } from "@/components/graficos/barras-horizontais";
 import { Colunas } from "@/components/graficos/colunas";
 import { MedidorMeta } from "@/components/graficos/medidor-meta";
-import { BarrasHorizontais as BarrasValor, Rosca } from "@/components/graficos";
+import {
+  BarrasHorizontais as BarrasValor,
+  Colunas as ColunasValor,
+  Rosca,
+} from "@/components/graficos";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { TileIcone } from "@/components/ui/tile-icone";
 import type { Tom } from "@/components/ui/tons";
 import { formatarMoeda } from "@/lib/formatacao";
 import { formatarMoedaCurta, formatarPct, nomeMes } from "@/lib/gestao/formato";
 import { somarMeses } from "@/lib/gestao/financeiro";
-import { ColunasMoeda } from "@/modules/financeiro/gestao/componentes/graficos-dinheiro";
 import { cn } from "@/lib/utils";
 import {
   INDICADORES,
@@ -572,6 +575,46 @@ export function PainelTela({ dados }: { dados: DadosPainel }) {
             )}
           </div>
         </div>
+        <div className="border-linha rounded-3 flex flex-col gap-4 border p-5">
+          <h3 className="text-3 text-texto font-semibold">NPS mês a mês</h3>
+          {dados.npsMensal ? (
+            <>
+              <ColunasValor
+                rotulo="NPS por mês"
+                tom="dourado"
+                tomReferencia="marinho"
+                referencia={{ valor: p.metas.nps, rotulo: "Meta" }}
+                itens={dados.npsMensal.meses.map((x) => ({
+                  rotulo: nomeMes(x.mes).slice(0, 3),
+                  valor: x.nps ?? 0,
+                  valorTexto: x.nps === null ? "sem amostra" : undefined,
+                  dica:
+                    x.nps === null
+                      ? [
+                          `${nomeMes(x.mes)}: sem amostra`,
+                          `${x.respostas} de ${dados.npsMensal!.amostraMinima} respostas`,
+                        ]
+                      : [
+                          `${nomeMes(x.mes)}: NPS ${x.nps}`,
+                          `${x.respostas} respostas`,
+                          `${x.promotores} promotores e ${x.detratores} detratores`,
+                        ],
+                }))}
+              />
+              <p className="text-mini text-texto-2 max-w-[60ch]">
+                Mesma conta do NPS do mês: promotores menos detratores. O mês só
+                ganha número a partir de {dados.npsMensal.amostraMinima}{" "}
+                respostas, para uma porcentagem sobre poucas famílias não
+                enganar.
+              </p>
+            </>
+          ) : (
+            <p className="text-apoio text-texto-2 max-w-[60ch]">
+              Não foi possível ler as respostas da pesquisa agora. Recarregue a
+              página; nada foi alterado.
+            </p>
+          )}
+        </div>
         <GradeNumeros secao="experiencia">
           <Numero
             rotulo="Respostas da pesquisa"
@@ -608,7 +651,10 @@ export function PainelTela({ dados }: { dados: DadosPainel }) {
             <h3 className="text-3 text-texto font-semibold">
               Este mês contra o anterior e a meta
             </h3>
-            <ColunasMoeda
+            <ColunasValor
+              formato="moeda"
+              maxValoresNoTopo={6}
+              tomReferencia="marinho"
               rotulo="Faturamento, recebido e custos, em reais"
               tom="areia"
               tom2="dourado"
@@ -616,16 +662,16 @@ export function PainelTela({ dados }: { dados: DadosPainel }) {
                 a ? [nomeMes(somarMeses(mes, -1)), nomeMes(mes)] : undefined
               }
               referencia={{
-                centavos: p.metas.faturamentoMesCentavos,
+                valor: p.metas.faturamentoMesCentavos,
                 rotulo: "Meta de faturamento",
               }}
               itens={[
                 {
                   rotulo: "Faturamento",
-                  centavos: a
+                  valor: a
                     ? a.financeiro.faturamentoCentavos
                     : f.faturamentoCentavos,
-                  centavos2: a ? f.faturamentoCentavos : undefined,
+                  valor2: a ? f.faturamentoCentavos : undefined,
                   dica: [
                     "Faturamento (contratos assinados)",
                     `Este mês: ${formatarMoeda(f.faturamentoCentavos)}`,
@@ -634,10 +680,10 @@ export function PainelTela({ dados }: { dados: DadosPainel }) {
                 },
                 {
                   rotulo: "Recebido",
-                  centavos: a
+                  valor: a
                     ? a.financeiro.recebimentosCentavos
                     : f.recebimentosCentavos,
-                  centavos2: a ? f.recebimentosCentavos : undefined,
+                  valor2: a ? f.recebimentosCentavos : undefined,
                   dica: [
                     "Recebido (cobranças pagas)",
                     `Este mês: ${formatarMoeda(f.recebimentosCentavos)}`,
@@ -645,8 +691,8 @@ export function PainelTela({ dados }: { dados: DadosPainel }) {
                 },
                 {
                   rotulo: "Custos",
-                  centavos: a ? a.financeiro.custosCentavos : f.custosCentavos,
-                  centavos2: a ? f.custosCentavos : undefined,
+                  valor: a ? a.financeiro.custosCentavos : f.custosCentavos,
+                  valor2: a ? f.custosCentavos : undefined,
                   dica: [
                     "Custos (despesas pagas)",
                     `Este mês: ${formatarMoeda(f.custosCentavos)}`,

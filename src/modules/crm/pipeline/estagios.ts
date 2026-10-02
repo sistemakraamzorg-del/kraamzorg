@@ -1,6 +1,11 @@
 import type { Papel } from "@/lib/auth/papeis";
 import { Constants } from "@/lib/db/types";
 import type { EstagioP1, EstagioP2, NumeroPipeline } from "@/lib/dados/tipos";
+import type { EstadoAcompanhamento } from "@/lib/dados/tipos-operacao";
+import type {
+  ClassificacaoNps,
+  EstagioPosVenda,
+} from "@/lib/dados/tipos-ocorrencia";
 import { rotulo } from "@/lib/rotulos-a-confirmar";
 
 /**
@@ -86,6 +91,64 @@ export const ROTULO_ESTAGIO_P2: Record<EstagioP2, string> = {
   cancelado: "Cancelado",
   distrato: "Distrato",
   intercorrencia: "Intercorrência",
+};
+
+/**
+ * Pipeline 3 (atendimento, PRD 7.3) e pipeline 4 (pós-venda, PRD 7.4):
+ * colunas só de leitura. O estado muda por registros e automações, nunca por
+ * arrastar, então aqui não há tabela de transições.
+ */
+export const ORDEM_P3: readonly EstadoAcompanhamento[] = [
+  "aguardando",
+  "ativo",
+  "em_execucao",
+  "ultima_visita_realizada",
+  "pendencias",
+  "encerrado",
+  "suspenso",
+  "interrompido_familia",
+  "interrompido_clinico",
+  "intercorrencia",
+];
+
+export const ROTULO_ESTADO_ACOMPANHAMENTO: Record<
+  EstadoAcompanhamento,
+  string
+> = {
+  aguardando: "Aguardando início",
+  ativo: "Ativo",
+  em_execucao: "Em execução",
+  ultima_visita_realizada: "Última visita realizada",
+  pendencias: "Pendências",
+  encerrado: "Encerrado",
+  suspenso: "Suspenso",
+  interrompido_familia: "Interrompido pela família",
+  interrompido_clinico: "Interrompido por decisão clínica",
+  intercorrencia: "Intercorrência",
+};
+
+export const ORDEM_P4: readonly EstagioPosVenda[] = [
+  "protocolo_ultimo_dia_concluido",
+  "pesquisa_enviada",
+  "pesquisa_respondida",
+  "classificado",
+  "acao_executada",
+  "arquivado",
+];
+
+export const ROTULO_ESTAGIO_P4: Record<EstagioPosVenda, string> = {
+  protocolo_ultimo_dia_concluido: "Último dia concluído",
+  pesquisa_enviada: "Pesquisa enviada",
+  pesquisa_respondida: "Pesquisa respondida",
+  classificado: "Classificado",
+  acao_executada: "Ação executada",
+  arquivado: "Arquivado",
+};
+
+export const ROTULO_CLASSIFICACAO_NPS: Record<ClassificacaoNps, string> = {
+  promotor: "Promotor",
+  neutro: "Neutro",
+  detrator: "Detrator",
 };
 
 export function rotuloEstagio(

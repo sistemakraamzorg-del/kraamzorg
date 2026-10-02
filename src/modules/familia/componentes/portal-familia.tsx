@@ -45,6 +45,16 @@ const ROTULO_ESTADO: Record<Passo["estado"], string> = {
   depois: "Em seguida",
 };
 
+const DESCRICAO: Record<string, string> = {
+  passos: "O caminho até as visitas, na ordem em que acontece.",
+  datas: "Cada data diz se é uma estimativa ou um fato já confirmado.",
+  enfermeira: "Quem vai cuidar de vocês em casa.",
+  visitas: "Os dias em que a enfermeira vai até vocês.",
+  guia: "O que ter em mente para começar bem.",
+  evolucoes: "Os registros que a equipe compartilhou com vocês.",
+  pesquisa: "Contar como foi ajuda a cuidar melhor das próximas famílias.",
+};
+
 function ContatoDaEquipe({
   contato,
   forte,
@@ -200,23 +210,35 @@ function Secao({
   titulo,
   icone,
   tom,
+  descricao,
   children,
 }: {
   id: string;
   titulo: string;
   icone: ReactNode;
   tom: Tom;
+  /** Uma frase de rótulo de interface: o que este bloco mostra. */
+  descricao?: string;
   children: ReactNode;
 }) {
   return (
-    <section aria-labelledby={id} className="flex flex-col gap-3">
+    <section
+      id={`secao-${id}`}
+      aria-labelledby={id}
+      className="flex scroll-mt-4 flex-col gap-3"
+    >
       <div className="flex items-center gap-3">
         <TileIcone tom={tom} forma="quadrado">
           {icone}
         </TileIcone>
-        <h2 id={id} className="font-titulo text-2 text-texto font-medium">
-          {titulo}
-        </h2>
+        <div className="flex min-w-0 flex-col">
+          <h2 id={id} className="font-titulo text-2 text-texto font-medium">
+            {titulo}
+          </h2>
+          {descricao ? (
+            <p className="text-corpo text-texto-2">{descricao}</p>
+          ) : null}
+        </div>
       </div>
       {children}
     </section>
@@ -232,6 +254,8 @@ function Completo({
 }) {
   const t = portal.textos;
   const passos = montarPassos(portal, hoje);
+  const feitos = passos.filter((p) => p.estado === "feito").length;
+  const proximaVisita = portal.visitas.find((v) => !v.feita)?.dia;
   const d = portal.datas;
   const datas: {
     chave: string;
@@ -270,15 +294,51 @@ function Completo({
 
   return (
     <>
-      <header className="rounded-colo bg-dourado-claro flex flex-col gap-3 px-5 pt-6 pb-12">
+      <header className="rounded-colo bg-dourado-claro flex flex-col gap-4 px-5 pt-6 pb-8">
         <h1 className="font-titulo text-display text-texto font-normal">
           {t.titulo}
         </h1>
         <p className="text-3 text-texto max-w-[56ch]">{t.boas_vindas}</p>
+        <div className="flex flex-col gap-2">
+          <p className="text-corpo text-texto font-medium">
+            {feitos} de {passos.length} passos concluídos
+          </p>
+          <div
+            role="progressbar"
+            aria-label="Passos concluídos"
+            aria-valuemin={0}
+            aria-valuemax={passos.length}
+            aria-valuenow={feitos}
+            className="rounded-pilula bg-superficie h-2 w-full max-w-sm overflow-hidden"
+          >
+            <div
+              className="rounded-pilula bg-marinho h-full"
+              style={{ width: `${(feitos / passos.length) * 100}%` }}
+            />
+          </div>
+        </div>
+        <nav aria-label="Ir para" className="flex flex-wrap gap-2 pt-1">
+          {[
+            ["#secao-passos", "Passos"],
+            ["#secao-visitas", "Visitas"],
+            ["#secao-enfermeira", "Enfermeira"],
+            ["#secao-guia", "Guia"],
+            ["#contato", "Contato"],
+          ].map(([href, rotulo]) => (
+            <a
+              key={href}
+              href={href}
+              className="rounded-pilula bg-superficie text-corpo text-texto min-h-toque inline-flex items-center px-4 font-medium no-underline"
+            >
+              {rotulo}
+            </a>
+          ))}
+        </nav>
       </header>
 
       <Secao
         id="passos"
+        descricao={DESCRICAO.passos}
         titulo={t.passos_titulo ?? "Seus próximos passos"}
         icone={<ClipboardList />}
         tom="dourado"
@@ -293,6 +353,7 @@ function Completo({
       {datas.length > 0 ? (
         <Secao
           id="datas"
+        descricao={DESCRICAO.datas}
           titulo={t.datas_titulo ?? "Datas"}
           icone={<CalendarDays />}
           tom="lavanda"
@@ -325,6 +386,7 @@ function Completo({
 
       <Secao
         id="enfermeira"
+        descricao={DESCRICAO.enfermeira}
         titulo={t.enfermeira_titulo ?? "Sua enfermeira"}
         icone={<UserRound />}
         tom="argila"
@@ -354,6 +416,7 @@ function Completo({
 
       <Secao
         id="visitas"
+        descricao={DESCRICAO.visitas}
         titulo={t.visitas_titulo ?? "Visitas em casa"}
         icone={<House />}
         tom="lavanda"
@@ -370,6 +433,7 @@ function Completo({
                 className={cn(
                   "rounded-2 grid grid-cols-[1fr_auto] items-center gap-x-3 gap-y-1 px-4 py-3",
                   v.feita ? "bg-salvia-clara" : "bg-superficie",
+                  v.dia === proximaVisita && "border-dourado border-2",
                 )}
               >
                 <span className="text-corpo text-texto font-medium">
@@ -389,7 +453,11 @@ function Completo({
                   {v.feita ? (
                     <Check className="size-4" aria-hidden="true" />
                   ) : null}
-                  {v.feita ? "Feita" : "Marcada"}
+                  {v.feita
+                    ? "Feita"
+                    : v.dia === proximaVisita
+                      ? "Próxima visita"
+                      : "Marcada"}
                 </span>
                 <span className="text-corpo text-texto col-span-2 font-mono">
                   {formatarData(v.data)}
@@ -403,6 +471,7 @@ function Completo({
 
       <Secao
         id="guia"
+        descricao={DESCRICAO.guia}
         titulo={t.guia_titulo ?? "Guia de início"}
         icone={<BookOpen />}
         tom="areia"
@@ -415,6 +484,7 @@ function Completo({
       {portal.evolucoes.ativo ? (
         <Secao
           id="evolucoes"
+        descricao={DESCRICAO.evolucoes}
           titulo={t.evolucoes_titulo ?? "Evoluções de enfermagem"}
           icone={<ClipboardList />}
           tom="areia"
@@ -450,6 +520,7 @@ function Completo({
 
       <Secao
         id="pesquisa"
+        descricao={DESCRICAO.pesquisa}
         titulo={t.pesquisa_titulo ?? "Sua opinião"}
         icone={<MessageSquareText />}
         tom="argila"
@@ -464,15 +535,16 @@ function Completo({
       </Secao>
 
       <section
-        aria-labelledby="contato"
-        className="rounded-3 bg-marinho flex flex-col gap-4 p-5"
+        id="contato"
+        aria-labelledby="contato-titulo"
+        className="rounded-3 bg-marinho flex scroll-mt-4 flex-col gap-4 p-5"
       >
         <div className="flex items-center gap-3">
           <TileIcone tom="branco" forma="quadrado">
             <Phone />
           </TileIcone>
           <h2
-            id="contato"
+            id="contato-titulo"
             className="font-titulo text-2 text-texto-inverso font-medium"
           >
             {t.contato_titulo ?? "Fale com a equipe"}
@@ -483,6 +555,20 @@ function Completo({
           {t.contato_apoio}
         </p>
       </section>
+
+      <div className="border-linha bg-creme fixed inset-x-0 bottom-0 z-10 border-t px-4 py-2">
+        <a
+          href={
+            portal.contato.telefoneE164
+              ? `tel:${portal.contato.telefoneE164}`
+              : "#contato"
+          }
+          className="rounded-pilula bg-marinho text-texto-inverso text-corpo min-h-toque max-w-leitura mx-auto flex w-full items-center justify-center gap-2 px-5 font-semibold no-underline"
+        >
+          <Phone className="size-5" aria-hidden="true" strokeWidth={1.75} />
+          {t.contato_titulo ?? "Fale com a equipe"}
+        </a>
+      </div>
     </>
   );
 }
@@ -523,7 +609,13 @@ export function PortalFamiliaTela({
   hoje: string;
 }) {
   return (
-    <div className="flex flex-col gap-8" data-portal={portal.situacao}>
+    <div
+      className={cn(
+        "flex flex-col gap-8",
+        portal.situacao === "ok" && "pb-20",
+      )}
+      data-portal={portal.situacao}
+    >
       {portal.situacao === "ok" ? (
         <Completo portal={portal} hoje={hoje} />
       ) : (

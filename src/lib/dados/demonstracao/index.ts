@@ -26,7 +26,8 @@ import {
   criarCobrancaDemonstracao,
   criarContratoDemonstracao,
 } from "./contrato";
-import { criarOperacaoDemonstracao } from "./operacao";
+import { criarOperacaoDemonstracao, obterLojaOperacao } from "./operacao";
+import { obterLojaRelacao } from "./relacao-loja";
 import { criarAssistencialDemonstracao } from "./assistencial";
 import { criarEvolucaoDemonstracao } from "./evolucao";
 import { criarNotaDemonstracao } from "./nota";
@@ -177,7 +178,16 @@ export function criarRepositoriosDemonstracao(
           (o) =>
             !filtro.responsavelId || o.responsavelId === filtro.responsavelId,
         )
-        .map((o) => cartaoDemonstracao(l, o))
+        .map((o) => {
+          const cartao = cartaoDemonstracao(l, o);
+          // Origem só para comercial e diretoria (api.lead_origem); a
+          // demonstração a tira dos leads do marketing, pelo nome.
+          if (!tem("comercial", "diretoria")) return cartao;
+          const lead = obterLojaRelacao().leads.find(
+            (x) => x.nome === cartao.nomeFamilia,
+          );
+          return lead ? { ...cartao, origem: lead.origem } : cartao;
+        })
         .filter((c) => {
           if (filtro.regiaoId) {
             const familia = l.familias.find((f) => f.id === c.familiaId);
@@ -193,6 +203,41 @@ export function criarRepositoriosDemonstracao(
                 p.familiaId === c.familiaId && p.telefoneE164.includes(digitos),
             ),
           );
+        });
+    },
+
+    async listarAcompanhamentos(filtro = {}) {
+      // RLS de acompanhamento: comercial, coordenação e diretoria (e MFA).
+      if (bloqueadoPorMfa() || !tem("comercial", "coordenacao", "diretoria"))
+        return [];
+      const busca = filtro.busca?.trim().toLowerCase();
+      const principal = loja();
+      return obterLojaOperacao()
+        .acompanhamentos.flatMap((a) => {
+          const f = obterLojaOperacao().familias.find(
+            (x) => x.id === a.familiaId,
+          );
+          if (!f) return [];
+          if (filtro.regiaoId && f.regiaoId !== filtro.regiaoId) return [];
+          if (busca && !f.nome.toLowerCase().includes(busca)) return [];
+          return [
+            {
+              acompanhamentoId: a.id,
+              familiaId: f.id,
+              nomeFamilia: f.nome,
+              estado: a.estado,
+              dpp: f.dpp,
+              dataNascimento: f.dataNascimento,
+              bairro: f.bairro,
+              cidade: f.cidade,
+              uf: f.uf,
+              regiaoId: f.regiaoId,
+              estadoSensivel: f.estadoSensivel,
+              inicioEfetivo: a.inicioEfetivo,
+              previsaoAlta: a.previsaoAlta,
+              atualizadoEm: new Date(principal.criadaEm).toISOString(),
+            },
+          ];
         });
     },
 

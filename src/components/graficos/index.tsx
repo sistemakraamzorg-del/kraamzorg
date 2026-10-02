@@ -1,6 +1,8 @@
 "use client";
 
 import * as React from "react";
+import { formatarMoeda } from "@/lib/formatacao";
+import { formatarMoedaCurta, formatarPct } from "@/lib/gestao/formato";
 
 /**
  * Gráficos do painel [v4.6]. Direção: institucional e legível. Cor sólida do
@@ -21,6 +23,19 @@ const COR: Record<TomGrafico, string> = {
   areia: "var(--areia)",
   alerta: "var(--alerta)",
 };
+
+/**
+ * Como o valor é escrito. Texto simples (e não função) para poder vir de
+ * componente de servidor. "moeda" espera centavos; "percentual" espera 0 a 100.
+ */
+export type FormatoValor = "numero" | "moeda" | "percentual";
+
+function escrever(formato: FormatoValor, v: number, curto = false): string {
+  if (formato === "moeda")
+    return curto ? formatarMoedaCurta(v) : formatarMoeda(v);
+  if (formato === "percentual") return formatarPct(v);
+  return String(v);
+}
 
 /** Dica que aparece ao passar o mouse ou ao focar o elemento. */
 function Dica({ children }: { children: React.ReactNode }) {
@@ -105,16 +120,18 @@ export function BarrasHorizontais({
   itens,
   rotulo,
   larguraRotulo = "7.5rem",
+  formato = "numero",
 }: {
   itens: ItemBarra[];
   rotulo: string;
   larguraRotulo?: string;
+  formato?: FormatoValor;
 }) {
   const max = Math.max(...itens.map((i) => i.valor), 1);
   const total = itens.reduce((a, i) => a + i.valor, 0);
   return (
     <ul
-      aria-label={`${rotulo}: ${itens.map((i) => `${i.rotulo} ${i.valor}`).join(", ")}`}
+      aria-label={`${rotulo}: ${itens.map((i) => `${i.rotulo} ${escrever(formato, i.valor)}`).join(", ")}`}
       className="flex flex-col gap-2.5"
     >
       {itens.map((i) => {
@@ -124,7 +141,7 @@ export function BarrasHorizontais({
             key={i.rotulo}
             className="group relative grid items-center gap-3 outline-none"
             tabIndex={0}
-            style={{ gridTemplateColumns: `${larguraRotulo} 1fr 2.75rem` }}
+            style={{ gridTemplateColumns: `${larguraRotulo} 1fr auto` }}
           >
             <span className="text-apoio text-texto-2 truncate text-right">
               {i.rotulo}
@@ -138,11 +155,12 @@ export function BarrasHorizontais({
                 }}
               />
             </span>
-            <span className="text-apoio text-texto text-right font-mono tabular-nums">
-              {i.nota ?? i.valor}
+            <span className="text-apoio text-texto min-w-10 text-right font-mono whitespace-nowrap tabular-nums">
+              {i.nota ?? escrever(formato, i.valor, true)}
             </span>
             <Dica>
-              {i.dica ?? `${i.rotulo}: ${i.valor} (${pct}% do total)`}
+              {i.dica ??
+                `${i.rotulo}: ${escrever(formato, i.valor)} (${pct}% do total)`}
             </Dica>
           </li>
         );
@@ -156,7 +174,10 @@ export interface ItemColuna {
   valor: number;
   /** Segunda série opcional (ex.: "viraram contrato"). */
   valor2?: number;
-  dica?: string;
+  /** Texto no topo da coluna no lugar do valor (ex.: "sem amostra"). */
+  valorTexto?: string;
+  /** Texto da dica; uma lista vira uma linha por item. */
+  dica?: string | string[];
 }
 
 /** Colunas verticais com grade, valor no topo e dica; `valor2` desenha um par. */
@@ -167,6 +188,10 @@ export function Colunas({
   tom = "dourado",
   tom2 = "sucesso",
   referencia,
+  tomReferencia = "alerta",
+  formato = "numero",
+  legenda,
+  maxValoresNoTopo = Infinity,
 }: {
   itens: ItemColuna[];
   rotulo: string;
@@ -175,6 +200,12 @@ export function Colunas({
   tom2?: TomGrafico;
   /** Linha de comparação (ex.: limite de ocupação), no mesmo eixo dos valores. */
   referencia?: { valor: number; rotulo: string };
+  tomReferencia?: TomGrafico;
+  formato?: FormatoValor;
+  /** Nome de cada série, na ordem (série única ou par). */
+  legenda?: string[];
+  /** Acima disso o valor some do topo das colunas (fica na dica). */
+  maxValoresNoTopo?: number;
 }) {
   const max = Math.max(
     ...itens.flatMap((i) => [i.valor, i.valor2 ?? 0]),
@@ -182,12 +213,14 @@ export function Colunas({
     1,
   );
   const dupla = itens.some((i) => i.valor2 !== undefined);
+  const escreve = itens.length * (dupla ? 2 : 1) <= maxValoresNoTopo;
+  const w = (v: number) => escrever(formato, v);
   return (
     <div
       role="group"
-      aria-label={`${rotulo}: ${itens.map((i) => `${i.rotulo} ${i.valor}`).join(", ")}`}
+      aria-label={`${rotulo}: ${itens.map((i) => `${i.rotulo} ${w(i.valor)}${i.valor2 !== undefined ? ` e ${w(i.valor2)}` : ""}`).join(", ")}`}
     >
-      <div className="relative" style={{ height: altura }}>
+      <div className="relative mt-6" style={{ height: altura }}>
         {[0, 0.5, 1].map((f) => (
           <span
             key={f}
@@ -199,11 +232,20 @@ export function Colunas({
         {referencia ? (
           <span
             aria-hidden="true"
-            className="border-alerta absolute inset-x-0 z-[1] border-t-2 border-dotted"
-            style={{ bottom: `${(referencia.valor / max) * 100}%` }}
+            className="absolute inset-x-0 z-[1] border-t-2 border-dotted"
+            style={{
+              bottom: `${(referencia.valor / max) * 100}%`,
+              borderColor: COR[tomReferencia],
+            }}
           >
-            <span className="bg-alerta text-texto-inverso text-apoio rounded-pilula absolute -top-5 right-0 px-2 py-0.5">
+            <span
+              className="text-texto-inverso text-apoio rounded-pilula absolute -top-6 right-0 px-2 py-0.5"
+              style={{ background: COR[tomReferencia] }}
+            >
               {referencia.rotulo}
+              {formato === "numero"
+                ? ""
+                : `: ${escrever(formato, referencia.valor, true)}`}
             </span>
           </span>
         ) : null}
@@ -217,26 +259,42 @@ export function Colunas({
               <span
                 className="rounded-t-1 relative w-full max-w-8 transition-[filter] duration-150 group-hover:brightness-95"
                 style={{
-                  height: `${(i.valor / max) * 100}%`,
+                  height: `${(Math.max(i.valor, 0) / max) * 100}%`,
                   background: COR[tom],
                 }}
               >
-                <span className="text-apoio text-texto absolute -top-5 left-1/2 -translate-x-1/2 font-mono tabular-nums">
-                  {i.valor}
-                </span>
+                {(escreve && !dupla) || i.valorTexto ? (
+                  <span
+                    className={
+                      i.valorTexto
+                        ? "text-apoio text-texto-2 absolute bottom-full left-1/2 w-14 -translate-x-1/2 pb-1 text-center leading-tight"
+                        : `text-apoio text-texto absolute -top-5 left-1/2 -translate-x-1/2 font-mono whitespace-nowrap tabular-nums ${dupla ? "max-sm:hidden" : ""}`
+                    }
+                  >
+                    {i.valorTexto ?? escrever(formato, i.valor, true)}
+                  </span>
+                ) : null}
               </span>
               {dupla ? (
                 <span
-                  className="rounded-t-1 w-full max-w-8 transition-[filter] duration-150 group-hover:brightness-95"
+                  className="rounded-t-1 relative w-full max-w-8 transition-[filter] duration-150 group-hover:brightness-95"
                   style={{
-                    height: `${((i.valor2 ?? 0) / max) * 100}%`,
+                    height: `${(Math.max(i.valor2 ?? 0, 0) / max) * 100}%`,
                     background: COR[tom2],
                   }}
-                />
+                ></span>
               ) : null}
               <Dica>
-                {i.dica ??
-                  `${i.rotulo}: ${i.valor}${dupla ? ` e ${i.valor2 ?? 0}` : ""}`}
+                {Array.isArray(i.dica) ? (
+                  <span className="flex flex-col">
+                    {i.dica.map((l) => (
+                      <span key={l}>{l}</span>
+                    ))}
+                  </span>
+                ) : (
+                  (i.dica ??
+                  `${i.rotulo}: ${w(i.valor)}${dupla ? ` e ${w(i.valor2 ?? 0)}` : ""}`)
+                )}
               </Dica>
             </div>
           ))}
@@ -249,9 +307,43 @@ export function Colunas({
             className="text-apoio text-texto-3 flex-1 text-center"
           >
             {i.rotulo}
+            {dupla ? (
+              <span className="text-texto mt-1 flex flex-col items-center gap-0.5 font-mono tabular-nums">
+                <span className="inline-flex items-center gap-1">
+                  <span
+                    aria-hidden="true"
+                    className="rounded-pilula size-2"
+                    style={{ background: COR[tom] }}
+                  />
+                  {escrever(formato, i.valor, true)}
+                </span>
+                <span className="inline-flex items-center gap-1">
+                  <span
+                    aria-hidden="true"
+                    className="rounded-pilula size-2"
+                    style={{ background: COR[tom2] }}
+                  />
+                  {escrever(formato, i.valor2 ?? 0, true)}
+                </span>
+              </span>
+            ) : null}
           </span>
         ))}
       </div>
+      {legenda && legenda.length > 0 ? (
+        <ul className="text-apoio text-texto-2 mt-3 flex flex-wrap gap-x-4 gap-y-1">
+          {legenda.map((l, k) => (
+            <li key={l} className="flex items-center gap-2">
+              <span
+                aria-hidden="true"
+                className="rounded-pilula size-2.5"
+                style={{ background: COR[k === 0 ? tom : tom2] }}
+              />
+              {l}
+            </li>
+          ))}
+        </ul>
+      ) : null}
     </div>
   );
 }
@@ -268,12 +360,14 @@ export function Rosca({
   centro,
   rotulo,
   espessura = 14,
+  formato = "numero",
 }: {
   fatias: FatiaRosca[];
   centro: { valor: string; legenda: string };
   rotulo: string;
   /** 14 = rosca; 44 = pizza cheia. */
   espessura?: number;
+  formato?: FormatoValor;
 }) {
   const total = Math.max(
     fatias.reduce((a, f) => a + f.valor, 0),
@@ -291,7 +385,7 @@ export function Rosca({
       <svg
         viewBox="0 0 120 120"
         role="img"
-        aria-label={`${rotulo}: ${fatias.map((f) => `${f.rotulo} ${f.valor}`).join(", ")}`}
+        aria-label={`${rotulo}: ${fatias.map((f) => `${f.rotulo} ${escrever(formato, f.valor)}`).join(", ")}`}
         className="size-36 shrink-0"
       >
         <circle
@@ -320,7 +414,7 @@ export function Rosca({
               onMouseLeave={() => setAtiva(null)}
               style={{ transition: "stroke-width 150ms" }}
             >
-              <title>{`${f.rotulo}: ${f.valor} (${Math.round((f.valor / total) * 100)}%)`}</title>
+              <title>{`${f.rotulo}: ${escrever(formato, f.valor)} (${Math.round((f.valor / total) * 100)}%)`}</title>
             </circle>
           );
         })}
@@ -333,7 +427,9 @@ export function Rosca({
               className="fill-[var(--texto)]"
               style={{ fontSize: 22, fontFamily: "var(--font-titulo)" }}
             >
-              {ativa !== null ? String(fatias[ativa]!.valor) : centro.valor}
+              {ativa !== null
+                ? escrever(formato, fatias[ativa]!.valor, true)
+                : centro.valor}
             </text>
             <text
               x="60"
@@ -361,8 +457,8 @@ export function Rosca({
               style={{ background: COR[f.tom] }}
             />
             <span className="truncate">{f.rotulo}</span>
-            <span className="text-texto ml-auto font-mono tabular-nums">
-              {f.valor}
+            <span className="text-texto ml-auto font-mono whitespace-nowrap tabular-nums">
+              {escrever(formato, f.valor)}
               <span className="text-texto-3 ml-1">
                 {Math.round((f.valor / total) * 100)}%
               </span>

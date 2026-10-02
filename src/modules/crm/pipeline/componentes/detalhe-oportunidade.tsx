@@ -10,7 +10,7 @@ import {
 import { Selo } from "@/components/ui/selo";
 import { formatarData, localidade } from "@/lib/formatacao";
 import type { NumeroPipeline } from "@/lib/dados/tipos";
-import { rotuloEstagio } from "../estagios";
+import { ROTULO_ORIGEM_LEAD, rotuloEstagio } from "../estagios";
 import type { CartaoPipelineTela } from "../tipos";
 
 export const ROTULO_CLASSIFICACAO = {
@@ -99,6 +99,9 @@ export function DetalheOportunidade({
               <Linha rotulo="Região">
                 {localidade(cartao.bairro, cartao.cidade)}
               </Linha>
+            ) : null}
+            {cartao.origem ? (
+              <Linha rotulo="Origem">{ROTULO_ORIGEM_LEAD[cartao.origem]}</Linha>
             ) : null}
             {!sensivel && cartao.score !== null ? (
               <Linha rotulo="Pontuação">

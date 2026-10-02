@@ -16,6 +16,9 @@ import {
   textoIdadeGestacional,
 } from "./idade-gestacional";
 import { ROTULO_MOTIVO_PERDA } from "./estagios";
+import { cartaoDeAcompanhamento, cartaoDePosVenda } from "./somente-leitura";
+import type { CartaoSomenteLeitura } from "./somente-leitura";
+import type { ResumoPosVenda } from "@/lib/dados/tipos-ocorrencia";
 import type {
   CartaoPipelineTela,
   FiltroPipelineTela,
@@ -96,6 +99,47 @@ function paraCartaoTela(
     ),
     tempoNoEstagio: haQuantoTempo(cartao.atualizadoEm),
   };
+}
+
+/** Aba 3 (atendimento): acompanhamentos por estado, só leitura. */
+export async function listarAtendimentoTela(filtro: {
+  regiaoId?: string;
+  busca?: string;
+}): Promise<CartaoSomenteLeitura[]> {
+  const { familias } = await obterRepositorios();
+  const hoje = hojeBrasilia();
+  return (await familias.listarAcompanhamentos(filtro)).map((c) =>
+    cartaoDeAcompanhamento(c, hoje),
+  );
+}
+
+/**
+ * Aba 4 (pós-venda): `api.pos_vendas`, que só coordenação e diretoria
+ * leem (AAL2). Outro papel recebe `restrito`, para a tela explicar em vez
+ * de mostrar um quadro vazio como se não houvesse famílias.
+ */
+export async function listarPosVendaTela(busca?: string): Promise<{
+  cartoes: CartaoSomenteLeitura[];
+  resumo: ResumoPosVenda | null;
+  restrito: boolean;
+}> {
+  const { posVenda } = await obterRepositorios();
+  try {
+    const lista = await posVenda.listar("abertos");
+    const termo = busca?.trim().toLowerCase();
+    const itens = termo
+      ? lista.itens.filter((i) => i.familiaNome.toLowerCase().includes(termo))
+      : lista.itens;
+    return {
+      cartoes: itens.map(cartaoDePosVenda),
+      resumo: lista.resumo,
+      restrito: false,
+    };
+  } catch (erro) {
+    if (erro instanceof ErroRepositorio && erro.codigo === "sem_permissao")
+      return { cartoes: [], resumo: null, restrito: true };
+    throw erro;
+  }
 }
 
 export async function contarPorEstagioTela(pipeline: NumeroPipeline) {

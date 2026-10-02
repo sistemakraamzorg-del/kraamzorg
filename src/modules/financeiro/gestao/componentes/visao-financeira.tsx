@@ -1,7 +1,12 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { MantaDobrada } from "@/components/ilustracoes";
-import { BarrasHorizontais, Sparkline } from "@/components/graficos";
+import {
+  BarrasHorizontais,
+  Colunas,
+  Rosca,
+  Sparkline,
+} from "@/components/graficos";
 import { VerComoTabela } from "@/components/graficos/ver-como-tabela";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
 import { Selo } from "@/components/ui/selo";
@@ -14,7 +19,7 @@ import {
   nomeMes,
   rotuloMes,
 } from "@/lib/gestao/formato";
-import { ColunasMoeda, PizzaMoeda, fatiasDeDespesa } from "./graficos-dinheiro";
+import { fatiasDeDespesa } from "../fatias-despesa";
 import { somarMeses } from "@/lib/gestao/financeiro";
 import { plural, ROTULO_CATEGORIA } from "../textos";
 import type { VisaoFinanceira } from "../dados";
@@ -225,15 +230,18 @@ export function VisaoFinanceiraTela({ v }: { v: VisaoFinanceira }) {
           apoio="Regime de caixa: conta o que foi pago no mês. Cobrança estornada ou cancelada não entra."
         >
           {temSerie ? (
-            <ColunasMoeda
+            <Colunas
+              formato="moeda"
+              maxValoresNoTopo={6}
+              altura={150}
               rotulo="Entrou e saiu por mês, em reais"
               legenda={["Entrou", "Saiu"]}
               tom="sucesso"
               tom2="marinho"
               itens={dre.serie.map((p) => ({
                 rotulo: nomeMes(p.mes).slice(0, 3),
-                centavos: p.receitaCentavos,
-                centavos2: p.despesasCentavos,
+                valor: p.receitaCentavos,
+                valor2: p.despesasCentavos,
                 dica: [
                   rotuloMes(p.mes),
                   `Entrou: ${formatarMoeda(p.receitaCentavos)}`,
@@ -275,7 +283,10 @@ export function VisaoFinanceiraTela({ v }: { v: VisaoFinanceira }) {
           apoio={`Despesas de ${rotuloMes(dre.mes)} por categoria.`}
         >
           {fatias.length > 0 ? (
-            <PizzaMoeda
+            <Rosca
+              formato="moeda"
+              espessura={44}
+              centro={{ valor: "", legenda: "" }}
               rotulo={`Despesas de ${rotuloMes(dre.mes)} por categoria`}
               fatias={fatias}
             />
@@ -305,12 +316,15 @@ export function VisaoFinanceiraTela({ v }: { v: VisaoFinanceira }) {
           }
         >
           {previsao.aVencerCentavos > 0 ? (
-            <ColunasMoeda
+            <Colunas
+              formato="moeda"
+              maxValoresNoTopo={6}
+              altura={150}
               rotulo="Cobranças em aberto que vencem em cada mês, em reais"
               tom="dourado"
               itens={previsao.meses.map((m) => ({
                 rotulo: nomeMes(m.mes).slice(0, 3),
-                centavos: m.centavos,
+                valor: m.centavos,
                 dica: [
                   rotuloMes(m.mes),
                   `A vencer: ${formatarMoeda(m.centavos)}`,

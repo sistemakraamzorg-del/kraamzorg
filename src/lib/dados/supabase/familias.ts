@@ -1,6 +1,7 @@
 import "server-only";
 import type { FamiliasRepositorio } from "../repositorios";
 import type {
+  CartaoAcompanhamento,
   CartaoOportunidade,
   EstagioP1,
   EstagioP2,
@@ -122,6 +123,29 @@ export async function familiasComTransferenciaAberta(
   );
 }
 
+/**
+ * Origem do lead por `api.lead_origem` (comercial e diretoria; as colunas
+ * saíram do grant de `familia`, ADR 0002). Qualquer falha (papel sem acesso,
+ * função fora do ar) devolve mapa vazio: o cartão só fica sem o selo.
+ */
+async function origensDasFamilias(
+  cliente: ContextoSupabase["cliente"],
+  familiaIds: string[],
+): Promise<Map<string, CartaoOportunidade["origem"]>> {
+  const mapa = new Map<string, CartaoOportunidade["origem"]>();
+  if (familiaIds.length === 0) return mapa;
+  try {
+    const { data, error } = await cliente
+      .schema("api")
+      .rpc("lead_origem", { familias: familiaIds });
+    if (error || !data) return mapa;
+    for (const l of data) mapa.set(l.familia_id, l.origem);
+  } catch {
+    // sem origem: cartão sem selo
+  }
+  return mapa;
+}
+
 export function criarFamiliasSupabase(
   contexto: ContextoSupabase,
 ): FamiliasRepositorio {
@@ -163,7 +187,61 @@ export function criarFamiliasSupabase(
         contexto,
         linhas.map((l) => l.familia_id),
       );
-      return linhas.map((linha) => cartaoDaLinha(linha, abertas));
+      const origens = await origensDasFamilias(
+        cliente,
+        linhas.map((l) => l.familia_id),
+      );
+      return linhas.map((linha) => ({
+        ...cartaoDaLinha(linha, abertas),
+        origem: origens.get(linha.familia_id),
+      }));
+    },
+
+    async listarAcompanhamentos(filtro = {}) {
+      let consulta = cliente
+        .from("acompanhamento")
+        .select(
+          `id, familia_id, estado, inicio_efetivo, previsao_alta, atualizado_em,
+           familia:familia_id!inner ( ${COLUNAS_FAMILIA}, mesclada_em_id )`,
+        )
+        .is("familia.mesclada_em_id", null)
+        .order("atualizado_em", { ascending: false });
+      if (filtro.regiaoId)
+        consulta = consulta.eq("familia.regiao_id", filtro.regiaoId);
+      if (filtro.busca && limparBusca(filtro.busca)) {
+        consulta = consulta.ilike(
+          "familia.nome_exibicao",
+          `%${limparBusca(filtro.busca)}%`,
+        );
+      }
+      const linhas = exigir(
+        await consulta,
+        "acompanhamentos",
+      ) as unknown as {
+        id: string;
+        familia_id: string;
+        estado: CartaoAcompanhamento["estado"];
+        inicio_efetivo: string | null;
+        previsao_alta: string | null;
+        atualizado_em: string;
+        familia: LinhaFamilia;
+      }[];
+      return linhas.map((l) => ({
+        acompanhamentoId: l.id,
+        familiaId: l.familia_id,
+        nomeFamilia: l.familia.nome_exibicao,
+        estado: l.estado,
+        dpp: l.familia.dpp,
+        dataNascimento: l.familia.data_nascimento,
+        bairro: l.familia.bairro,
+        cidade: l.familia.cidade?.nome ?? null,
+        uf: l.familia.cidade?.uf ?? null,
+        regiaoId: l.familia.regiao_id,
+        estadoSensivel: l.familia.estado_sensivel,
+        inicioEfetivo: l.inicio_efetivo,
+        previsaoAlta: l.previsao_alta,
+        atualizadoEm: l.atualizado_em,
+      }));
     },
 
     async contarPorEstagio(pipeline: NumeroPipeline) {

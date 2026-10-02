@@ -61,6 +61,28 @@ export interface CartaoOportunidade {
   motivoPerda: MotivoPerda | null;
   atualizadoEm: string;
   transferenciaAberta: boolean;
+  /** Origem do lead (`api.lead_origem`, só comercial e diretoria). Ausente
+   * quando o papel não lê a origem ou a função não respondeu: sem selo. */
+  origem?: Enums<"origem_lead"> | null;
+}
+
+/** Cartão do pipeline 3 (acompanhamento em casa). Só leitura: o estado muda
+ * por registros e automações, nunca por arrastar. */
+export interface CartaoAcompanhamento {
+  acompanhamentoId: string;
+  familiaId: string;
+  nomeFamilia: string;
+  estado: Enums<"estado_acompanhamento">;
+  dpp: string | null;
+  dataNascimento: string | null;
+  bairro: string | null;
+  cidade: string | null;
+  uf: string | null;
+  regiaoId: string | null;
+  estadoSensivel: EstadoSensivel;
+  inicioEfetivo: string | null;
+  previsaoAlta: string | null;
+  atualizadoEm: string;
 }
 
 export interface FiltroFamilias {

@@ -10,7 +10,8 @@ import { formatarData, formatarMoeda } from "@/lib/formatacao";
 import { mesParaBusca, rotuloMes } from "@/lib/gestao/formato";
 import { plural, ROTULO_CATEGORIA, ROTULO_ORIGEM } from "../textos";
 import { RemoverDespesa } from "./remover-despesa";
-import { PizzaMoeda, fatiasDeDespesa } from "./graficos-dinheiro";
+import { Rosca } from "@/components/graficos";
+import { fatiasDeDespesa } from "../fatias-despesa";
 
 /** Frase de abertura da tela de despesas. */
 export function fraseDespesas(l: ListaDespesas): string {
@@ -56,7 +57,10 @@ export function ListaDespesasTela({ lista }: { lista: ListaDespesas }) {
         >
           Como as despesas se dividem
         </h2>
-        <PizzaMoeda
+        <Rosca
+          formato="moeda"
+          espessura={44}
+          centro={{ valor: "", legenda: "" }}
           rotulo={`Despesas de ${rotuloMes(lista.mes)} por categoria`}
           fatias={fatias}
         />

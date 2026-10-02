@@ -1,5 +1,6 @@
 import type { Json } from "@/lib/db/types";
 import type {
+  CartaoAcompanhamento,
   CartaoOportunidade,
   EstadoSensivel,
   EstagioP1,
@@ -135,6 +136,11 @@ export interface FamiliasRepositorio {
   contarPorEstagio(
     pipeline: NumeroPipeline,
   ): Promise<Partial<Record<EstagioP1 | EstagioP2, number>>>;
+  /** Acompanhamentos para o pipeline 3 (só leitura), com busca e região. */
+  listarAcompanhamentos(filtro?: {
+    busca?: string;
+    regiaoId?: string;
+  }): Promise<CartaoAcompanhamento[]>;
   listarFamilias(filtro?: FiltroFamilias): Promise<ResumoFamilia[]>;
   /** Muda o estágio por `api.transicionar` (única porta, PRD 7). */
   transicionar(pedido: PedidoTransicao): Promise<Json>;

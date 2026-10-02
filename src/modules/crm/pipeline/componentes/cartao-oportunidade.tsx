@@ -7,6 +7,7 @@ import { formatarData, localidade } from "@/lib/formatacao";
 import type { EstadoSensivel, NumeroPipeline } from "@/lib/dados/tipos";
 import { calcularIdadeGestacional, hojeBrasilia } from "../idade-gestacional";
 import type { CartaoPipelineTela } from "../tipos";
+import { ROTULO_ORIGEM_LEAD } from "../estagios";
 import {
   EXPLICA_CLASSIFICACAO,
   ROTULO_CLASSIFICACAO,
@@ -143,6 +144,11 @@ export function CartaoOportunidadePipeline({
               }
             >
               {ROTULO_CLASSIFICACAO[cartao.classificacao]}
+            </Selo>
+          ) : null}
+          {cartao.origem && cartao.origem !== "desconhecida" ? (
+            <Selo title="De onde veio esta família">
+              {ROTULO_ORIGEM_LEAD[cartao.origem]}
             </Selo>
           ) : null}
           {cartao.pdfEnviadoEm ? (

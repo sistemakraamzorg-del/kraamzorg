@@ -19,9 +19,15 @@ Branch: `drop/redesenho-camila` (local; nada foi enviado ao GitHub).
 
 ## Fora
 
-- Origem do lead no cartão do pipeline e abas 3 e 4 do mockup: o dado e o enum não existem.
-- Evolução mensal do NPS: não há série no banco.
-- `ColunasMoeda` e `PizzaMoeda` (`graficos-dinheiro.tsx`) duplicam `Colunas` e `Rosca` por causa do formato em reais; unificar com uma propriedade `formatar`.
+- Rótulos "Agente" e "Handoff" do mockup como origem do lead: não são valores do enum `origem_lead`.
+- Dia da semana nas visitas do portal da família e a frase "Sua enfermeira chega amanhã às 9h": o formato de data simples voltaria um dia no fuso de Brasília e a frase é texto de negócio (vem de `mensagem_modelo`).
+
+## Rodada 2 (finalização)
+
+- Gráficos compartilhados com `formato="moeda" | "numero" | "percentual"` (texto serializável, pois quem chama é componente de servidor); `graficos-dinheiro.tsx` removido. Colunas pareadas escrevem os valores sob o período, não no topo.
+- NPS mês a mês no Painel executivo (`src/lib/gestao/nps-mensal.ts`), a partir de `api.pos_vendas`, sem migration; mês abaixo da amostra mínima mostra "sem amostra".
+- Pipeline: origem do lead no cartão (via `api.lead_origem`, que já existia) e abas Atendimento e Pós-venda somente leitura (estágios mudam por registros e automações).
+- Portal que a família acessa: progresso, atalhos, frases de apoio por bloco, próxima visita em destaque e botão fixo "Fale com a equipe". Modo sensível intocado.
 
 ## Decisões
 
