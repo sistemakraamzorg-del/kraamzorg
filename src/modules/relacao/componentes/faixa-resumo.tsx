@@ -16,6 +16,14 @@ export interface ItemFaixa {
   destaque?: boolean;
 }
 
+/** Acento vivo de cada indicador, na ordem em que aparecem (dourado, azul, verde, lavanda). */
+const ACENTOS = [
+  { topo: "border-t-dourado-vivo", ponto: "bg-dourado-vivo" },
+  { topo: "border-t-azul-vivo", ponto: "bg-azul-vivo" },
+  { topo: "border-t-sucesso-vivo", ponto: "bg-sucesso-vivo" },
+  { topo: "border-t-lavanda-vivo", ponto: "bg-lavanda-vivo" },
+] as const;
+
 export function FaixaResumo({
   itens,
   rotulo,
@@ -28,15 +36,22 @@ export function FaixaResumo({
       aria-label={rotulo}
       className="tablet:grid-cols-2 grid grid-cols-1 gap-3 lg:grid-cols-4"
     >
-      {itens.map((i) => (
+      {itens.map((i, k) => (
         <li
           key={i.rotulo}
           className={cn(
-            "rounded-3 border-linha bg-superficie flex min-h-[44px] flex-col gap-2 border p-4",
-            i.destaque && "border-t-dourado border-t-[3px]",
+            "rounded-3 border-linha bg-superficie shadow-1 flex min-h-[44px] flex-col gap-2 border border-t-[4px] p-4",
+            ACENTOS[k % ACENTOS.length]!.topo,
           )}
         >
-          <span className="text-apoio text-texto-2 font-medium">
+          <span className="text-apoio text-texto-2 flex items-center gap-2 font-medium">
+            <span
+              aria-hidden="true"
+              className={cn(
+                "rounded-pilula size-2.5",
+                ACENTOS[k % ACENTOS.length]!.ponto,
+              )}
+            />
             {i.rotulo}
           </span>
           <span className="font-titulo text-numero text-texto font-medium tabular-nums">
@@ -60,6 +75,21 @@ export function iniciais(nome: string) {
     .toLocaleUpperCase("pt-BR");
 }
 
+const FUNDOS_AVATAR = [
+  "bg-dourado-medio",
+  "bg-azul-medio",
+  "bg-salvia-media",
+  "bg-lavanda-media",
+  "bg-argila-media",
+] as const;
+
+/** Mesmo nome, mesma cor: a cor vem das letras, não de sorteio. */
+function fundoDoAvatar(nome: string) {
+  let soma = 0;
+  for (const c of nome) soma += c.codePointAt(0) ?? 0;
+  return FUNDOS_AVATAR[soma % FUNDOS_AVATAR.length]!;
+}
+
 export function Avatar({
   nome,
   className,
@@ -71,7 +101,8 @@ export function Avatar({
     <span
       aria-hidden="true"
       className={cn(
-        "bg-areia text-marinho font-titulo text-apoio inline-flex size-10 flex-none items-center justify-center rounded-full font-medium",
+        "text-marinho font-titulo text-apoio inline-flex size-10 flex-none items-center justify-center rounded-full font-medium",
+        fundoDoAvatar(nome),
         className,
       )}
     >

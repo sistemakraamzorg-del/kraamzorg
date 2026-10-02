@@ -42,6 +42,18 @@
   --alerta: #9e4438;
   --sensivel: #63557a;
 
+  /* Cores de dado [v4.5, pedido da Drop: "cores mais vividas"]. Mesmos matizes
+     da marca (dourado, verde, âmbar, terracota, azul do marinho) com mais
+     saturação, para gráficos, selos, indicadores e acentos. A paleta base e os
+     estados (sucesso, aviso, alerta, sensivel) não mudam; estas só entram em
+     dado e em superfície, nunca como estado de saúde nem em momento sensível. */
+  --dourado-vivo: #d9a13b;
+  --sucesso-vivo: #2f9d6e;
+  --aviso-vivo: #eaa31f;
+  --alerta-vivo: #d9533c;
+  --azul-vivo: #2f6db5;
+  --lavanda-vivo: #7c63c4;
+
   /* 2. Derivados: mistura fixa de um primitivo com creme ou branco. Nenhum
         matiz novo (DESIGN.md, seção 4). Contraste medido em WCAG 2.x. */
   --marinho-72: color-mix(
@@ -111,14 +123,16 @@
          marinho-62 nunca vai sobre tom de apoio. */
   --dourado-claro: color-mix(
     in srgb,
-    var(--dourado) 30%,
+    var(--dourado-vivo) 38%,
     var(--creme)
   ); /* #E9DCC2: o agora */
   --dourado-medio: color-mix(
     in srgb,
-    var(--dourado) 55%,
+    var(--dourado-vivo) 66%,
     var(--creme)
   ); /* #D9C59E: tile e trilha do agora */
+  --azul-claro: color-mix(in srgb, var(--azul-vivo) 20%, var(--branco)); /* o dado: indicadores e gráficos */
+  --azul-medio: color-mix(in srgb, var(--azul-vivo) 42%, var(--branco));
   --areia-clara: color-mix(
     in srgb,
     var(--areia) 55%,
@@ -126,32 +140,32 @@
   ); /* #F1E8D7: a família, o que já foi guardado */
   --salvia-clara: color-mix(
     in srgb,
-    var(--sucesso) 18%,
+    var(--sucesso-vivo) 26%,
     var(--creme)
   ); /* #DCE0D2: o que está feito */
   --salvia-media: color-mix(
     in srgb,
-    var(--sucesso) 40%,
+    var(--sucesso-vivo) 52%,
     var(--creme)
   ); /* #B5C3B1: tile e preenchimento do feito */
   --lavanda-clara: color-mix(
     in srgb,
-    var(--sensivel) 18%,
+    var(--lavanda-vivo) 24%,
     var(--branco)
   ); /* #E3E0E7: o tempo, a agenda */
   --lavanda-media: color-mix(
     in srgb,
-    var(--sensivel) 36%,
+    var(--lavanda-vivo) 44%,
     var(--branco)
   ); /* #C7C2CF: tile da agenda */
   --argila-clara: color-mix(
     in srgb,
-    var(--alerta) 14%,
+    var(--alerta-vivo) 22%,
     var(--creme)
   ); /* #EFDFD4: pessoas e conversas */
   --argila-media: color-mix(
     in srgb,
-    var(--alerta) 30%,
+    var(--alerta-vivo) 42%,
     var(--creme)
   ); /* #E0C2B7: tile de pessoas e conversas */
 
@@ -242,6 +256,14 @@
   --color-aviso: var(--aviso);
   --color-alerta: var(--alerta);
   --color-sensivel: var(--sensivel);
+  --color-dourado-vivo: var(--dourado-vivo);
+  --color-sucesso-vivo: var(--sucesso-vivo);
+  --color-aviso-vivo: var(--aviso-vivo);
+  --color-alerta-vivo: var(--alerta-vivo);
+  --color-azul-vivo: var(--azul-vivo);
+  --color-lavanda-vivo: var(--lavanda-vivo);
+  --color-azul-claro: var(--azul-claro);
+  --color-azul-medio: var(--azul-medio);
 
   --color-marinho-72: var(--marinho-72);
   --color-marinho-62: var(--marinho-62);

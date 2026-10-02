@@ -12,7 +12,7 @@ import {
   AnelProgresso,
   type EstadoSegmento,
 } from "@/components/ui/anel-progresso";
-import { type Tom } from "@/components/ui/tons";
+import { FUNDO_CLARO, type Tom } from "@/components/ui/tons";
 import { cn } from "@/lib/utils";
 
 /**
@@ -21,6 +21,43 @@ import { cn } from "@/lib/utils";
  * gráfico, e painéis de gráfico com cabeçalho em tom. Só tokens do tema;
  * os gráficos vêm de `@/components/graficos`.
  */
+
+/** Cor viva de cada tom de apoio: faixa de acento, ponto do título e série do gráfico. */
+const ACENTO_TOM: Record<
+  Tom,
+  { topo: string; lateral: string; ponto: string; grafico: TomGrafico }
+> = {
+  dourado: {
+    topo: "border-t-dourado-vivo",
+    lateral: "border-l-dourado-vivo",
+    ponto: "bg-dourado-vivo",
+    grafico: "dourado",
+  },
+  areia: {
+    topo: "border-t-azul-vivo",
+    lateral: "border-l-azul-vivo",
+    ponto: "bg-azul-vivo",
+    grafico: "azul",
+  },
+  salvia: {
+    topo: "border-t-sucesso-vivo",
+    lateral: "border-l-sucesso-vivo",
+    ponto: "bg-sucesso-vivo",
+    grafico: "sucesso",
+  },
+  lavanda: {
+    topo: "border-t-lavanda-vivo",
+    lateral: "border-l-lavanda-vivo",
+    ponto: "bg-lavanda-vivo",
+    grafico: "lavanda",
+  },
+  argila: {
+    topo: "border-t-aviso-vivo",
+    lateral: "border-l-aviso-vivo",
+    ponto: "bg-aviso-vivo",
+    grafico: "aviso",
+  },
+};
 
 export function FaixaDoDia({
   saudacao,
@@ -32,7 +69,7 @@ export function FaixaDoDia({
   frase?: React.ReactNode;
 }) {
   return (
-    <header className="rounded-3 border-linha bg-superficie mt-3 border border-t-[3px] border-t-dourado px-5 py-5 lg:mt-6 lg:px-8 lg:py-6">
+    <header className="rounded-3 border-dourado-vivo/30 bg-dourado-claro border-t-dourado-vivo mt-3 border border-t-[4px] px-5 py-5 lg:mt-6 lg:px-8 lg:py-6">
       <p className="text-apoio text-texto-2 font-medium">{saudacao}</p>
       <h1 className="font-titulo text-display lg:text-display-lg text-texto mt-1 font-normal">
         {titulo}
@@ -64,9 +101,19 @@ export function GradeIndicadores({ itens }: { itens: Indicador[] }) {
         <li key={i.rotulo}>
           <Link
             href={i.href}
-            className="rounded-3 border-linha bg-superficie ease-estado hover:border-dourado flex h-full min-h-[44px] flex-col gap-2 border p-4 text-inherit no-underline transition-colors duration-140"
+            className={cn(
+              "rounded-3 border-linha bg-superficie ease-estado shadow-1 hover:shadow-2 flex h-full min-h-[44px] flex-col gap-2 border border-t-[4px] p-4 text-inherit no-underline transition-[transform,box-shadow] duration-140 hover:-translate-y-0.5",
+              ACENTO_TOM[i.tom].topo,
+            )}
           >
-            <span className="text-apoio text-texto-2 font-medium">
+            <span className="text-apoio text-texto-2 flex items-center gap-2 font-medium">
+              <span
+                aria-hidden="true"
+                className={cn(
+                  "rounded-pilula size-2.5",
+                  ACENTO_TOM[i.tom].ponto,
+                )}
+              />
               {i.rotulo}
             </span>
             <span className="font-titulo text-numero text-texto font-medium tabular-nums">
@@ -75,7 +122,7 @@ export function GradeIndicadores({ itens }: { itens: Indicador[] }) {
             {i.serie && i.serie.length > 1 ? (
               <Sparkline
                 valores={i.serie}
-                tom={i.tomGrafico}
+                tom={i.tomGrafico ?? ACENTO_TOM[i.tom].grafico}
                 rotulo={i.rotuloSerie ?? i.rotulo}
               />
             ) : null}
@@ -101,6 +148,9 @@ export function GradeGraficos({
       className={cn(
         "mt-6 grid grid-cols-1 gap-4",
         colunas === 3 ? "lg:grid-cols-3" : "lg:grid-cols-2",
+        // O acento da lateral alterna entre azul, dourado e verde, para os painéis
+        // vizinhos não ficarem todos da mesma cor.
+        "[&>section:nth-child(3n+2)]:border-l-dourado-vivo [&>section:nth-child(3n)]:border-l-sucesso-vivo",
       )}
     >
       {children}
@@ -114,6 +164,7 @@ export function PainelGrafico({
   nota,
   leitura,
   vazio,
+  tom = "areia",
   children,
 }: {
   titulo: string;
@@ -121,15 +172,25 @@ export function PainelGrafico({
   nota?: string;
   /** Como ler o gráfico, em uma frase. */
   leitura?: string;
-  /** @deprecated o cabeçalho é sempre neutro; mantido para não quebrar chamadas. */
+  /** Tom de apoio do cabeçalho (padrão: areia). A cor viva do tom vira o acento da lateral. */
   tom?: Tom;
   /** Mensagem gentil quando não há dado para desenhar. */
   vazio?: string;
   children?: React.ReactNode;
 }) {
   return (
-    <section className="rounded-3 border-linha bg-superficie flex flex-col overflow-hidden border">
-      <div className="bg-areia-clara border-linha flex flex-col gap-0.5 border-b px-5 py-3">
+    <section
+      className={cn(
+        "rounded-3 border-linha bg-superficie flex flex-col overflow-hidden border border-l-[4px]",
+        ACENTO_TOM[tom].lateral,
+      )}
+    >
+      <div
+        className={cn(
+          "border-linha flex flex-col gap-0.5 border-b px-5 py-3",
+          FUNDO_CLARO[tom],
+        )}
+      >
         <h2 className="font-titulo text-2 text-texto">{titulo}</h2>
         {nota ? <p className="text-apoio text-texto-2">{nota}</p> : null}
         {leitura ? <p className="text-apoio text-texto-3">{leitura}</p> : null}

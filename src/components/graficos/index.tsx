@@ -12,16 +12,26 @@ import { formatarMoedaCurta, formatarPct } from "@/lib/gestao/formato";
  */
 
 export type TomGrafico =
-  "dourado" | "sucesso" | "aviso" | "marinho" | "sensivel" | "areia" | "alerta";
+  | "dourado"
+  | "sucesso"
+  | "aviso"
+  | "marinho"
+  | "sensivel"
+  | "areia"
+  | "alerta"
+  | "azul"
+  | "lavanda";
 
 const COR: Record<TomGrafico, string> = {
-  dourado: "var(--dourado)",
-  sucesso: "var(--sucesso)",
-  aviso: "var(--aviso)",
+  dourado: "var(--dourado-vivo)",
+  sucesso: "var(--sucesso-vivo)",
+  aviso: "var(--aviso-vivo)",
   marinho: "var(--marinho)",
   sensivel: "var(--sensivel)",
   areia: "var(--areia)",
-  alerta: "var(--alerta)",
+  alerta: "var(--alerta-vivo)",
+  azul: "var(--azul-vivo)",
+  lavanda: "var(--lavanda-vivo)",
 };
 
 /**

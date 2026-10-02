@@ -12,11 +12,11 @@ import type {
 
 /** Tons de série, sem vermelho: vermelho é erro, não é canal. */
 const TONS = [
-  "var(--marinho)",
-  "var(--dourado)",
-  "var(--sucesso)",
-  "var(--sensivel)",
-  "var(--aviso)",
+  "var(--azul-vivo)",
+  "var(--dourado-vivo)",
+  "var(--sucesso-vivo)",
+  "var(--lavanda-vivo)",
+  "var(--aviso-vivo)",
 ] as const;
 const COR_OUTROS = "var(--areia)";
 const MAX_CANAIS = TONS.length;
