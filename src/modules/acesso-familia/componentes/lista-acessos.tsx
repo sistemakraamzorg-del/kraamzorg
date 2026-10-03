@@ -1,9 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { Check, Clock, Users } from "lucide-react";
 import { Botao } from "@/components/ui/botao";
-import { CartaoResumo } from "@/components/ui/cartao-resumo";
+import { Kpi } from "@/components/mockup";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
 import { Selo } from "@/components/ui/selo";
 import type {
@@ -107,37 +106,26 @@ export function ListaAcessos({
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="tablet:grid-cols-3 grid grid-cols-1 gap-3">
-        <CartaoResumo
-          tom="salvia"
-          fundo="tom"
-          arranjo="linha"
-          icone={<Check />}
+      <div className="tablet:grid-cols-3 grid grid-cols-1 gap-3.5">
+        <Kpi
+          rotulo="Famílias com acesso liberado"
           valor={comAcesso}
-          rotulo="famílias com acesso liberado"
-          contexto={`de ${familias.length} com contrato`}
+          delta={`de ${familias.length} com contrato`}
+          tomDelta="ok"
         />
-        <CartaoResumo
-          tom="areia"
-          fundo="tom"
-          arranjo="linha"
-          icone={<Clock />}
+        <Kpi
+          rotulo="Famílias aguardando liberação"
           valor={falta}
-          rotulo="famílias aguardando liberação"
-          contexto={
+          delta={
             falta === 0
               ? "Nenhuma pendente"
               : "Ninguém liberado ainda nessas famílias"
           }
         />
-        <CartaoResumo
-          tom="lavanda"
-          fundo="tom"
-          arranjo="linha"
-          icone={<Users />}
+        <Kpi
+          rotulo={jaEntraram === 1 ? "Pessoa já entrou" : "Pessoas já entraram"}
           valor={jaEntraram}
-          rotulo={jaEntraram === 1 ? "pessoa já entrou" : "pessoas já entraram"}
-          contexto="Quem abriu o portal ao menos uma vez"
+          delta="Quem abriu o portal ao menos uma vez"
         />
       </div>
 
@@ -219,10 +207,10 @@ export function ListaAcessos({
                 className="rounded-3 bg-superficie border-linha flex flex-col border"
                 data-familia={f.nomeExibicao}
               >
-                <div className="bg-areia-clara rounded-t-3 flex items-center gap-3 px-5 py-4">
+                <div className="bg-creme-2 border-linha rounded-t-3 flex items-center gap-3 border-b px-5 py-4">
                   <span
                     aria-hidden="true"
-                    className="bg-areia text-texto font-titulo text-3 flex size-11 shrink-0 items-center justify-center rounded-full font-medium"
+                    className="bg-areia text-marinho font-titulo text-3 flex size-9 shrink-0 items-center justify-center rounded-full font-medium"
                   >
                     {iniciais(f.nomeExibicao)}
                   </span>

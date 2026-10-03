@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
-import { ArrowRight, ChevronDown } from "lucide-react";
+import { ArrowRight, ChevronDown, MoreVertical } from "lucide-react";
 import { Botao } from "@/components/ui/botao";
 import { cn } from "@/lib/utils";
 import type { Papel } from "@/lib/auth/papeis";
@@ -27,12 +27,15 @@ export function MenuMover({
   cartao,
   pipeline,
   papeis,
+  compacto = false,
 }: {
   cartao: CartaoPipelineTela;
   pipeline: NumeroPipeline;
   /** Papéis da sessão logada, só para atenuar (não esconder) uma opção que o
    * papel provavelmente não confirma (cosmético; quem barra é o banco). */
   papeis: readonly Papel[];
+  /** Só o ícone de três pontos (cartão compacto do quadro). */
+  compacto?: boolean;
 }) {
   const [aberto, definirAberto] = React.useState(false);
   const [perdaAberta, definirPerdaAberta] = React.useState(false);
@@ -79,14 +82,28 @@ export function MenuMover({
     <>
       <DropdownMenu.Root open={aberto} onOpenChange={definirAberto}>
         <DropdownMenu.Trigger asChild>
-          <Botao
-            variante="fantasma"
-            tamanho="compacto"
-            disabled={pendente}
-            iconeDireita={<ChevronDown aria-hidden="true" className="size-4" />}
-          >
-            Mover para
-          </Botao>
+          {compacto ? (
+            <button
+              type="button"
+              disabled={pendente}
+              aria-label={`Mover ${cartao.nomeFamilia} para outro estágio`}
+              title="Mover para"
+              className="rounded-pilula text-texto-2 hover:bg-marinho-08 hover:text-texto size-toque inline-flex flex-none items-center justify-center disabled:opacity-50 lg:size-6"
+            >
+              <MoreVertical aria-hidden="true" className="size-4" />
+            </button>
+          ) : (
+            <Botao
+              variante="fantasma"
+              tamanho="compacto"
+              disabled={pendente}
+              iconeDireita={
+                <ChevronDown aria-hidden="true" className="size-4" />
+              }
+            >
+              Mover para
+            </Botao>
+          )}
         </DropdownMenu.Trigger>
         <DropdownMenu.Portal>
           <DropdownMenu.Content
@@ -126,7 +143,14 @@ export function MenuMover({
         </DropdownMenu.Portal>
       </DropdownMenu.Root>
       {erro ? (
-        <p role="alert" className="text-apoio text-alerta mt-1">
+        <p
+          role="alert"
+          className={
+            compacto
+              ? "text-apoio text-alerta bg-superficie border-linha rounded-2 shadow-2 absolute top-full right-0 z-20 w-48 border p-2"
+              : "text-apoio text-alerta mt-1"
+          }
+        >
           {erro}
         </p>
       ) : null}

@@ -1,9 +1,20 @@
 import Link from "next/link";
+import { CardBody, Nota, classesChip } from "@/components/mockup";
 import { TabelaLista } from "@/components/ui/tabela-lista";
+import { formatarMoedaCurta, formatarPct } from "@/lib/gestao/formato";
 import {
-  GradeIndicadores,
-  PainelGrafico,
-} from "@/modules/inicio/painel-gestao";
+  BarrasMock,
+  RoscaMock,
+  type FatiaMock,
+  type TomMock,
+} from "@/modules/financeiro/graficos-mock";
+import {
+  BlocoTabela,
+  CartaoGrafico,
+  CLASSE_TABELA,
+  Grade,
+  SemDado,
+} from "@/modules/financeiro/mockup-ui";
 import type {
   ContagensMarketing,
   FiltroPeriodo,
@@ -12,18 +23,9 @@ import type {
 import { formatarData, formatarMoeda } from "@/lib/formatacao";
 import { ROTULO_ORIGEM } from "@/modules/relacao/rotulos";
 import { atalhosDePeriodo } from "../periodo";
-import {
-  FunilMarketing,
-  PizzaCanais,
-  fatiasDeCanais,
-} from "./graficos-marketing";
 
 const dividir = (a: number | null, b: number | null): number | null =>
   a !== null && b !== null && b > 0 ? Math.round(a / b) : null;
-
-/** Atalho de período em pílula, no mesmo desenho das abas. */
-const ATALHO =
-  "rounded-pilula text-apoio text-texto hover:bg-areia-clara min-h-toque ease-estado inline-flex items-center px-3.5 font-semibold no-underline transition-colors duration-140";
 
 const dinheiro = (v: number | null) =>
   v === null ? "sem acesso" : formatarMoeda(v);
@@ -77,243 +79,330 @@ function celulasValores(c: ContagensMarketing) {
   };
 }
 
-/** Poucos leads: um lead a mais muda muito os percentuais. */
-const POUCOS_LEADS = 10;
+const TONS_ORIGEM: TomMock[] = [
+  "dourado2",
+  "dourado",
+  "sucesso",
+  "azul",
+  "areia",
+  "sensivel",
+];
 
-const plural = (n: number, um: string, varios: string) =>
-  `${n} ${n === 1 ? um : varios}`;
-
-/** Comparação com o período anterior, em frase. Sem período anterior, ensina como obter. */
-function comparar(
-  atual: number | null,
-  anterior: number | null | undefined,
-  tem: boolean,
-  moeda = false,
-): string {
-  if (!tem)
-    return "Escolha um período de início e fim para comparar com o anterior.";
-  if (atual === null || anterior === null || anterior === undefined)
-    return "Sem dado do período anterior para comparar.";
-  const dif = atual - anterior;
-  if (dif === 0) return "Igual ao período anterior.";
-  const valor = moeda ? formatarMoeda(Math.abs(dif)) : String(Math.abs(dif));
-  return `${valor} ${dif > 0 ? "a mais" : "a menos"} que no período anterior.`;
+/** As maiores origens e o resto junto, nos tons do mockup. */
+function fatiasPorOrigem(
+  linhas: RelatorioMarketing["porOrigem"],
+  valor: (l: RelatorioMarketing["porOrigem"][number]) => number,
+): FatiaMock[] {
+  const ordenadas = linhas
+    .map((l) => ({ rotulo: ROTULO_ORIGEM[l.origem], v: valor(l) }))
+    .filter((l) => l.v > 0)
+    .sort((x, y) => y.v - x.v);
+  const topo = ordenadas.slice(0, TONS_ORIGEM.length - 1);
+  const resto = ordenadas.slice(TONS_ORIGEM.length - 1);
+  const fatias = topo.map((l, i) => ({
+    rotulo: l.rotulo,
+    valor: l.v,
+    tom: TONS_ORIGEM[i]!,
+  }));
+  if (resto.length > 0) {
+    fatias.push({
+      rotulo: "Outras origens",
+      valor: resto.reduce((a, l) => a + l.v, 0),
+      tom: TONS_ORIGEM[TONS_ORIGEM.length - 1]!,
+    });
+  }
+  return fatias;
 }
 
-/** Aba "Visão geral": período, frase, indicadores, canais, funil e o dinheiro. */
+/** Texto do argumento do módulo, com os percentuais do próprio período. */
+function argumentoDoModulo(r: RelatorioMarketing): string | null {
+  if (!r.veValores) return null;
+  const totalLeads = r.porOrigem.reduce((a, l) => a + l.leads, 0);
+  const totalReceita = r.porOrigem.reduce(
+    (a, l) => a + (l.receitaCentavos ?? 0),
+    0,
+  );
+  if (totalLeads === 0 || totalReceita === 0) return null;
+  const pct = (n: number, t: number) => Math.round((n / t) * 100);
+  const maisLeads = [...r.porOrigem].sort((x, y) => y.leads - x.leads)[0]!;
+  const maisReceita = [...r.porOrigem].sort(
+    (x, y) => (y.receitaCentavos ?? 0) - (x.receitaCentavos ?? 0),
+  )[0]!;
+  const frase = (l: typeof maisLeads) =>
+    `${ROTULO_ORIGEM[l.origem]} traz ${pct(l.leads, totalLeads)}% dos leads e ${pct(l.receitaCentavos ?? 0, totalReceita)}% da receita.`;
+  return maisLeads.origem === maisReceita.origem
+    ? frase(maisLeads)
+    : `${frase(maisLeads)} ${frase(maisReceita)}`;
+}
+
+/** Aba "Visão geral": período, origem dos leads e da receita, desempenho por origem e custos. */
 export function RelatorioMarketingTela({
   relatorio,
   periodo,
-  anterior,
 }: {
   relatorio: RelatorioMarketing;
   periodo: FiltroPeriodo;
-  /** Mesmo relatório no período anterior, quando o período tem as duas pontas. */
+  /** Mesmo relatório no período anterior (a tela de mockup não compara períodos). */
   anterior?: RelatorioMarketing | null;
 }) {
   const atalhos = atalhosDePeriodo();
   const t = relatorio.total;
-  const ant = anterior?.total ?? null;
-  const tem = Boolean(periodo.desde && periodo.ate);
-  const custoLead = dividir(t.custoCentavos, t.leads);
-  const custoContrato = dividir(t.custoCentavos, t.contratosPagos);
-  const filtro =
-    periodo.desde || periodo.ate
-      ? `&desde=${periodo.desde ?? ""}&ate=${periodo.ate ?? ""}`
-      : "";
-  const fatias = fatiasDeCanais(relatorio.porCanal);
-  const anteriorPorCanal = anterior
-    ? new Map(anterior.porCanal.map((c) => [c.canalId, c.leads]))
-    : null;
+  const leadsPorOrigem = fatiasPorOrigem(relatorio.porOrigem, (l) => l.leads);
+  const receitaPorOrigem = fatiasPorOrigem(
+    relatorio.porOrigem,
+    (l) => l.receitaCentavos ?? 0,
+  );
+  const argumento = argumentoDoModulo(relatorio);
+  const cplPorCanal = relatorio.porCanal
+    .map((c) => ({ nome: c.nome, cpl: dividir(c.custoCentavos, c.leads) }))
+    .filter((c) => c.cpl !== null);
+  const campo =
+    "rounded-2 border-borda-campo bg-superficie text-[12.5px] min-h-toque border-[1.5px] px-3 font-normal";
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-3.5">
       <form
         method="get"
-        className="rounded-3 border-linha bg-superficie flex flex-wrap items-end gap-3 border p-4"
+        className="flex flex-wrap items-end gap-3"
         aria-label="Período do relatório"
       >
-        <label className="text-apoio text-texto flex flex-col gap-1 font-semibold">
+        <label className="text-tinta-70 flex flex-col gap-1 text-[11.5px] font-semibold">
           De
           <input
             type="date"
             name="desde"
             defaultValue={periodo.desde ?? ""}
-            className="rounded-2 border-borda-campo bg-superficie text-corpo min-h-toque border-[1.5px] px-3 font-normal"
+            className={campo}
           />
         </label>
-        <label className="text-apoio text-texto flex flex-col gap-1 font-semibold">
+        <label className="text-tinta-70 flex flex-col gap-1 text-[11.5px] font-semibold">
           Até
           <input
             type="date"
             name="ate"
             defaultValue={periodo.ate ?? ""}
-            className="rounded-2 border-borda-campo bg-superficie text-corpo min-h-toque border-[1.5px] px-3 font-normal"
+            className={campo}
           />
         </label>
-        <button
-          type="submit"
-          className="rounded-pilula border-acao bg-acao text-acao-texto min-h-toque text-apoio border-[1.5px] px-5 font-semibold"
-        >
+        <button type="submit" className={`${classesChip(true)} min-h-toque`}>
           Ver período
         </button>
-        <span className="bg-areia rounded-pilula flex flex-wrap gap-1 p-1">
+        <span className="flex flex-wrap gap-1.5">
           <Link
-            className={ATALHO}
+            className={`${classesChip()} min-h-toque no-underline`}
             href={`/marketing?desde=${atalhos.esteMes.desde}&ate=${atalhos.esteMes.ate}`}
           >
             Este mês
           </Link>
           <Link
-            className={ATALHO}
+            className={`${classesChip()} min-h-toque no-underline`}
             href={`/marketing?desde=${atalhos.mesPassado.desde}&ate=${atalhos.mesPassado.ate}`}
           >
             Mês passado
           </Link>
-          <Link className={ATALHO} href="/marketing">
+          <Link
+            className={`${classesChip()} min-h-toque no-underline`}
+            href="/marketing"
+          >
             Tudo
           </Link>
         </span>
       </form>
 
       <p
-        className="text-3 text-texto max-w-[64ch]"
+        className="text-tinta-70 max-w-[64ch] text-[13px] leading-[1.6]"
         data-teste="frase-relatorio"
       >
-        <span className="text-texto-2">{textoPeriodo(periodo)}. </span>
+        <span className="text-tinta-50">{textoPeriodo(periodo)}. </span>
         {fraseRelatorio(relatorio)}
       </p>
 
       {relatorio.soElegiveis ? (
-        <p className="text-apoio text-texto-2 max-w-[64ch]">
+        <p className="text-tinta-50 max-w-[64ch] text-[11.5px] leading-[1.6]">
           Este relatório conta só famílias que podem receber contato de
           marketing. A receita e o custo aparecem para a diretoria e o
           financeiro.
         </p>
       ) : null}
 
-      <div className="[&>ul]:mt-0">
-        <GradeIndicadores
-          itens={[
-            {
-              rotulo: "Leads",
-              valor: t.leads,
-              contexto: comparar(t.leads, ant?.leads, tem),
-              href: `/marketing?aba=canais${filtro}`,
-              tom: "areia",
-            },
-            {
-              rotulo: "Qualificados",
-              valor: t.qualificados,
-              contexto:
-                t.leads > 0
-                  ? `${Math.round((t.qualificados / t.leads) * 100)}% dos leads. ${comparar(t.qualificados, ant?.qualificados, tem)}`
-                  : comparar(t.qualificados, ant?.qualificados, tem),
-              href: "#funil",
-              tom: "areia",
-            },
-            {
-              rotulo: "Com contrato",
-              valor: t.ganhos,
-              contexto:
-                t.qualificados > 0
-                  ? `${Math.round((t.ganhos / t.qualificados) * 100)}% dos qualificados. ${comparar(t.ganhos, ant?.ganhos, tem)}`
-                  : comparar(t.ganhos, ant?.ganhos, tem),
-              href: "#funil",
-              tom: "areia",
-            },
-            ...(relatorio.veValores
-              ? [
-                  {
-                    rotulo: "Recebido",
-                    valor: dinheiro(t.receitaCentavos),
-                    contexto: `${plural(t.contratosPagos ?? 0, "contrato pago", "contratos pagos")}. ${comparar(t.receitaCentavos, ant?.receitaCentavos, tem, true)}`,
-                    href: `/marketing?aba=canais${filtro}`,
-                    tom: "salvia" as const,
-                  },
-                ]
-              : []),
-          ]}
-        />
-      </div>
-
-      <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
-        <PainelGrafico
-          titulo="De onde vêm os leads"
-          nota="Leads do período, por canal."
-          leitura={
-            t.leads > 0 && t.leads < POUCOS_LEADS
-              ? "Poucos leads no período: um a mais muda muito os percentuais."
-              : undefined
-          }
-          vazio={
-            fatias.length === 0
-              ? "Nenhum lead por canal neste período. Quando uma família escrever pelo link de um canal, a fatia dele aparece aqui."
-              : undefined
-          }
+      <Grade colunas={2}>
+        <CartaoGrafico titulo="Leads por origem" nota="no período">
+          {leadsPorOrigem.length === 0 ? (
+            <SemDado>
+              Nenhum lead neste período. Quando uma família escrever, a origem
+              aparece aqui.
+            </SemDado>
+          ) : (
+            <RoscaMock
+              rotulo="Leads por origem"
+              centro={String(t.leads)}
+              sub="leads"
+              fatias={leadsPorOrigem}
+            />
+          )}
+        </CartaoGrafico>
+        <CartaoGrafico
+          titulo="Receita por origem"
+          nota="a mesma base, outra ordem"
         >
-          <PizzaCanais fatias={fatias} anteriorPorCanal={anteriorPorCanal} />
-        </PainelGrafico>
+          {!relatorio.veValores ? (
+            <SemDado>
+              A receita aparece para a diretoria e o financeiro.
+            </SemDado>
+          ) : receitaPorOrigem.length === 0 ? (
+            <SemDado>
+              Nenhum pagamento confirmado neste período. Quando um contrato for
+              pago, a origem dele aparece aqui.
+            </SemDado>
+          ) : (
+            <RoscaMock
+              rotulo="Receita por origem"
+              formato="moeda"
+              centro={formatarMoedaCurta(t.receitaCentavos ?? 0).replace(
+                "R$ ",
+                "R$",
+              )}
+              sub="receita"
+              fatias={receitaPorOrigem}
+            />
+          )}
+        </CartaoGrafico>
+      </Grade>
 
-        <div id="funil" className="scroll-mt-24">
-          <PainelGrafico
-            titulo="Do lead ao contrato"
-            nota="Quantas famílias chegam a cada etapa e quantas seguem para a próxima."
-            vazio={
-              t.leads === 0
-                ? "Nenhum lead neste período. Quando entrar o primeiro, o funil mostra quantos qualificam e quantos fecham contrato."
-                : undefined
-            }
-          >
-            <FunilMarketing atual={t} anterior={ant} />
-          </PainelGrafico>
-        </div>
-      </div>
-
-      {relatorio.veValores ? (
-        <div className="[&>ul]:mt-0">
-          <GradeIndicadores
-            itens={[
-              {
-                rotulo: "Custo lançado",
-                valor: dinheiro(t.custoCentavos),
-                contexto: comparar(
-                  t.custoCentavos,
-                  ant?.custoCentavos,
-                  tem,
-                  true,
-                ),
-                href: "/marketing?aba=canais",
-                tom: "areia",
-              },
-              {
-                rotulo: "Custo por lead",
-                valor:
-                  custoLead !== null ? formatarMoeda(custoLead) : "sem número",
-                contexto:
-                  custoLead !== null
-                    ? `Custo lançado dividido por ${plural(t.leads, "lead", "leads")}.`
-                    : "Sem lead ou sem custo lançado para dividir.",
-                href: "/marketing?aba=canais",
-                tom: "areia",
-              },
-              {
-                rotulo: "Custo por contrato",
-                valor:
-                  custoContrato !== null
-                    ? formatarMoeda(custoContrato)
-                    : "sem número",
-                contexto:
-                  custoContrato !== null
-                    ? `Custo lançado dividido por ${plural(t.contratosPagos ?? 0, "contrato pago", "contratos pagos")}.`
-                    : "Sem contrato pago ou sem custo lançado para dividir.",
-                href: "/marketing?aba=canais",
-                tom: "areia",
-              },
-            ]}
-          />
-        </div>
+      {argumento ? (
+        <Nota>
+          <b>Os dois gráficos acima são o argumento inteiro do módulo.</b>{" "}
+          {argumento} Sem atribuição até o contrato, essa diferença fica
+          invisível e a verba continua indo para o canal errado.
+        </Nota>
       ) : null}
+
+      <BlocoTabela
+        titulo="Desempenho por origem"
+        direita="Da entrada do lead até o contrato"
+      >
+        {relatorio.porOrigem.length === 0 ? (
+          <CardBody>
+            <SemDado>
+              Nenhuma origem neste período. Quando entrar um lead, ele aparece
+              aqui na origem que o canal ou a indicação gravou.
+            </SemDado>
+          </CardBody>
+        ) : (
+          <TabelaOrigens relatorio={relatorio} />
+        )}
+      </BlocoTabela>
+
+      <Grade colunas={3}>
+        <CartaoGrafico titulo="Custo por lead por canal" nota="no período">
+          {!relatorio.veValores ? (
+            <SemDado>O custo aparece para a diretoria e o financeiro.</SemDado>
+          ) : cplPorCanal.length === 0 ? (
+            <SemDado>
+              Sem custo lançado e lead no mesmo canal para dividir. O custo se
+              lança na aba Canais e custos.
+            </SemDado>
+          ) : (
+            <BarrasMock
+              altura={160}
+              larguraInicial={340}
+              formato="moeda"
+              rotulo="Custo por lead de cada canal, em reais"
+              rotulos={cplPorCanal.map((c) => c.nome)}
+              series={[
+                {
+                  nome: "Custo por lead",
+                  tom: "aviso",
+                  valores: cplPorCanal.map((c) => c.cpl ?? 0),
+                },
+              ]}
+            />
+          )}
+        </CartaoGrafico>
+        <CartaoGrafico titulo="Investimento × receita" nota="no período">
+          {!relatorio.veValores ? (
+            <SemDado>
+              O investimento e a receita aparecem para a diretoria e o
+              financeiro.
+            </SemDado>
+          ) : (
+            <BarrasMock
+              altura={160}
+              larguraInicial={340}
+              formato="moeda"
+              rotulo="Investimento e receita do período, em reais"
+              rotulos={["Período"]}
+              series={[
+                {
+                  nome: "Investido",
+                  tom: "alerta",
+                  valores: [t.custoCentavos ?? 0],
+                },
+                {
+                  nome: "Receita",
+                  tom: "sucesso",
+                  valores: [t.receitaCentavos ?? 0],
+                },
+              ]}
+            />
+          )}
+        </CartaoGrafico>
+        <CartaoGrafico titulo="Tempo até o contrato" nota="dias, por origem">
+          <SemDado>
+            O sistema ainda não mede os dias entre o lead e o contrato por
+            origem. Quando medir, as barras aparecem aqui.
+          </SemDado>
+        </CartaoGrafico>
+      </Grade>
     </div>
+  );
+}
+
+/** Tabela "Desempenho por origem" do mockup, com os números do período. */
+function TabelaOrigens({ relatorio }: { relatorio: RelatorioMarketing }) {
+  const valores = relatorio.veValores;
+  return (
+    <TabelaLista
+      className={CLASSE_TABELA}
+      rotulo="Leads e receita por origem"
+      colunas={[
+        { chave: "nome", rotulo: "Origem", principal: true },
+        { chave: "leads", rotulo: "Leads", numerica: true },
+        { chave: "qualificados", rotulo: "Qualif.", numerica: true },
+        { chave: "ganhos", rotulo: "Contratos", numerica: true },
+        { chave: "conversao", rotulo: "Conversão", numerica: true },
+        ...(valores
+          ? [
+              { chave: "custo", rotulo: "Investimento", numerica: true },
+              { chave: "cac", rotulo: "CAC", numerica: true },
+              { chave: "receita", rotulo: "Receita", numerica: true },
+            ]
+          : []),
+      ]}
+      linhas={relatorio.porOrigem.map((o) => {
+        const cac = dividir(o.custoCentavos, o.contratosPagos);
+        return {
+          id: o.origem,
+          valores: {
+            nome: (
+              <span className="font-semibold">{ROTULO_ORIGEM[o.origem]}</span>
+            ),
+            leads: String(o.leads),
+            qualificados: String(o.qualificados),
+            ganhos: String(o.ganhos),
+            conversao:
+              o.leads > 0
+                ? formatarPct((o.ganhos / o.leads) * 100)
+                : "sem número",
+            custo: dinheiro(o.custoCentavos),
+            cac: cac === null ? "sem número" : formatarMoeda(cac),
+            receita:
+              o.receitaCentavos === null || o.receitaCentavos === 0
+                ? "sem número"
+                : formatarMoeda(o.receitaCentavos),
+          },
+        };
+      })}
+    />
   );
 }
 
@@ -341,65 +430,39 @@ export function TabelasCanaisMarketing({
         },
       ]
     : [];
-  const areia = "[&_thead_th]:bg-areia-clara";
-
   return (
-    <div className="flex flex-col gap-4">
-      <PainelGrafico
+    <div className="flex flex-col gap-3.5">
+      <BlocoTabela
         titulo="Por canal"
-        nota="Leads, receita e custo de cada canal de captação."
-        vazio={
-          relatorio.porCanal.length === 0
-            ? "Nenhum canal ainda. Crie um canal abaixo, em Links por canal, para começar a medir de onde as famílias chegam."
-            : undefined
-        }
+        direita="Leads, receita e custo de cada canal de captação"
       >
-        <TabelaLista
-          className={areia}
-          rotulo="Leads e receita por canal"
-          colunas={[
-            ...colunasBase.map((c) =>
-              c.chave === "nome" ? { ...c, rotulo: "Canal" } : c,
-            ),
-            ...colunasValores,
-          ]}
-          linhas={relatorio.porCanal.map((c) => ({
-            id: c.canalId,
-            valores: {
-              nome: `${c.nome} (${c.codigo})`,
-              ...celulasValores(c),
-            },
-          }))}
-        />
-      </PainelGrafico>
-
-      <PainelGrafico
-        titulo="Por origem"
-        nota="A origem que o canal ou a indicação gravou no cadastro."
-        vazio={
-          relatorio.porOrigem.length === 0
-            ? "Nenhuma origem neste período. Quando entrar um lead, ele aparece aqui na origem que o canal ou a indicação gravou."
-            : undefined
-        }
-      >
-        <TabelaLista
-          className={areia}
-          rotulo="Leads e receita por origem"
-          colunas={[
-            ...colunasBase.map((c) =>
-              c.chave === "nome" ? { ...c, rotulo: "Origem" } : c,
-            ),
-            ...colunasValores,
-          ]}
-          linhas={relatorio.porOrigem.map((o) => ({
-            id: o.origem,
-            valores: {
-              nome: ROTULO_ORIGEM[o.origem],
-              ...celulasValores(o),
-            },
-          }))}
-        />
-      </PainelGrafico>
+        {relatorio.porCanal.length === 0 ? (
+          <CardBody>
+            <SemDado>
+              Nenhum canal ainda. Crie um canal abaixo, em Links por canal, para
+              começar a medir de onde as famílias chegam.
+            </SemDado>
+          </CardBody>
+        ) : (
+          <TabelaLista
+            className={CLASSE_TABELA}
+            rotulo="Leads e receita por canal"
+            colunas={[
+              ...colunasBase.map((c) =>
+                c.chave === "nome" ? { ...c, rotulo: "Canal" } : c,
+              ),
+              ...colunasValores,
+            ]}
+            linhas={relatorio.porCanal.map((c) => ({
+              id: c.canalId,
+              valores: {
+                nome: `${c.nome} (${c.codigo})`,
+                ...celulasValores(c),
+              },
+            }))}
+          />
+        )}
+      </BlocoTabela>
     </div>
   );
 }

@@ -42,6 +42,8 @@ export interface VisaoFinanceira {
   lancamentos: Lancamentos;
   inadimplencia: Inadimplencia;
   previsao: PrevisaoRecebimentos;
+  /** Pagamento da equipe do mês; nulo quando não deu para ler agora (a tela segue sem o bloco). */
+  equipe: PagamentosEquipe | null;
 }
 
 export function obterTelaVisaoFinanceira(
@@ -50,13 +52,15 @@ export function obterTelaVisaoFinanceira(
 ) {
   return comAcesso<VisaoFinanceira>(usuario, async () => {
     const { gestao } = await obterRepositorios();
-    const [dre, lancamentos, inadimplencia, previsao] = await Promise.all([
-      gestao.dre(mes),
-      gestao.lancamentos(mes),
-      gestao.inadimplencia(),
-      gestao.previsaoRecebimentos(),
-    ]);
-    return { dre, lancamentos, inadimplencia, previsao };
+    const [dre, lancamentos, inadimplencia, previsao, equipe] =
+      await Promise.all([
+        gestao.dre(mes),
+        gestao.lancamentos(mes),
+        gestao.inadimplencia(),
+        gestao.previsaoRecebimentos(),
+        gestao.pagamentosEquipe(mes).catch(() => null),
+      ]);
+    return { dre, lancamentos, inadimplencia, previsao, equipe };
   });
 }
 

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { CalendarDays, ClipboardCheck } from "lucide-react";
 import { BarraProgresso } from "@/components/ui/barra-progresso";
 import { Botao } from "@/components/ui/botao";
-import { Cartao } from "@/components/ui/cartao";
+import { Card } from "@/components/mockup";
 import { Selo } from "@/components/ui/selo";
 import { TileIcone } from "@/components/ui/tile-icone";
 import type { ConsultaPrenatalResumo } from "@/lib/dados/tipos-operacao";
@@ -32,9 +32,8 @@ export function CartaoConsulta({
 
   if (concluida) {
     return (
-      <Cartao
-        variante="salvia"
-        className="flex h-full items-center gap-3 p-4"
+      <Card
+        className="bg-sucesso-lavado flex h-full items-center gap-3 p-4"
         data-consulta={consulta.familiaId}
       >
         <TileIcone tom="salvia" forma="quadrado">
@@ -61,7 +60,7 @@ export function CartaoConsulta({
         >
           <Link href={`/prenatal/${consulta.familiaId}`}>Ver entrevista</Link>
         </Botao>
-      </Cartao>
+      </Card>
     );
   }
 
@@ -72,8 +71,8 @@ export function CartaoConsulta({
       : "Começar entrevista";
 
   return (
-    <Cartao
-      className="flex h-full flex-col gap-4"
+    <Card
+      className="flex h-full flex-col gap-3 p-4"
       data-consulta={consulta.familiaId}
     >
       <div className="flex flex-col gap-2">
@@ -135,6 +134,6 @@ export function CartaoConsulta({
       >
         <Link href={`/prenatal/${consulta.familiaId}`}>{rotuloAcao}</Link>
       </Botao>
-    </Cartao>
+    </Card>
   );
 }

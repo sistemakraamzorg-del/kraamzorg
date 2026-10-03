@@ -10,17 +10,17 @@ import { cn } from "@/lib/utils";
  * "Quente" (DESIGN.md, seção 4: regra de um acento dourado por tela).
  */
 const seloVariantes = cva(
-  "inline-flex min-h-[28px] items-center gap-1.5 rounded-pilula px-3 text-mini leading-none font-semibold whitespace-nowrap",
+  "inline-flex items-center gap-[5px] rounded-pilula px-2 py-[3px] text-[11px] leading-none font-semibold tracking-[0.02em] whitespace-nowrap",
   {
     variants: {
       variante: {
-        neutro: "bg-marinho-08 text-texto",
-        sucesso: "bg-sucesso-lavado text-sucesso",
+        neutro: "bg-cinza-lavado text-tinta-70",
+        sucesso: "bg-sucesso-lavado text-sucesso-texto",
         aviso: "bg-aviso-lavado text-aviso-texto",
-        alerta: "bg-alerta-lavado text-alerta",
-        sensivel: "bg-sensivel-lavado text-sensivel",
+        alerta: "bg-alerta-lavado text-alerta-texto",
+        sensivel: "bg-sensivel-lavado text-sensivel-texto",
         marinho: "bg-marinho text-texto-inverso",
-        destaque: "bg-dourado text-marinho",
+        destaque: "bg-dourado-lavado text-dourado-texto",
         contorno:
           "border-[1.5px] border-dashed border-marinho-50 bg-transparent text-texto-2",
       },
@@ -46,7 +46,7 @@ export function Selo({
   return (
     <span className={cn(seloVariantes({ variante }), className)} {...props}>
       {icone ? (
-        <span className="[&>svg]:size-4" aria-hidden="true">
+        <span className="[&>svg]:size-3.5" aria-hidden="true">
           {icone}
         </span>
       ) : null}

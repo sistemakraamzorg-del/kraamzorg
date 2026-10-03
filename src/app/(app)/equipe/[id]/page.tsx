@@ -2,23 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
-import {
-  ArrowLeft,
-  CalendarDays,
-  CalendarOff,
-  FileCheck,
-  House,
-  IdCard,
-} from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { z } from "zod";
 import { CabecalhoTela } from "@/components/shell/cabecalho-tela";
+import { Card, CardBody, CardHead } from "@/components/mockup";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { Selo } from "@/components/ui/selo";
-import type { Tom } from "@/components/ui/tons";
 import { exigirSessao } from "@/lib/auth/sessao";
 import { formatarData } from "@/lib/formatacao";
-import { cn } from "@/lib/utils";
-import { TituloSecao } from "@/modules/operacao/comum/titulo-secao";
 import { FormularioProfissional } from "@/modules/operacao/equipe/componentes/formulario-profissional";
 import { SecaoBloqueios } from "@/modules/operacao/equipe/componentes/secao-bloqueios";
 import { SecaoDocumentos } from "@/modules/operacao/equipe/componentes/secao-documentos";
@@ -42,41 +33,22 @@ const FEITO: Record<string, string> = {
   salva: "Cadastro salvo.",
 };
 
-/**
- * Um assunto do cadastro (direção "Colo"): título com o tile e o bloco.
- * Leitura no tom do assunto (a semana em lavanda, as famílias em areia);
- * formulário em branco com sombra, o trabalho a fazer.
- */
+/** Um assunto do cadastro: cartão do mockup (`.card`) com o título em Jost. */
 function Secao({
   id,
   titulo,
-  icone,
-  tom,
-  fundo = "branco",
   children,
 }: {
   id: string;
   titulo: string;
-  icone: ReactNode;
-  tom: Tom;
-  fundo?: "branco" | "lavanda" | "areia";
   children: ReactNode;
 }) {
   return (
-    <section aria-labelledby={id} className="flex flex-col gap-3">
-      <TituloSecao id={id} icone={icone} tom={tom} titulo={titulo} />
-      <div
-        className={cn(
-          "rounded-3 flex flex-col gap-4 p-5",
-          fundo === "lavanda"
-            ? "bg-lavanda-clara"
-            : fundo === "areia"
-              ? "bg-areia-clara"
-              : "bg-superficie shadow-1",
-        )}
-      >
-        {children}
-      </div>
+    <section aria-labelledby={id}>
+      <Card>
+        <CardHead titulo={<span id={id}>{titulo}</span>} />
+        <CardBody className="flex flex-col gap-4">{children}</CardBody>
+      </Card>
     </section>
   );
 }
@@ -141,31 +113,25 @@ export default async function PaginaProfissional({
       />
       <Link
         href="/equipe"
-        className="text-apoio text-texto-2 hover:text-texto min-h-toque -ml-1 inline-flex items-center gap-1.5 pt-2 font-medium no-underline"
+        className="text-tinta-70 hover:text-texto min-h-toque -ml-1 inline-flex items-center gap-1.5 pt-2 text-[12.5px] font-medium no-underline"
       >
         <ArrowLeft aria-hidden="true" className="size-4" strokeWidth={1.75} />
         Voltar para a equipe
       </Link>
 
-      <div className="flex flex-col gap-8 pt-4">
+      <div className="flex flex-col gap-3.5 pt-4">
         {feito ? <FaixaAlerta variante="sucesso" titulo={feito} /> : null}
 
-        <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-[minmax(0,62fr)_minmax(0,38fr)]">
+        <div className="grid grid-cols-1 items-start gap-3.5 lg:grid-cols-[minmax(0,62fr)_minmax(0,38fr)]">
           {p.atendeVisitas && linhaEscala ? (
-            <Secao
-              id="semana"
-              titulo="Semana"
-              icone={<CalendarDays />}
-              tom="lavanda"
-              fundo="lavanda"
-            >
+            <Secao id="semana" titulo="Semana">
               <SemanaEquipe
                 dias={linhaEscala.dias}
                 hoje={visao.hoje}
                 nome={p.nome}
               />
               <LegendaSemana />
-              <p className="text-apoio text-texto-2">
+              <p className="text-tinta-50 text-[11.5px]">
                 O estado vem das ofertas, das visitas e dos bloqueios. Ninguém
                 precisa marcar nada à mão.
               </p>
@@ -173,26 +139,20 @@ export default async function PaginaProfissional({
           ) : null}
 
           {p.familias.length > 0 ? (
-            <Secao
-              id="familias"
-              titulo="Famílias em curso"
-              icone={<House />}
-              tom="areia"
-              fundo="areia"
-            >
+            <Secao id="familias" titulo="Famílias em curso">
               <ul className="flex flex-col gap-2">
                 {p.familias.map((f) => (
                   <li
                     key={f.acompanhamentoId}
-                    className="rounded-2 bg-superficie flex flex-wrap items-center justify-between gap-x-3 px-4 py-1"
+                    className="border-fio-3 flex flex-wrap items-center justify-between gap-x-3 border-b py-1 last:border-b-0"
                   >
                     <Link
                       href={`/familias/${f.familiaId}`}
-                      className="text-corpo text-texto min-h-toque inline-flex items-center font-semibold underline underline-offset-4"
+                      className="min-h-toque inline-flex items-center text-[13px] font-semibold underline underline-offset-4"
                     >
                       {f.nomeExibicao}
                     </Link>
-                    <span className="text-apoio text-texto-2 font-mono">
+                    <span className="text-tinta-50 font-mono text-[11.5px]">
                       {f.papel === "backup" ? "backup · " : ""}
                       {f.diaAtual !== null
                         ? `D${f.diaAtual} de ${f.diasContratados}`
@@ -207,12 +167,7 @@ export default async function PaginaProfissional({
           ) : null}
         </div>
 
-        <Secao
-          id="documentos"
-          titulo="Documentos"
-          icone={<FileCheck />}
-          tom="areia"
-        >
+        <Secao id="documentos" titulo="Documentos">
           <SecaoDocumentos
             profissionalId={p.id}
             documentos={p.documentos}
@@ -220,19 +175,14 @@ export default async function PaginaProfissional({
           />
         </Secao>
 
-        <Secao
-          id="bloqueios"
-          titulo="Bloqueios de agenda"
-          icone={<CalendarOff />}
-          tom="lavanda"
-        >
+        <Secao id="bloqueios" titulo="Bloqueios de agenda">
           <SecaoBloqueios
             profissionalId={p.id}
             bloqueios={p.bloqueios}
             hoje={visao.hoje}
           />
         </Secao>
-        <Secao id="cadastro" titulo="Cadastro" icone={<IdCard />} tom="argila">
+        <Secao id="cadastro" titulo="Cadastro">
           <FormularioProfissional profissional={p} regioes={regioes} />
         </Secao>
       </div>

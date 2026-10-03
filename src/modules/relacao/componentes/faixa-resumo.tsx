@@ -1,5 +1,6 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
+import { Kpi } from "@/components/mockup";
 
 /**
  * Peças comuns do Banco de talentos e do Pós-venda, no mesmo acabamento do
@@ -16,14 +17,7 @@ export interface ItemFaixa {
   destaque?: boolean;
 }
 
-/** Acento vivo de cada indicador, na ordem em que aparecem (dourado, azul, verde, lavanda). */
-const ACENTOS = [
-  { topo: "border-t-dourado-vivo", ponto: "bg-dourado-vivo" },
-  { topo: "border-t-azul-vivo", ponto: "bg-azul-vivo" },
-  { topo: "border-t-sucesso-vivo", ponto: "bg-sucesso-vivo" },
-  { topo: "border-t-lavanda-vivo", ponto: "bg-lavanda-vivo" },
-] as const;
-
+/** Indicadores no desenho do mockup (`.grid.g4` de `.kpi`): rótulo, número em Jost leve e comparação. */
 export function FaixaResumo({
   itens,
   rotulo,
@@ -34,35 +28,35 @@ export function FaixaResumo({
   return (
     <ul
       aria-label={rotulo}
-      className="tablet:grid-cols-2 grid grid-cols-1 gap-3 lg:grid-cols-4"
+      className="tablet:grid-cols-2 grid grid-cols-1 gap-3.5 lg:grid-cols-4"
     >
-      {itens.map((i, k) => (
-        <li
-          key={i.rotulo}
-          className={cn(
-            "rounded-3 border-linha bg-superficie shadow-1 flex min-h-[44px] flex-col gap-2 border border-t-[4px] p-4",
-            ACENTOS[k % ACENTOS.length]!.topo,
-          )}
-        >
-          <span className="text-apoio text-texto-2 flex items-center gap-2 font-medium">
-            <span
-              aria-hidden="true"
-              className={cn(
-                "rounded-pilula size-2.5",
-                ACENTOS[k % ACENTOS.length]!.ponto,
-              )}
-            />
-            {i.rotulo}
-          </span>
-          <span className="font-titulo text-numero text-texto font-medium tabular-nums">
-            {i.valor}
-          </span>
-          <span className="border-linha text-apoio text-texto-2 mt-auto border-t pt-2">
-            {i.contexto}
-          </span>
+      {itens.map((i) => (
+        <li key={i.rotulo} className="flex">
+          <Kpi
+            className="flex-1"
+            rotulo={i.rotulo}
+            valor={i.valor}
+            delta={i.contexto}
+          />
         </li>
       ))}
     </ul>
+  );
+}
+
+/** `.chart-h`: título em 13 px 600 com a nota ao lado. */
+export function CabecalhoGrafico({
+  titulo,
+  nota,
+}: {
+  titulo: string;
+  nota?: string;
+}) {
+  return (
+    <div className="mb-3 flex flex-wrap items-baseline gap-x-[9px]">
+      <b className="text-[13px] font-semibold">{titulo}</b>
+      {nota ? <span className="text-tinta-50 text-[11px]">{nota}</span> : null}
+    </div>
   );
 }
 

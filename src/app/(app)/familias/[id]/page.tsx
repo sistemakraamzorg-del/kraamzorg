@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { z } from "zod";
+import { Card, CardBody, CardHead } from "@/components/mockup";
 import { Botao } from "@/components/ui/botao";
 import type { Papel } from "@/lib/auth/papeis";
 import { exigirSessao } from "@/lib/auth/sessao";
@@ -13,10 +14,12 @@ import {
 import { CabecalhoFicha } from "@/modules/crm/ficha/componentes/cabecalho-ficha";
 import { LinhaDoTempo } from "@/modules/crm/ficha/componentes/linha-do-tempo";
 import {
-  datasDoCabecalho,
-  linhaDaFicha,
   MetaFicha,
+  subtituloFicha,
 } from "@/modules/crm/ficha/componentes/meta-ficha";
+import { PainelDatas } from "@/modules/crm/ficha/componentes/painel-datas";
+import { PainelEquipe } from "@/modules/crm/ficha/componentes/painel-equipe";
+import { PainelEstadoSensivel } from "@/modules/crm/ficha/componentes/painel-estado-sensivel";
 import { PainelComercial } from "@/modules/crm/ficha/componentes/painel-comercial";
 import { PainelConversas } from "@/modules/crm/ficha/componentes/painel-conversas";
 import { PainelPessoas } from "@/modules/crm/ficha/componentes/painel-pessoas";
@@ -124,13 +127,15 @@ export default async function PaginaFicha({
         {backRotulo}
       </Link>
 
-      <div className="flex flex-col gap-6 pt-2">
+      <div className="flex flex-col gap-[14px] pt-2">
         <CabecalhoFicha
           familiaId={ficha.familiaId}
           nome={ficha.nome}
           meta={<MetaFicha ficha={ficha} />}
-          linha={linhaDaFicha(ficha)}
-          datas={datasDoCabecalho(ficha)}
+          subtitulo={subtituloFicha(ficha)}
+          abas={
+            <AbasFicha familiaId={ficha.familiaId} abas={abas} ativa={aba} />
+          }
           estadoSensivelInicial={ficha.estadoSensivel}
           estadoSensivelEmInicial={ficha.estadoSensivelEm}
           podeReverter={podeReverterFreio}
@@ -139,10 +144,9 @@ export default async function PaginaFicha({
           justificativaVenceEm={justificativa.venceEm}
         />
 
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-x-8">
+        <div className="grid grid-cols-1 items-start gap-[14px] lg:grid-cols-[minmax(0,1fr)_330px]">
           <div className="min-w-0">
-            <AbasFicha familiaId={ficha.familiaId} abas={abas} ativa={aba} />
-            <div className="pt-6">
+            <div>
               {aba === "tempo" ? (
                 <LinhaDoTempo
                   eventos={eventos}
@@ -154,75 +158,99 @@ export default async function PaginaFicha({
                 />
               ) : null}
               {aba === "comercial" && vePainelComercial ? (
-                <PainelComercial
-                  familiaId={ficha.familiaId}
-                  oportunidade={ficha.oportunidade}
-                  pessoas={ficha.pessoas}
-                  dadosContrato={contrato.dados}
-                  dadosContratoIndisponiveis={contrato.indisponivel}
-                  veDadosContrato={veDadosContrato}
-                  naoContatar={ficha.naoContatar}
-                  dataNascimento={ficha.datas[1]?.valor ?? null}
-                  dataAlta={ficha.datas[2]?.valor ?? null}
-                  podeEditar={podeEditarComercial}
-                  hoje={hojeBrasilia()}
-                  semTom={semTom}
-                  acoesVenda={
-                    podeEditarComercial &&
-                    (ficha.estadoSensivel === "normal" ||
-                      ficha.estadoSensivel === "atencao") ? (
-                      <>
-                        {ficha.oportunidade?.pipeline === 1 &&
-                        ["em_conversa_ia", "qualificado", "nutricao"].includes(
-                          ficha.oportunidade.estagioP1 ?? "",
-                        ) &&
-                        !ficha.naoContatar ? (
-                          <Botao
-                            asChild
-                            variante="secundario"
-                            tamanho="compacto"
-                          >
-                            <Link
-                              href={`/sessoes-venda/nova?familia=${ficha.familiaId}`}
+                <Card>
+                  <CardHead titulo="Comercial" />
+                  <CardBody>
+                    <PainelComercial
+                      familiaId={ficha.familiaId}
+                      oportunidade={ficha.oportunidade}
+                      pessoas={ficha.pessoas}
+                      dadosContrato={contrato.dados}
+                      dadosContratoIndisponiveis={contrato.indisponivel}
+                      veDadosContrato={veDadosContrato}
+                      naoContatar={ficha.naoContatar}
+                      dataNascimento={ficha.datas[1]?.valor ?? null}
+                      dataAlta={ficha.datas[2]?.valor ?? null}
+                      podeEditar={podeEditarComercial}
+                      hoje={hojeBrasilia()}
+                      semTom={semTom}
+                      acoesVenda={
+                        podeEditarComercial &&
+                        (ficha.estadoSensivel === "normal" ||
+                          ficha.estadoSensivel === "atencao") ? (
+                          <>
+                            {ficha.oportunidade?.pipeline === 1 &&
+                            [
+                              "em_conversa_ia",
+                              "qualificado",
+                              "nutricao",
+                            ].includes(ficha.oportunidade.estagioP1 ?? "") &&
+                            !ficha.naoContatar ? (
+                              <Botao
+                                asChild
+                                variante="secundario"
+                                tamanho="compacto"
+                              >
+                                <Link
+                                  href={`/sessoes-venda/nova?familia=${ficha.familiaId}`}
+                                >
+                                  Marcar conversa de orientação
+                                </Link>
+                              </Botao>
+                            ) : null}
+                            <Botao
+                              asChild
+                              variante="secundario"
+                              tamanho="compacto"
                             >
-                              Marcar conversa de orientação
-                            </Link>
-                          </Botao>
-                        ) : null}
-                        <Botao asChild variante="secundario" tamanho="compacto">
-                          <Link href={`/familias/${ficha.familiaId}/proposta`}>
-                            Abrir a proposta
-                          </Link>
-                        </Botao>
-                        {ficha.oportunidade?.estagioP2 &&
-                        !["proposta_enviada", "em_negociacao"].includes(
-                          ficha.oportunidade.estagioP2,
-                        ) ? (
-                          <Botao
-                            asChild
-                            variante="secundario"
-                            tamanho="compacto"
-                          >
-                            <Link
-                              href={`/familias/${ficha.familiaId}/contrato`}
-                            >
-                              Abrir o contrato
-                            </Link>
-                          </Botao>
-                        ) : null}
-                      </>
-                    ) : null
-                  }
-                />
+                              <Link
+                                href={`/familias/${ficha.familiaId}/proposta`}
+                              >
+                                Abrir a proposta
+                              </Link>
+                            </Botao>
+                            {ficha.oportunidade?.estagioP2 &&
+                            !["proposta_enviada", "em_negociacao"].includes(
+                              ficha.oportunidade.estagioP2,
+                            ) ? (
+                              <Botao
+                                asChild
+                                variante="secundario"
+                                tamanho="compacto"
+                              >
+                                <Link
+                                  href={`/familias/${ficha.familiaId}/contrato`}
+                                >
+                                  Abrir o contrato
+                                </Link>
+                              </Botao>
+                            ) : null}
+                          </>
+                        ) : null
+                      }
+                    />
+                  </CardBody>
+                </Card>
               ) : null}
               {aba === "conversas" && veConversas ? (
-                <PainelConversas conversa={conversa} semTom={semTom} />
+                <Card>
+                  <CardHead titulo="Conversas" />
+                  <CardBody>
+                    <PainelConversas conversa={conversa} semTom={semTom} />
+                  </CardBody>
+                </Card>
               ) : null}
             </div>
           </div>
 
-          <aside className="flex flex-col gap-4" aria-label="Pessoas">
+          <aside
+            className="flex flex-col gap-[14px]"
+            aria-label="Datas, pessoas e estado sensível"
+          >
+            <PainelDatas ficha={ficha} />
+            <PainelEquipe />
             <PainelPessoas pessoas={ficha.pessoas} semTom={semTom} />
+            <PainelEstadoSensivel estado={ficha.estadoSensivel} />
           </aside>
         </div>
       </div>

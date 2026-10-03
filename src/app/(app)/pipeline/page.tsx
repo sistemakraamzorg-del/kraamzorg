@@ -8,7 +8,7 @@ import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { exigirSessao } from "@/lib/auth/sessao";
 import { obterRepositorios } from "@/lib/dados/fabrica";
 import type { ClassificacaoLead, NumeroPipeline } from "@/lib/dados/tipos";
-import { Cartao } from "@/components/ui/cartao";
+import { Nota } from "@/components/mockup";
 import { GraficosPipeline } from "@/modules/crm/pipeline/componentes/graficos-pipeline";
 import { FiltrosPipeline } from "@/modules/crm/pipeline/componentes/filtros-pipeline";
 import { FormularioLead } from "@/modules/crm/pipeline/componentes/formulario-lead";
@@ -150,32 +150,32 @@ export default async function PaginaPipeline({
         rotulo="Pipelines"
         ativa={String(aba)}
         larga="celular"
-        className="mt-2"
+        className="mt-1"
         abas={[
           {
             valor: "1",
-            rotulo: "Entrada e qualificação",
+            rotulo: "1 · Entrada e qualificação",
             href: "/pipeline?pipeline=1",
           },
           {
             valor: "2",
-            rotulo: "Venda e pré-atendimento",
+            rotulo: "2 · Venda e pré-atendimento",
             href: "/pipeline?pipeline=2",
           },
           {
             valor: "3",
-            rotulo: "Atendimento",
+            rotulo: "3 · Atendimento",
             href: "/pipeline?pipeline=3",
           },
           {
             valor: "4",
-            rotulo: "Pós-venda",
+            rotulo: "4 · Pós-venda",
             href: "/pipeline?pipeline=4",
           },
         ]}
       />
 
-      <div className="pt-4">
+      <div className="pt-2">
         {aba <= 2 ? (
           <FiltrosPipeline
             pipeline={pipeline}
@@ -239,17 +239,12 @@ export default async function PaginaPipeline({
             <GraficosPipeline cartoes={cartoes} pipeline={pipeline} />
             {pipeline === 1 ? (
               <>
-                <Cartao variante="dourado" className="shadow-halo mt-4">
-                  <p className="text-apoio">
-                    <b className="font-semibold">
-                      Nutrição não é arquivo morto.
-                    </b>{" "}
-                    É o maior pipeline do sistema por volume e o principal motor
-                    comercial. A régua acompanha a semana gestacional, não os
-                    dias desde o cadastro, e se recalcula sozinha quando a DPP
-                    muda.
-                  </p>
-                </Cartao>
+                <Nota className="mt-4">
+                  <b className="font-semibold">Nutrição não é arquivo morto.</b>{" "}
+                  É o maior pipeline do sistema por volume e o principal motor
+                  comercial. A régua acompanha a semana gestacional, não os dias
+                  desde o cadastro, e se recalcula sozinha quando a DPP muda.
+                </Nota>
               </>
             ) : null}
           </>

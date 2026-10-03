@@ -54,7 +54,7 @@ export default async function PaginaFinanceiro({
             : "O que entrou, o que saiu e o que ainda vai entrar."
         }
       />
-      <div className="flex flex-col gap-6 pt-6">
+      <div className="flex flex-col gap-3.5 pt-6">
         <div className="flex flex-wrap items-center gap-3">
           <NavegacaoFinanceiro atual="/financeiro" mes={mes} />
           <SeletorMes mes={mes} hoje={hoje} caminho="/financeiro" />

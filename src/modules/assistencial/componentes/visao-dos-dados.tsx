@@ -67,7 +67,7 @@ export function VisaoDosDados({
               className={
                 semTom
                   ? "rounded-3 border-linha flex flex-col gap-3 border p-4"
-                  : "rounded-3 bg-areia-clara flex flex-col gap-3 p-4"
+                  : "rounded-3 border-linha bg-creme-2 flex flex-col gap-3 border p-4"
               }
             >
               <h3 className="text-3 text-texto flex flex-wrap items-center gap-x-2 gap-y-1 font-semibold">

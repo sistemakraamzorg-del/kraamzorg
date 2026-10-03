@@ -22,7 +22,7 @@ export function AbasConfiguracoes({
   return (
     <nav
       aria-label="Seções de configurações"
-      className="rounded-pilula bg-areia flex w-fit max-w-full [scrollbar-width:none] gap-1 overflow-x-auto p-1"
+      className="flex max-w-full [scrollbar-width:none] flex-wrap gap-1.5"
     >
       {abas.map((aba) => {
         const ehAtiva = aba.chave === ativa;
@@ -32,10 +32,10 @@ export function AbasConfiguracoes({
             href={`/configuracoes?aba=${aba.chave}`}
             aria-current={ehAtiva ? "page" : undefined}
             className={cn(
-              "text-apoio min-h-toque rounded-pilula ease-estado flex shrink-0 items-center px-4 font-semibold whitespace-nowrap no-underline transition-[background-color,box-shadow,color] duration-140",
+              "min-h-toque inline-flex shrink-0 items-center rounded-[7px] border px-3 text-[12.5px] whitespace-nowrap no-underline lg:min-h-8",
               ehAtiva
-                ? "bg-superficie text-texto shadow-1"
-                : "text-texto-2 hover:bg-areia-clara hover:text-texto",
+                ? "border-marinho bg-marinho text-texto-inverso font-medium"
+                : "border-fio-2 bg-superficie text-tinta-70 hover:bg-creme-3",
             )}
           >
             {aba.rotulo}

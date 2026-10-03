@@ -80,13 +80,13 @@ Agente e n8n
 
 **[v4.2]** Direção visual e de experiência em `docs/design/DESIGN.md` (tokens, iconografia, componentes, microcopy) e `docs/design/fluxos.md` (fluxos A a E, tela a tela). Protótipo de referência em `docs/prototipo/`. O PRD trava paleta, fontes e regras de acessibilidade; o DESIGN.md e o fluxos.md dizem a direção, a hierarquia e o padrão de componente. Sessão de tela que tenha um grupo correspondente no protótipo lê os dois antes de codar (PROMPTS.md lista qual grupo em cada sessão).
 
-Tokens só em `src/app/globals.css` (`@theme` do Tailwind v4). Nenhuma tela inventa cor, fonte, raio ou sombra.
+Tokens só em `src/app/globals.css` (`@theme` do Tailwind v4). Nenhuma tela inventa cor, fonte, raio ou sombra. **[v4.7]** O visual segue o HTML de referência da cliente (`Mockup Inicial HTML`), com a paleta da marca misturada a ele (70% guia, 30% HTML); as primitivas do HTML estão em `src/components/mockup/index.tsx`. Detalhes no PRD 20.2.
 
 | Token | Valor | Uso |
 | :-- | :-- | :-- |
-| `marinho` | #0F1F36 | Texto principal, ação primária, barra lateral |
-| `dourado` | #BC9C5D | Destaque, ícones, bordas ativas. Texto sobre dourado sempre marinho |
-| `areia` | #E8DAC5 | Superfícies secundárias |
+| `marinho` | #0F1F34 | Texto principal, ação primária, barra lateral **[v4.7]** |
+| `dourado` | #B89757 | Destaque, ícones, bordas ativas. Texto sobre dourado sempre marinho **[v4.7]** |
+| `areia` | #E7DAC4 | Superfícies secundárias **[v4.7]** |
 | `creme` | #FCF8ED | Fundo das telas |
 | `branco` | #FFFFFF | Cartões |
 | `sucesso` | #4B7358 | Concluído, sincronizado |

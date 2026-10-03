@@ -3,7 +3,7 @@ import Link from "next/link";
 import { LockKeyhole } from "lucide-react";
 import { CabecalhoTela } from "@/components/shell/cabecalho-tela";
 import { Botao } from "@/components/ui/botao";
-import { PainelGrafico } from "@/modules/inicio/painel-gestao";
+import { BlocoForm } from "@/modules/financeiro/mockup-ui";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { exigirSessao } from "@/lib/auth/sessao";
 import { hojeBrasilia } from "@/modules/crm/pipeline/idade-gestacional";
@@ -57,7 +57,7 @@ export default async function PaginaMarketing({
         titulo="Marketing"
         subtitulo="De onde as famílias chegam, quanto cada canal custou e o que virou contrato."
       />
-      <div className="flex flex-col gap-6 pt-6">
+      <div className="flex flex-col gap-3.5 pt-6">
         {!tela ? (
           <FaixaAlerta variante="erro" titulo="O marketing não abriu agora">
             Confira a conexão e recarregue a página. Nada foi alterado.
@@ -128,7 +128,7 @@ export default async function PaginaMarketing({
                 ) : null}
 
                 {tela.canais ? (
-                  <PainelGrafico
+                  <BlocoForm
                     titulo="Links por canal"
                     nota="Cada canal tem um código que vai no texto da primeira mensagem. Quando a família escreve, a origem já entra certa no cadastro."
                   >
@@ -136,11 +136,11 @@ export default async function PaginaMarketing({
                       canais={tela.canais}
                       enderecoBase={tela.enderecoBase}
                     />
-                  </PainelGrafico>
+                  </BlocoForm>
                 ) : null}
 
                 {tela.podeLancarCusto && tela.relatorio ? (
-                  <PainelGrafico
+                  <BlocoForm
                     titulo="Custo por canal"
                     nota="O custo do mês entra no custo por lead e por contrato do relatório."
                   >
@@ -151,11 +151,11 @@ export default async function PaginaMarketing({
                       }))}
                       mesAtual={hojeBrasilia().slice(0, 7)}
                     />
-                  </PainelGrafico>
+                  </BlocoForm>
                 ) : null}
 
                 {tela.podeExportar ? (
-                  <PainelGrafico
+                  <BlocoForm
                     titulo="Exportar famílias"
                     nota="O arquivo traz só famílias que podem receber contato de marketing: sem estado sensível e sem quem pediu para não ser contatada. Nunca leva endereço nem histórico de saúde."
                   >
@@ -171,7 +171,7 @@ export default async function PaginaMarketing({
                         Baixar arquivo CSV
                       </a>
                     </Botao>
-                  </PainelGrafico>
+                  </BlocoForm>
                 ) : null}
               </>
             )}

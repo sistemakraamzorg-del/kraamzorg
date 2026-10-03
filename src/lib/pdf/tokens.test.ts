@@ -16,9 +16,9 @@ function colorMix(hexA: string, hexB: string, pctA: number): string {
 describe("tokens do PDF batem com os nove primitivos de globals.css", () => {
   it("os primitivos são os do CLAUDE.md/PRD 20.2", () => {
     expect(CORES).toEqual({
-      marinho: "#0f1f36",
-      dourado: "#bc9c5d",
-      areia: "#e8dac5",
+      marinho: "#0f1f34",
+      dourado: "#b89757",
+      areia: "#e7dac4",
       creme: "#fcf8ed",
       branco: "#ffffff",
       sucesso: "#4b7358",

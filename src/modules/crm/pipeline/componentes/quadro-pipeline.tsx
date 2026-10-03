@@ -15,25 +15,9 @@ import { DetalheOportunidade } from "./detalhe-oportunidade";
 import { FolhaPerda } from "./folha-perda";
 import { FolhaSaidaIntercorrencia } from "./folha-saida-intercorrencia";
 import { decidirSoltar } from "./soltar";
+import { CLASSE_COLUNA, CLASSE_QUADRO, CabecalhoColuna } from "./visual-quadro";
 
 type Estagio = (typeof ORDEM_P1)[number] | (typeof ORDEM_P2)[number];
-
-/** Ponto de cor de cada estágio (só tokens do tema). */
-const TOM_ESTAGIO: Record<string, string> = {
-  novo: "bg-marinho-50",
-  em_conversa_ia: "bg-dourado",
-  qualificado: "bg-aviso",
-  sessao_venda_agendada: "bg-marinho",
-  sessao_venda_realizada: "bg-sucesso",
-  nutricao: "bg-areia",
-  nao_qualificado: "bg-marinho-50",
-  fora_de_cobertura: "bg-marinho-50",
-  perdido: "bg-sensivel",
-  proposta_enviada: "bg-dourado",
-  em_negociacao: "bg-aviso",
-  ganho: "bg-sucesso",
-  aguardando_nascimento: "bg-areia",
-};
 
 /**
  * Quadro kanban do pipeline: colunas por estágio, cartões arrastáveis
@@ -159,7 +143,7 @@ export function QuadroPipeline({
         </div>
       ) : null}
       <div
-        className="-mx-4 flex snap-x snap-mandatory items-start gap-3 overflow-x-auto px-4 pt-1 pb-1 lg:mx-0 lg:px-0"
+        className={CLASSE_QUADRO}
         role="region"
         aria-label={`Estágios do pipeline ${pipeline === 1 ? "de entrada" : "de venda"}. Arraste um cartão para outra coluna ou use o botão Mover para.`}
         tabIndex={0}
@@ -196,43 +180,25 @@ export function QuadroPipeline({
                 e.preventDefault();
                 aoSoltar(grupo.estagio);
               }}
-              className={`rounded-3 border-linha bg-areia-clara shadow-1 flex max-h-[65dvh] w-[17.5rem] flex-none snap-start flex-col gap-2 border p-2 motion-safe:transition-[box-shadow,opacity] motion-safe:duration-140 lg:w-[19rem] ${
+              className={`${CLASSE_COLUNA} motion-safe:transition-[box-shadow,opacity] motion-safe:duration-140 ${
                 destacado ? "border-dourado bg-dourado-claro" : ""
               } ${arrastando && !permitido && arrastando.origem !== grupo.estagio ? "opacity-60" : ""}`}
             >
-              <div className="flex min-h-9 flex-none items-center gap-2 pl-1">
-                <span
-                  aria-hidden="true"
-                  className={`size-2.5 flex-none rounded-full ${TOM_ESTAGIO[grupo.estagio] ?? "bg-areia"}`}
-                />
-                <h2
-                  id={`titulo-${grupo.estagio}`}
-                  className="font-titulo text-3 min-w-0 flex-1 truncate font-medium"
-                >
-                  {grupo.rotulo}
-                </h2>
-                <span
-                  tabIndex={0}
-                  aria-label={dica}
-                  className="group/dica rounded-pilula bg-superficie text-apoio border-linha hover:border-dourado focus-visible:border-dourado relative inline-flex min-h-8 min-w-8 cursor-default items-center justify-center border px-2 font-mono font-medium"
-                >
-                  {grupo.cartoes.length}
-                  <span
-                    role="tooltip"
-                    className="bg-marinho text-texto-inverso text-mini shadow-2 rounded-2 pointer-events-none invisible absolute top-full right-0 z-20 mt-1 w-56 px-3 py-2 text-left font-sans font-normal opacity-0 group-hover/dica:visible group-hover/dica:opacity-100 group-focus-visible/dica:visible group-focus-visible/dica:opacity-100 motion-safe:transition-opacity"
-                  >
-                    {dica}
-                  </span>
-                </span>
-              </div>
+              <CabecalhoColuna
+                id={`titulo-${grupo.estagio}`}
+                estagio={grupo.estagio}
+                rotulo={grupo.rotulo}
+                contagem={n}
+                dica={dica}
+              />
               {grupo.cartoes.length === 0 ? (
-                <p className="text-apoio text-texto-2 px-2 pb-2">
+                <p className="text-tinta-50 px-1 pb-2 text-[11.5px]">
                   {destacado
                     ? "Solte aqui para mover."
                     : "Nenhuma família neste estágio agora."}
                 </p>
               ) : null}
-              <div className="flex min-h-0 flex-col gap-2 overflow-y-auto overscroll-contain pr-0.5">
+              <div className="flex min-h-0 flex-col gap-2 overflow-y-auto overscroll-contain lg:max-h-[calc(100dvh-22rem)]">
                 {grupo.cartoes.map((cartao) => (
                   <div
                     key={cartao.oportunidadeId}

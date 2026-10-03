@@ -7,10 +7,12 @@ import {
   PainelLateral,
   PainelLateralConteudo,
 } from "@/components/ui/painel-lateral";
+import { LinhaGestacao } from "@/components/ui/linha-gestacao";
 import { Selo } from "@/components/ui/selo";
 import { formatarData, localidade } from "@/lib/formatacao";
 import type { NumeroPipeline } from "@/lib/dados/tipos";
 import { ROTULO_ORIGEM_LEAD, rotuloEstagio } from "../estagios";
+import { calcularIdadeGestacional, hojeBrasilia } from "../idade-gestacional";
 import type { CartaoPipelineTela } from "../tipos";
 
 export const ROTULO_CLASSIFICACAO = {
@@ -60,6 +62,12 @@ export function DetalheOportunidade({
     cartao?.estadoSensivel === "bloqueio_total" ||
     cartao?.estadoSensivel === "encerrado_sensivel";
   const emFreio = !!cartao && cartao.estadoSensivel !== "normal";
+  // Linha da gestação (saiu do cartão compacto); some em estado sensível e
+  // depois do nascimento.
+  const ig =
+    cartao && !sensivel && cartao.dpp && !cartao.dataNascimento
+      ? calcularIdadeGestacional(cartao.dpp, hojeBrasilia())
+      : null;
 
   return (
     <PainelLateral
@@ -88,6 +96,16 @@ export function DetalheOportunidade({
             {!sensivel && cartao.idadeGestacional ? (
               <Linha rotulo="Idade gestacional">
                 <span className="font-mono">{cartao.idadeGestacional}</span>
+              </Linha>
+            ) : null}
+            {cartao && ig && ig.semanas <= 42 && cartao.dpp ? (
+              <Linha rotulo="Linha da gestação">
+                <LinhaGestacao
+                  semanas={ig.semanas}
+                  dias={ig.dias}
+                  dpp={formatarData(cartao.dpp) ?? ""}
+                  semLegenda
+                />
               </Linha>
             ) : null}
             {cartao.dpp ? (

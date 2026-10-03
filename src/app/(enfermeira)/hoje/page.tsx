@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
-import { CalendarDays, ClipboardPen, MapPin } from "lucide-react";
-import { CabecalhoSaudacao } from "@/components/shell/cabecalho-saudacao";
+import Link from "next/link";
+import { ClipboardPen } from "lucide-react";
+import { CabecalhoTela } from "@/components/shell/cabecalho-tela";
 import { saudacao } from "@/components/shell/saudacao";
-import { CartaoResumo } from "@/components/ui/cartao-resumo";
+import { Kpi } from "@/components/mockup";
 import { ItemBloco, ListaBlocos } from "@/components/ui/lista-blocos";
 import { somarDias } from "@/lib/agenda/datas";
 import { exigirSessao } from "@/lib/auth/sessao";
@@ -15,6 +16,8 @@ import {
   tituloDeHoje,
   visitasDoDiaSeguinte,
 } from "@/modules/operacao/portal/textos";
+
+const LINK_KPI = "rounded-3 block min-h-toque";
 
 export const metadata: Metadata = { title: "Hoje · Kraamzorg OS" };
 
@@ -38,43 +41,36 @@ export default async function PaginaHoje() {
 
   return (
     <>
-      <CabecalhoSaudacao
-        saudacao={saudacao(hoje.profissionalNome || sessao.nome)}
+      <CabecalhoTela
+        abertura
+        sobretitulo={saudacao(hoje.profissionalNome || sessao.nome)}
         titulo={tituloDeHoje(hoje.dia)}
-        frase={fraseDoDia(hoje.visitas)}
+        subtitulo={fraseDoDia(hoje.visitas)}
         lateral={<IndicadorPortal />}
-      >
-        <div className="tablet:grid-cols-3 grid grid-cols-2 gap-2">
-          <CartaoResumo
-            destaque
-            className="tablet:col-span-1 col-span-2"
-            fundo="marinho"
-            tom="dourado"
-            icone={<MapPin />}
-            valor={hoje.visitas.length}
-            rotulo={resumo.visitas.rotulo}
-            contexto={resumo.visitas.contexto}
-            href="#visitas-de-hoje"
-          />
-          <CartaoResumo
-            fundo="medio"
-            tom="argila"
-            icone={<ClipboardPen />}
-            valor={hoje.fichasPendentes.length}
+      />
+      <div className="pt-4">
+        <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-3">
+          <Link href="#visitas-de-hoje" className={LINK_KPI}>
+            <Kpi
+              rotulo={resumo.visitas.rotulo}
+              valor={hoje.visitas.length}
+              delta={resumo.visitas.contexto}
+            />
+          </Link>
+          <Kpi
             rotulo={resumo.fichas.rotulo}
-            contexto={resumo.fichas.contexto}
+            valor={hoje.fichasPendentes.length}
+            delta={resumo.fichas.contexto}
           />
-          <CartaoResumo
-            fundo="medio"
-            tom="lavanda"
-            icone={<CalendarDays />}
-            valor={amanha.length}
-            rotulo={resumo.amanha.rotulo}
-            contexto={resumo.amanha.contexto}
-            href="/perfil"
-          />
+          <Link href="/perfil" className={LINK_KPI}>
+            <Kpi
+              rotulo={resumo.amanha.rotulo}
+              valor={amanha.length}
+              delta={resumo.amanha.contexto}
+            />
+          </Link>
         </div>
-      </CabecalhoSaudacao>
+      </div>
       <HojeCliente inicial={hoje} familias={familias} hoje={hoje.dia} />
       <ListaBlocos className="pt-6">
         <ItemBloco

@@ -202,10 +202,10 @@ function ItemDoAlerta({
   return (
     <article
       aria-label={`${alerta.regraId}, ${alerta.nomeFamilia}`}
-      className="rounded-3 bg-superficie shadow-1 flex flex-col gap-4 p-4 lg:p-5"
+      className="rounded-3 border-linha bg-superficie shadow-1 flex flex-col gap-4 border p-4"
     >
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-        <h2 className="font-titulo text-2 text-texto font-medium">
+        <h2 className="font-titulo text-texto text-[15.5px] font-normal tracking-[0.01em]">
           {alerta.nomeFamilia}
         </h2>
         {alerta.diaNumero ? (
@@ -313,9 +313,9 @@ function RegistroDoAcionamento({ alerta }: { alerta: AlertaClinicoResumo }) {
   return (
     <section
       aria-label={textosAlertas.registro.titulo}
-      className="rounded-2 bg-fundo p-4"
+      className="rounded-2 border-linha bg-creme-2 border p-4"
     >
-      <h3 className="text-apoio text-texto-2 mb-2 font-semibold">
+      <h3 className="text-tinta-50 mb-2 text-[10px] font-semibold tracking-[0.16em] uppercase">
         {textosAlertas.registro.titulo}
       </h3>
       <dl className="grid gap-x-4 gap-y-2 sm:grid-cols-2">

@@ -31,40 +31,46 @@ export function GraficosSomenteLeitura({
   ].filter((f) => f.valor > 0);
   const respondidas = fatias.reduce((a, f) => a + f.valor, 0);
   const vazio = (
-    <p className="text-apoio text-texto-2 py-6">Ainda sem dados suficientes.</p>
+    <p className="text-apoio text-texto-2 py-4">Ainda sem dados suficientes.</p>
   );
 
   return (
-    <div className="grid gap-3 pt-2 lg:grid-cols-2 xl:grid-cols-3">
-      <Cartao variante="areia-clara">
-        <h2 className="font-titulo text-3 font-medium">Famílias por estágio</h2>
-        <p className="text-apoio text-texto-2 mb-2">
+    <div className="grid gap-2 pt-2 md:grid-cols-2">
+      <Cartao variante="areia-clara" className="p-3">
+        <h2 className="font-titulo text-3 lg:text-apoio font-medium lg:font-semibold">
+          Famílias por estágio
+        </h2>
+        <p className="text-apoio lg:text-mini text-texto-2 mb-2 lg:mb-1">
           Onde cada família está agora.
         </p>
         {funil.length > 0 ? (
-          <BarrasHorizontais
-            rotulo="Famílias por estágio"
-            larguraRotulo="9rem"
-            itens={funil}
-          />
+          <div className="lg:max-h-[8.5rem] lg:overflow-y-auto">
+            <BarrasHorizontais
+              rotulo="Famílias por estágio"
+              larguraRotulo="7rem"
+              itens={funil}
+            />
+          </div>
         ) : (
           vazio
         )}
       </Cartao>
       {comClassificacao ? (
-        <Cartao variante="dourado">
-          <h2 className="font-titulo text-3 font-medium">
+        <Cartao variante="dourado" className="p-3">
+          <h2 className="font-titulo text-3 lg:text-apoio font-medium lg:font-semibold">
             Como as famílias avaliaram
           </h2>
-          <p className="text-apoio text-texto-2 mb-2">
+          <p className="text-apoio lg:text-mini text-texto-2 mb-2 lg:mb-1">
             Classificação das pesquisas já respondidas.
           </p>
           {respondidas > 0 ? (
-            <Rosca
-              rotulo="Famílias por classificação da pesquisa"
-              fatias={fatias}
-              centro={{ valor: String(respondidas), legenda: "respostas" }}
-            />
+            <div className="lg:max-h-[8.5rem] lg:overflow-y-auto lg:[&_svg]:size-24">
+              <Rosca
+                rotulo="Famílias por classificação da pesquisa"
+                fatias={fatias}
+                centro={{ valor: String(respondidas), legenda: "respostas" }}
+              />
+            </div>
           ) : (
             vazio
           )}

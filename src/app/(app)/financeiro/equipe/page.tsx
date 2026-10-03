@@ -53,7 +53,7 @@ export default async function PaginaEquipe({
             : "O que cada profissional recebe pelas visitas, liberado depois do envio das evoluções."
         }
       />
-      <div className="flex flex-col gap-6 pt-6">
+      <div className="flex flex-col gap-3.5 pt-6">
         <div className="flex flex-wrap items-center gap-3">
           <NavegacaoFinanceiro atual="/financeiro/equipe" mes={mes} />
           <SeletorMes mes={mes} hoje={hoje} caminho="/financeiro/equipe" />

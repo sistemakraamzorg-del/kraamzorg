@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { UserPlus } from "lucide-react";
+import { Card, CardHead } from "@/components/mockup";
 import { CabecalhoTela } from "@/components/shell/cabecalho-tela";
 import { Botao } from "@/components/ui/botao";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
@@ -49,12 +50,12 @@ export default async function PaginaSessoes() {
           </Botao>
         }
       />
-      <p className="text-apoio text-texto-2 max-w-leitura mt-3">
+      <p className="text-tinta-50 mt-3 max-w-[70ch] text-[12.5px]">
         Quem tem acesso ao sistema, com os papéis e o último acesso. Encerrar as
         sessões tira a pessoa de todos os aparelhos na hora.
       </p>
 
-      <div className="pt-6">
+      <div className="pt-3.5">
         {falhou ? (
           <FaixaAlerta
             variante="erro"
@@ -77,7 +78,12 @@ export default async function PaginaSessoes() {
         ) : (
           // Tela densa: a tabela mora num bloco branco no computador; no
           // celular cada linha já vira um cartão.
-          <div className="min-[720px]:rounded-3 min-[720px]:bg-superficie min-[720px]:shadow-1 min-[720px]:p-2 lg:px-4 lg:py-3">
+          <Card className="min-w-0 overflow-hidden max-[719px]:border-0 max-[719px]:bg-transparent max-[719px]:shadow-none">
+            <CardHead
+              titulo="Pessoas com acesso"
+              direita={`${usuarios.length} ${usuarios.length === 1 ? "pessoa" : "pessoas"}`}
+              className="max-[719px]:hidden"
+            />
             <TabelaLista
               rotulo="Pessoas com acesso ao sistema"
               colunas={[
@@ -117,7 +123,7 @@ export default async function PaginaSessoes() {
                 },
               }))}
             />
-          </div>
+          </Card>
         )}
       </div>
     </>

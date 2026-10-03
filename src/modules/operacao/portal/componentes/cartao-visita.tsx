@@ -1,15 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { LogOut, MapPin, MapPinCheck, OctagonPause, Phone } from "lucide-react";
+import { LogOut, MapPinCheck, OctagonPause } from "lucide-react";
 import { Botao } from "@/components/ui/botao";
-import { ReguaDias, type DiaRegua } from "@/components/ui/regua-dias";
-import { Selo } from "@/components/ui/selo";
-import { TileIcone } from "@/components/ui/tile-icone";
 import { cn } from "@/lib/utils";
 import { horaEmBrasilia } from "@/lib/agenda/datas";
 import { formatarTelefone } from "@/lib/formatacao";
-import { fraseErroEquipe, ROTULO_TURNO } from "../../equipe/textos";
+import {
+  fraseErroEquipe,
+  ROTULO_ESTADO_VISITA,
+  ROTULO_TURNO,
+} from "../../equipe/textos";
 import {
   proximoPasso,
   type SituacaoEnvio,
@@ -22,22 +23,6 @@ import {
   ligacaoDeMapa,
 } from "../textos";
 
-function reguaDaVisita(v: VisitaNaTela): DiaRegua[] {
-  return Array.from({ length: v.diasContratados }, (_, i) => {
-    const numero = i + 1;
-    return {
-      numero,
-      estado:
-        numero < v.diaNumero
-          ? "feito"
-          : numero === v.diaNumero
-            ? "hoje"
-            : "futuro",
-      rotuloEstado: numero === v.diaNumero ? "hoje" : undefined,
-    };
-  });
-}
-
 const TEXTO_SITUACAO: Record<SituacaoEnvio, string> = {
   sincronizado: "Sincronizado",
   no_aparelho: "Salvo no aparelho",
@@ -49,24 +34,38 @@ function Marca({
   rotulo,
   instante,
   situacao,
-  semTom,
+  escuro,
 }: {
   rotulo: string;
   instante: string | null;
   situacao: SituacaoEnvio | null;
-  semTom: boolean;
+  escuro: boolean;
 }) {
   const hora = instante ? horaEmBrasilia(instante) : null;
   return (
     <p
       className={cn(
-        "rounded-2 flex flex-col gap-0.5 px-4 py-3",
-        semTom ? "border-linha border" : "bg-areia-clara",
+        "flex flex-col gap-0.5 rounded-[7px] px-3 py-2",
+        escuro ? "bg-marinho-2" : "border-linha bg-branco border",
       )}
       data-marca={rotulo.toLowerCase()}
     >
-      <span className="text-mini text-texto-2 font-semibold">{rotulo}</span>
-      <span className="text-3 text-texto font-mono">{hora ?? "ainda não"}</span>
+      <span
+        className={cn(
+          "text-mini font-semibold",
+          escuro ? "text-dourado-2" : "text-texto-2",
+        )}
+      >
+        {rotulo}
+      </span>
+      <span
+        className={cn(
+          "text-corpo font-mono",
+          escuro ? "text-branco" : "text-texto",
+        )}
+      >
+        {hora ?? "ainda não"}
+      </span>
       {situacao ? (
         <span
           // Estado em pílula com o lavado do próprio estado: sobre o tom
@@ -117,129 +116,134 @@ export function CartaoVisita({
   // Família em freio, perda ou intercorrência: sem tom de apoio (PRD 20.2
   // [v4.4], regra 3); a hora e as linhas de contato ficam em branco.
   const semTom = v.estadoSensivel !== "normal";
+  // Cores por estado, como no desenho de celular do HTML da cliente:
+  // concluída em dourado, em andamento em marinho, as demais em branco.
+  const emAndamento = v.estado === "iniciada";
+  const concluida =
+    !semTom &&
+    (v.estado === "concluida" ||
+      v.estado === "ficha_entregue" ||
+      v.estado === "encerrada");
+  const fichaPendente = !semTom && v.estado === "ficha_pendente";
+  const rotuloEstado = emAndamento
+    ? "Em andamento"
+    : ROTULO_ESTADO_VISITA[v.estado].toLowerCase();
+  const apoio = emAndamento ? "text-texto-inverso-2" : "text-texto-2";
+  const linha = cn(
+    "text-apoio min-h-toque flex items-center underline decoration-1 underline-offset-4",
+    emAndamento ? "text-texto-inverso" : "text-texto",
+  );
 
   return (
     <article
-      className="rounded-3 bg-superficie shadow-1 flex flex-col gap-4 p-5"
+      className={cn(
+        "flex flex-col gap-1 rounded-[9px] border p-[10px]",
+        emAndamento
+          ? "border-marinho bg-marinho text-texto-inverso"
+          : concluida
+            ? "border-linha bg-dourado-lavado"
+            : fichaPendente
+              ? "border-linha bg-aviso-lavado"
+              : "border-linha bg-superficie",
+      )}
       aria-labelledby={`visita-${v.visitaId}`}
       data-visita={v.visitaId}
       data-estado-visita={v.estado}
     >
-      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-        <p
-          className={cn(
-            "rounded-pilula inline-flex min-h-10 items-baseline gap-2 px-4 py-1.5",
-            semTom ? "border-linha border" : "bg-dourado-claro",
-          )}
-        >
-          <span className="text-2 text-texto font-mono font-semibold">
-            {v.horaPrevista ?? "sem hora"}
-          </span>
-          {v.turno ? (
-            <span className="text-apoio text-texto-2">
-              {ROTULO_TURNO[v.turno]}
-            </span>
-          ) : null}
-        </p>
-        <Selo variante="marinho">
+      <div
+        className={cn(
+          "text-mini flex flex-wrap items-center justify-between gap-x-3 font-semibold",
+          emAndamento
+            ? "text-dourado-2"
+            : concluida
+              ? "text-dourado-texto"
+              : fichaPendente
+                ? "text-aviso-texto"
+                : "text-texto-2",
+        )}
+      >
+        <span className="font-mono">
+          {v.horaPrevista ?? "sem hora"}
+          {v.turno ? ` · ${ROTULO_TURNO[v.turno]}` : ""}
+        </span>
+        <span>
           <span className="font-mono">
             {diaDeTotal(v.diaNumero, v.diasContratados)}
           </span>
-        </Selo>
+          {` · ${rotuloEstado}`}
+        </span>
       </div>
 
-      <div className="flex flex-col gap-2">
-        <h3
-          id={`visita-${v.visitaId}`}
-          className="font-titulo text-1 text-texto font-medium"
-        >
-          {v.nomeExibicao}
-        </h3>
-        {primeiroNome ? (
-          <p className="text-apoio text-texto-2">
-            Contato: {primeiroNome}
-            {v.gemelar ? ". Gestação de gêmeos." : "."}
-          </p>
-        ) : null}
-        {endereco ? (
-          <a
-            href={ligacaoDeMapa(endereco)}
-            className={cn(
-              "rounded-2 text-corpo text-texto min-h-toque ease-estado mt-1 flex items-center gap-3 py-2 pr-3 pl-2 transition-colors duration-140",
-              semTom
-                ? "border-linha hover:bg-marinho-08 border"
-                : "bg-areia-clara hover:bg-areia",
-            )}
-          >
-            <TileIcone tom={semTom ? "branco" : "areia"} tamanho="p">
-              <MapPin />
-            </TileIcone>
-            <span className="underline decoration-1 underline-offset-4">
-              {endereco}
-              <span className="sr-only">. Abre o mapa.</span>
-            </span>
-          </a>
-        ) : null}
-        {v.endereco?.referencia ? (
-          <p className="text-apoio text-texto-2">
-            Referência: {v.endereco.referencia}
-          </p>
-        ) : null}
-        {v.contatoTelefone ? (
-          <a
-            href={`tel:${v.contatoTelefone}`}
-            className={cn(
-              "rounded-2 text-corpo text-texto min-h-toque ease-estado flex items-center gap-3 py-2 pr-3 pl-2 transition-colors duration-140",
-              semTom
-                ? "border-linha hover:bg-marinho-08 border"
-                : "bg-argila-clara hover:bg-argila-media",
-            )}
-            aria-label={`Ligar para ${primeiroNome ?? "a família"}, ${formatarTelefone(v.contatoTelefone)}`}
-          >
-            <TileIcone tom={semTom ? "branco" : "argila"} tamanho="p">
-              <Phone />
-            </TileIcone>
-            <span className="font-mono underline decoration-1 underline-offset-4">
-              {formatarTelefone(v.contatoTelefone)}
-            </span>
-          </a>
-        ) : null}
-        {sensivel ? (
-          <p className="text-apoio text-sensivel flex items-start gap-2">
-            <OctagonPause
-              className="mt-0.5 size-4 shrink-0"
-              aria-hidden="true"
-            />
-            {sensivel}
-          </p>
-        ) : null}
-      </div>
-
-      <ReguaDias
-        dias={reguaDaVisita(v)}
-        rotulo={`Acompanhamento de ${v.diasContratados} dias, hoje é o dia ${v.diaNumero}`}
-      />
-
-      <div
-        className="tablet:grid-cols-2 grid grid-cols-2 gap-2"
-        aria-label="Chegada e saída"
+      <h3
+        id={`visita-${v.visitaId}`}
+        className={cn(
+          "text-3 font-semibold",
+          emAndamento ? "text-branco" : "text-texto",
+        )}
       >
+        {v.nomeExibicao}
+      </h3>
+      {primeiroNome ? (
+        <p className={cn("text-apoio", apoio)}>
+          Contato: {primeiroNome}
+          {v.gemelar ? ". Gestação de gêmeos." : "."}
+        </p>
+      ) : null}
+      {endereco ? (
+        <a href={ligacaoDeMapa(endereco)} className={cn(linha, "self-start")}>
+          {endereco}
+          <span className="sr-only">. Abre o mapa.</span>
+        </a>
+      ) : null}
+      {v.endereco?.referencia ? (
+        <p className={cn("text-apoio", apoio)}>
+          Referência: {v.endereco.referencia}
+        </p>
+      ) : null}
+      {v.contatoTelefone ? (
+        <a
+          href={`tel:${v.contatoTelefone}`}
+          className={cn(linha, "self-start font-mono")}
+          aria-label={`Ligar para ${primeiroNome ?? "a família"}, ${formatarTelefone(v.contatoTelefone)}`}
+        >
+          {formatarTelefone(v.contatoTelefone)}
+        </a>
+      ) : null}
+      {sensivel ? (
+        <p
+          className={cn(
+            "text-apoio flex items-start gap-2",
+            emAndamento ? "text-texto-inverso" : "text-sensivel",
+          )}
+        >
+          <OctagonPause className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+          {sensivel}
+        </p>
+      ) : null}
+
+      <div className="mt-1 grid grid-cols-2 gap-2" aria-label="Chegada e saída">
         <Marca
           rotulo="Chegada"
           instante={v.checkinEm}
           situacao={v.chegadaSituacao}
-          semTom={semTom}
+          escuro={emAndamento}
         />
         <Marca
           rotulo="Saída"
           instante={v.checkoutEm}
           situacao={v.saidaSituacao}
-          semTom={semTom}
+          escuro={emAndamento}
         />
       </div>
 
       {v.erroEnvio ? (
-        <p className="text-apoio text-alerta" role="status">
+        <p
+          className={cn(
+            "text-apoio",
+            emAndamento ? "text-texto-inverso" : "text-alerta",
+          )}
+          role="status"
+        >
           {fraseErroEquipe(new Error(v.erroEnvio), "enviar este registro")} O
           horário está salvo no aparelho.
         </p>
@@ -262,7 +266,11 @@ export function CartaoVisita({
           <Botao
             largaTotal
             variante="primario"
-            className="min-h-toque-grande"
+            className={cn(
+              "min-h-toque-grande",
+              emAndamento &&
+                "border-texto-inverso-2 text-texto-inverso hover:bg-marinho-2 border bg-transparent",
+            )}
             carregando={ocupado}
             rotuloCarregando="Gravando a saída"
             iconeEsquerda={<LogOut aria-hidden="true" />}
@@ -271,15 +279,24 @@ export function CartaoVisita({
             Saí da casa
           </Botao>
         ) : null}
+        {emAndamento && !offline ? (
+          <Botao
+            asChild
+            largaTotal
+            className="bg-dourado-2 text-marinho hover:bg-dourado-2 min-h-toque-grande"
+          >
+            <Link href={`/visita/${v.visitaId}`}>Preencher registro</Link>
+          </Botao>
+        ) : null}
         {passo === "nenhum" && v.checkoutEm ? (
-          <p className="text-apoio text-texto-2" role="status">
+          <p className={cn("text-apoio", apoio)} role="status">
             Saída gravada. A ficha deste dia ainda falta.
           </p>
         ) : null}
         {!offline ? (
           <Link
             href={`/minhas-familias/${v.familiaId}`}
-            className="text-apoio text-texto min-h-toque inline-flex items-center self-start underline underline-offset-4"
+            className={cn(linha, "self-start")}
           >
             Ver o acompanhamento da família
           </Link>

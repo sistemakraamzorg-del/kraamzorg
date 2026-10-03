@@ -39,24 +39,24 @@ export default function LayoutAcesso({ children }: { children: ReactNode }) {
           className="relative h-auto w-[88px] lg:hidden"
         />
         <div className="relative z-10 hidden max-w-[400px] flex-col items-center px-14 text-center lg:flex">
-          <p className="font-titulo text-texto text-[2.375rem] leading-[1.18] font-light tracking-[-0.01em]">
+          <p className="font-titulo text-texto text-[2.375rem] leading-[1.18] font-extralight tracking-[-0.01em]">
             O cuidado não termina no hospital.
           </p>
-          <p className="text-texto-2 mt-[18px] text-sm leading-relaxed">
+          <p className="text-texto-2 mt-[18px] text-[13.5px] leading-[1.65]">
             Estamos com cada família nas primeiras semanas em casa, com carinho,
             calma e segurança.
           </p>
         </div>
       </aside>
       <div className="flex justify-center px-4 pt-8 pb-12 lg:items-center lg:p-10">
-        <div className="max-w-acesso flex w-full flex-col gap-6">
+        <div className="flex w-full max-w-[352px] flex-col gap-6 lg:max-w-[352px]">
           <Image
             src="/brand/logo-vertical-marinho.png"
             alt=""
             aria-hidden="true"
             width={132}
             height={113}
-            className="hidden h-auto w-[104px] lg:block"
+            className="hidden h-auto w-[124px] lg:block"
           />
           {children}
         </div>

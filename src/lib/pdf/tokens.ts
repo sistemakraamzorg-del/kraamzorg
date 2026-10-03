@@ -7,9 +7,9 @@
  * no topo de `globals.css`).
  */
 export const CORES = {
-  marinho: "#0f1f36",
-  dourado: "#bc9c5d",
-  areia: "#e8dac5",
+  marinho: "#0f1f34",
+  dourado: "#b89757",
+  areia: "#e7dac4",
   creme: "#fcf8ed",
   branco: "#ffffff",
   sucesso: "#4b7358",
@@ -24,8 +24,8 @@ export const CORES = {
  * `color-mix()`; conferido por `tokens.test.ts` contra a mesma fórmula).
  */
 /** `--marinho-72`: texto de apoio (rótulo de seção). */
-export const MARINHO_72 = "#515c69";
+export const MARINHO_72 = "#515c68";
 /** `--marinho-62`: texto de apoio secundário (rodapé, legenda). */
-export const MARINHO_62 = "#69717c";
+export const MARINHO_62 = "#69717a";
 /** `--marinho-14`: linha divisória fina entre seções. */
 export const MARINHO_14 = "#dbdad3";

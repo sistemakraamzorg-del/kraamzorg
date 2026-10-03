@@ -92,6 +92,18 @@ export function ListaTarefas({
     }))
     .filter((grupo) => grupo.tarefas.length > 0);
 
+  if (detalhada) {
+    return (
+      <ListaDetalhada
+        visiveis={visiveis}
+        feitas={feitas}
+        recolhidos={recolhidos}
+        setRecolhidos={setRecolhidos}
+        aoFeita={aoFeita}
+      />
+    );
+  }
+
   const umGrupoSo = Boolean(titulo) && visiveis.length === 1;
   const TituloGrupo = titulo ? "h3" : "h2";
 
@@ -227,6 +239,127 @@ export function ListaTarefas({
                   />
                   <span className="text-apoio text-texto-2">
                     <span className="text-texto font-semibold">
+                      {feita.titulo}
+                    </span>
+                    <br />
+                    {feita.detalhe}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </>
+        ) : null}
+      </section>
+    </div>
+  );
+}
+
+/**
+ * Tela Tarefas no desenho do mockup (`.task`): uma lista só, cada grupo de
+ * prazo com uma linha de título e a contagem, cada tarefa numa linha com a
+ * ação dentro. Mesmos dados e mesmas ações do cartão.
+ */
+function ListaDetalhada({
+  visiveis,
+  feitas,
+  recolhidos,
+  setRecolhidos,
+  aoFeita,
+}: {
+  visiveis: GrupoTarefasComFreio[];
+  feitas: TarefaFeita[];
+  recolhidos: string[];
+  setRecolhidos: (fn: (r: string[]) => string[]) => void;
+  aoFeita: (feita: TarefaFeita) => void;
+}) {
+  return (
+    <div className="flex flex-col">
+      {visiveis.length === 0 ? (
+        <EstadoVazio
+          nivelTitulo="h2"
+          ilustracao={<XicaraQuente tamanho={104} />}
+          titulo={
+            feitas.length > 0 ? "Tudo feito por agora" : "Nenhuma tarefa agora"
+          }
+          texto="Quando a régua, uma cadência ou o freio abrirem uma tarefa para você, ela aparece aqui, por prioridade e prazo."
+        />
+      ) : (
+        visiveis.map((grupo) => {
+          const fechado = recolhidos.includes(grupo.balde);
+          return (
+            <section key={grupo.balde} aria-labelledby={`grupo-${grupo.balde}`}>
+              <div className="border-linha bg-creme-2 flex items-center gap-2.5 border-b px-4 py-1.5">
+                <h2
+                  id={`grupo-${grupo.balde}`}
+                  className="text-tinta-50 text-[10px] font-semibold tracking-[0.11em] uppercase"
+                >
+                  {grupo.titulo}
+                </h2>
+                <span className="text-tinta-50 text-[11.5px]">
+                  {grupo.tarefas.length === 1
+                    ? "1 tarefa"
+                    : `${grupo.tarefas.length} tarefas`}
+                  <span className="max-lg:hidden">
+                    {" "}
+                    · {APOIO_BALDE[grupo.balde]}
+                  </span>
+                </span>
+                <button
+                  type="button"
+                  aria-expanded={!fechado}
+                  aria-controls={`lista-${grupo.balde}`}
+                  onClick={() =>
+                    setRecolhidos((r) =>
+                      r.includes(grupo.balde)
+                        ? r.filter((b) => b !== grupo.balde)
+                        : [...r, grupo.balde],
+                    )
+                  }
+                  className="text-tinta-70 hover:bg-marinho-08 focus-visible:outline-dourado ml-auto inline-flex min-h-11 items-center rounded-[7px] px-3 text-[12.5px] font-medium focus-visible:outline-2 focus-visible:outline-offset-2 lg:min-h-8"
+                >
+                  {fechado ? "Mostrar" : "Recolher"}
+                </button>
+              </div>
+              {fechado ? null : (
+                <div id={`lista-${grupo.balde}`}>
+                  {grupo.tarefas.map((tarefa) => (
+                    <CartaoTarefa
+                      key={tarefa.id}
+                      tarefa={tarefa}
+                      aoFeita={aoFeita}
+                      explicada
+                    />
+                  ))}
+                </div>
+              )}
+            </section>
+          );
+        })
+      )}
+
+      <section
+        role="status"
+        aria-label="Feitas agora"
+        className="flex flex-col"
+      >
+        {feitas.length > 0 ? (
+          <>
+            <h2 className="border-linha bg-creme-2 text-tinta-50 border-y px-4 py-1.5 text-[10px] font-semibold tracking-[0.11em] uppercase">
+              Feitas agora
+            </h2>
+            <ul>
+              {feitas.map((feita) => (
+                <li
+                  key={feita.id}
+                  className="border-fio-3 flex items-start gap-2.5 border-b px-4 py-[11px] last:border-b-0"
+                >
+                  <CircleCheck
+                    aria-hidden="true"
+                    className="text-sucesso mt-0.5 size-[15px] shrink-0"
+                    strokeWidth={1.75}
+                  />
+                  <span className="text-tinta-50 text-[11.5px]">
+                    <span className="text-texto text-[12.5px] font-semibold">
                       {feita.titulo}
                     </span>
                     <br />

@@ -32,7 +32,10 @@ export default async function PaginaPainel({
   try {
     tela = await obterTelaPainel(usuario, mes);
   } catch (erro) {
-    console.error("[tela-erro] /painel", erro instanceof Error ? erro.message : erro);
+    console.error(
+      "[tela-erro] /painel",
+      erro instanceof Error ? erro.message : erro,
+    );
     tela = null;
   }
 
@@ -46,7 +49,7 @@ export default async function PaginaPainel({
             : "Vendas, marketing, operação, experiência e financeiro do mês, com as metas da Kraamzorg."
         }
       />
-      <div className="flex flex-col gap-6 pt-6">
+      <div className="flex flex-col gap-3.5 pt-6">
         <SeletorMes mes={mes} hoje={hoje} caminho="/painel" />
         {!tela ? (
           <FaixaAlerta variante="erro" titulo="O painel não abriu agora">

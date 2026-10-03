@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import Link from "next/link";
+import { Search } from "lucide-react";
 import { descreverPapeis } from "@/lib/auth/papeis";
 import type { SessaoUsuario } from "@/lib/auth/tipos";
 import {
@@ -8,6 +10,8 @@ import {
   rotasPermitidas,
 } from "@/lib/navegacao";
 import type { IdRota, ItemNavegacao } from "@/lib/navegacao";
+import { formatarDiaSemanaEData } from "@/lib/formatacao";
+import { classesChip } from "@/components/mockup";
 import { contagemParaNavegacao } from "@/modules/agente/conversas/lista";
 import { listarFilaTela } from "@/modules/agente/transferencias/dados";
 import { contarTransferenciasCriticas } from "@/modules/agente/formatacao";
@@ -78,6 +82,37 @@ function comContadores(
 }
 
 /**
+ * Chips do topo (`.top-actions` do HTML da cliente): busca, data e o chip
+ * marinho do Copiloto. Flutuam sobre a faixa do cabeçalho de cada tela
+ * (que reserva o espaço à direita), só no computador. A busca abre a lista
+ * de famílias, onde mora o campo de busca; o Copiloto é a rota /copiloto.
+ * Cada chip só aparece para quem pode abrir a rota.
+ */
+function AcoesTopo({ papeis }: { papeis: SessaoUsuario["papeis"] }) {
+  const rotas = rotasPermitidas(papeis);
+  return (
+    <div className="pointer-events-none sticky top-0 z-[calc(var(--z-barra)+1)] hidden h-0 lg:block">
+      <div className="pointer-events-auto absolute top-[14px] right-0 flex items-center gap-[9px]">
+        {rotas.has("familias") ? (
+          <Link href="/familias" className={classesChip()}>
+            <Search aria-hidden="true" className="size-3.5" />
+            Buscar família
+          </Link>
+        ) : null}
+        <span className={classesChip()}>
+          {formatarDiaSemanaEData(new Date())}
+        </span>
+        {rotas.has("copiloto") ? (
+          <Link href="/copiloto" className={classesChip(true)}>
+            Copiloto
+          </Link>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+/**
  * Casca do painel (P10 item 3; DESIGN.md seções 2.9, 3 e 6). No celular:
  * uma coluna, margem de 16 px e a navegação em pílula flutuante. No
  * computador (1024 px ou mais): barra lateral marinho solta das bordas,
@@ -108,7 +143,7 @@ export async function CascaApp({
       >
         Pular para o conteúdo
       </a>
-      <div className="lg:grid lg:min-h-dvh lg:grid-cols-[var(--container-lateral)_minmax(0,1fr)]">
+      <div className="lg:grid lg:min-h-dvh lg:grid-cols-[224px_minmax(0,1fr)]">
         <NavegacaoLateral
           grupos={grupos}
           nome={sessao.nome}
@@ -117,8 +152,9 @@ export async function CascaApp({
         <main
           id="conteudo"
           tabIndex={-1}
-          className="max-w-conteudo mx-auto w-full px-4 pb-[calc(var(--altura-abas)+24px+env(safe-area-inset-bottom))] lg:px-8 lg:pb-12"
+          className="max-w-conteudo mx-auto w-full px-4 pb-[calc(var(--altura-abas)+24px+env(safe-area-inset-bottom))] [--reserva-topo:26px] lg:max-w-none lg:px-[26px] lg:pb-[60px] lg:[--reserva-topo:430px]"
         >
+          <AcoesTopo papeis={sessao.papeis} />
           {children}
         </main>
       </div>

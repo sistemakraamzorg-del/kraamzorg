@@ -2,13 +2,10 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 /**
- * Abas de conteúdo da ficha (DESIGN.md, 2.9 e seção 6, "Abas de
- * conteúdo"): na direção "Colo", trilha areia em pílula com a aba ativa numa
- * pílula branca de sombra leve, o mesmo desenho de `AbasPilula`. Continuam
- * links numa `nav` com `aria-current`, porque cada aba é um endereço
- * (`?aba=`); rolam de lado no celular. Links `?aba=`, sem depender de JavaScript (mesmo padrão
- * de `src/modules/configuracoes/componentes/abas.tsx`, lido como
- * referência). A aba que o papel não pode ver não aparece: quem chama já
+ * Abas de conteúdo da ficha (`.tabs` e `.tab` do mockup): sublinhado dourado
+ * na aba ativa, coladas na base do cartão do cabeçalho. Continuam links numa
+ * `nav` com `aria-current`, porque cada aba é um endereço (`?aba=`); rolam de
+ * lado no celular. A aba que o papel não pode ver não aparece: quem chama já
  * filtra a lista.
  */
 export interface AbaFicha {
@@ -28,7 +25,7 @@ export function AbasFicha({
   return (
     <nav
       aria-label="Seções da ficha"
-      className="rounded-pilula bg-areia tablet:inline-flex tablet:w-auto flex w-full max-w-full [scrollbar-width:none] gap-1 overflow-x-auto p-1"
+      className="border-linha flex w-full max-w-full [scrollbar-width:none] gap-0.5 overflow-x-auto border-t px-4"
     >
       {abas.map((aba) => {
         const ehAtiva = aba.chave === ativa;
@@ -38,10 +35,10 @@ export function AbasFicha({
             href={`/familias/${familiaId}?aba=${aba.chave}`}
             aria-current={ehAtiva ? "page" : undefined}
             className={cn(
-              "text-apoio min-h-toque rounded-pilula ease-estado tablet:flex-none flex flex-1 shrink-0 items-center justify-center px-4 font-semibold whitespace-nowrap no-underline transition-[background-color,box-shadow,color] duration-140",
+              "min-h-toque ease-estado flex shrink-0 items-center border-b-2 px-3 py-2.5 text-[12.5px] whitespace-nowrap no-underline transition-[color,border-color] duration-140",
               ehAtiva
-                ? "bg-marinho text-texto-inverso shadow-1"
-                : "text-texto-2 hover:bg-areia-clara hover:text-texto",
+                ? "text-texto border-dourado font-semibold"
+                : "text-tinta-50 hover:text-texto border-transparent font-medium",
             )}
           >
             {aba.rotulo}

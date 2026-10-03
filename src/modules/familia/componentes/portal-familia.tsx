@@ -1,18 +1,15 @@
 import Image from "next/image";
 import type { ReactNode } from "react";
 import {
-  BookOpen,
-  CalendarDays,
   Check,
   CircleDot,
   ClipboardList,
   House,
-  MessageSquareText,
   Phone,
   UserRound,
 } from "lucide-react";
-import { TileIcone } from "@/components/ui/tile-icone";
-import type { Tom } from "@/components/ui/tons";
+import { Eyebrow, Nota, classesChip } from "@/components/mockup";
+import { Selo } from "@/components/ui/selo";
 import type {
   ContatoEquipePortal,
   PortalFamilia,
@@ -24,16 +21,16 @@ import {
   formatarTelefone,
 } from "@/lib/formatacao";
 import { cn } from "@/lib/utils";
+import { Avatar } from "@/modules/relacao/componentes/faixa-resumo";
+import { BlocoFamPortal } from "./bloco-fam-portal";
 import { montarPassos, type Passo } from "../passos";
 import { BotaoSair } from "./botao-sair";
 
 /**
- * O portal da família (P49), na direção "Colo" com a camada de acolhimento
- * do DESIGN.md 11: abre num bloco colo com o cumprimento pelo nome, situa no
- * tempo da família, diz o que vem agora e quem faz, e não finge calor. Cada
- * assunto mora num bloco com a cor do que ele é (o tempo em lavanda, as
- * pessoas em argila, a família em areia) e o contato com a equipe é o único
- * bloco forte, em marinho. Datas de fato e estimativa nunca se misturam.
+ * O portal da família (P49), no desenho do `.fam-portal` do mockup da
+ * cliente: cartão creme com o cumprimento pelo nome e a barra de progresso,
+ * a próxima visita e a equipe lado a lado, e cada assunto numa caixa de
+ * linhas com selo. Datas de fato e estimativa nunca se misturam.
  * Frases que falam com a família vêm de mensagem_modelo (textos do portal);
  * aqui ficam só os rótulos curtos da tela. Família em pausa (freio, perda)
  * vê só o contato, sem tom de apoio.
@@ -117,6 +114,54 @@ function ContatoDaEquipe({
   );
 }
 
+const SELO_PASSO: Record<Passo["estado"], "sucesso" | "aviso" | "neutro"> = {
+  feito: "sucesso",
+  agora: "aviso",
+  depois: "neutro",
+};
+
+/** Linha de lista do mockup (`.doc`): bloco de ícone, título, apoio e selo. */
+function Linha({
+  icone,
+  titulo,
+  apoio,
+  selo,
+  className,
+  ...props
+}: {
+  icone?: ReactNode;
+  titulo: ReactNode;
+  apoio?: ReactNode;
+  selo?: ReactNode;
+  className?: string;
+} & React.LiHTMLAttributes<HTMLLIElement>) {
+  return (
+    <li
+      className={cn(
+        "border-fio-3 flex items-center gap-[11px] border-b px-4 py-[11px] last:border-b-0",
+        className,
+      )}
+      {...props}
+    >
+      {icone ? (
+        <span
+          aria-hidden="true"
+          className="bg-creme-2 border-fio-2 text-marinho flex h-9 w-[30px] flex-none items-center justify-center rounded-[4px] border [&>svg]:size-4"
+        >
+          {icone}
+        </span>
+      ) : null}
+      <div className="min-w-0 flex-1">
+        <b className="text-[12.5px]">{titulo}</b>
+        {apoio ? (
+          <div className="text-tinta-50 text-[11.5px]">{apoio}</div>
+        ) : null}
+      </div>
+      {selo}
+    </li>
+  );
+}
+
 function ItemPasso({ passo }: { passo: Passo }) {
   const Icone =
     passo.estado === "feito"
@@ -124,126 +169,72 @@ function ItemPasso({ passo }: { passo: Passo }) {
       : passo.estado === "agora"
         ? CircleDot
         : ClipboardList;
-  // O que já aconteceu fica quieto, num bloco sálvia baixo (o feito); o passo
-  // de agora é o bloco dourado, maior, com a frase do que acontece; o que vem
-  // depois fica tracejado ("ainda não"). A família acha o "agora" sem ler a
-  // lista inteira. Com a data da próxima visita já marcada, a frase de espera
-  // ("as visitas aparecem aqui quando a coordenação confirmar") contradiz a
-  // data e sai.
+  // Com a data da próxima visita já marcada, a frase de espera ("as visitas
+  // aparecem aqui quando a coordenação confirmar") contradiz a data e sai.
   const apoio =
     passo.chave === "visitas" && passo.dataMarcada ? null : passo.apoio;
+  const data = passo.data
+    ? `${passo.dataMarcada ? "Marcada para " : ""}${
+        passo.chave === "prenatal" && passo.dataMarcada
+          ? formatarDataHora(passo.data)
+          : formatarData(passo.data)
+      }`
+    : null;
   return (
-    <li
+    <Linha
       data-passo={passo.chave}
       data-estado={passo.estado}
       aria-current={passo.estado === "agora" ? "step" : undefined}
-      className={cn(
-        "flex items-start gap-3",
-        passo.estado === "agora"
-          ? "rounded-3 bg-dourado-medio my-1 p-4"
-          : passo.estado === "depois"
-            ? "rounded-2 border-marinho-50 border-[1.5px] border-dashed px-3 py-3"
-            : "rounded-2 bg-salvia-clara px-3 py-2.5",
-      )}
-    >
-      <TileIcone
-        tom={
-          passo.estado === "agora"
-            ? "branco"
-            : passo.estado === "feito"
-              ? "salvia"
-              : "branco"
-        }
-        tamanho={passo.estado === "agora" ? "m" : "p"}
-      >
-        <Icone />
-      </TileIcone>
-      <div className="flex min-w-0 flex-1 flex-col gap-1 self-center">
-        <p
-          className={
-            passo.estado === "feito"
-              ? "text-corpo text-texto flex flex-wrap items-baseline justify-between gap-x-3"
-              : "text-3 text-texto font-medium"
-          }
-        >
-          <span>
-            {passo.titulo}
-            <span
-              className={
-                passo.estado === "feito"
-                  ? "sr-only"
-                  : passo.estado === "agora"
-                    ? // Sobre tom médio (dourado-medio), só marinho
-                      // (DESIGN.md 2.5): o cinza de apoio fica em 4,0:1.
-                      "text-corpo text-texto font-normal"
-                    : "text-corpo text-texto-2 font-normal"
-              }
-            >
-              {" "}
-              · {ROTULO_ESTADO[passo.estado]}
-            </span>
-          </span>
-          {passo.estado === "feito" && passo.data ? (
-            <span className="text-corpo text-texto-2 font-mono">
-              {formatarData(passo.data)}
-            </span>
-          ) : null}
-        </p>
-        {passo.estado !== "feito" && passo.data ? (
-          <p className="text-corpo text-texto font-mono">
-            {passo.dataMarcada ? "Marcada para " : ""}
-            {passo.chave === "prenatal" && passo.dataMarcada
-              ? formatarDataHora(passo.data)
-              : formatarData(passo.data)}
-          </p>
-        ) : null}
-        {apoio ? (
-          <p className="text-corpo text-texto max-w-[56ch]">{apoio}</p>
-        ) : null}
-      </div>
-    </li>
+      className={passo.estado === "agora" ? "bg-dourado-lavado" : undefined}
+      icone={<Icone />}
+      titulo={passo.titulo}
+      apoio={
+        data || apoio ? (
+          <>
+            {data ? <span className="font-mono">{data}</span> : null}
+            {data && apoio ? " · " : null}
+            {apoio}
+          </>
+        ) : null
+      }
+      selo={
+        <Selo variante={SELO_PASSO[passo.estado]}>
+          {ROTULO_ESTADO[passo.estado]}
+        </Selo>
+      }
+    />
   );
 }
 
+/** Título de bloco do portal (`.eyebrow`) com a frase do que ele mostra. */
 function Secao({
   id,
   titulo,
-  icone,
-  tom,
   descricao,
   children,
 }: {
   id: string;
   titulo: string;
-  icone: ReactNode;
-  tom: Tom;
   /** Uma frase de rótulo de interface: o que este bloco mostra. */
   descricao?: string;
   children: ReactNode;
 }) {
   return (
-    <section
-      id={`secao-${id}`}
-      aria-labelledby={id}
-      className="flex scroll-mt-4 flex-col gap-3"
-    >
-      <div className="flex items-center gap-3">
-        <TileIcone tom={tom} forma="quadrado">
-          {icone}
-        </TileIcone>
-        <div className="flex min-w-0 flex-col">
-          <h2 id={id} className="font-titulo text-2 text-texto font-medium">
-            {titulo}
-          </h2>
-          {descricao ? (
-            <p className="text-corpo text-texto-2">{descricao}</p>
-          ) : null}
-        </div>
-      </div>
+    <section id={`secao-${id}`} aria-labelledby={id} className="scroll-mt-4">
+      <h2 id={id} className="mb-1">
+        <Eyebrow>{titulo}</Eyebrow>
+      </h2>
+      {descricao ? (
+        <p className="text-tinta-50 mb-2 text-[11.5px]">{descricao}</p>
+      ) : (
+        <div className="mb-2" />
+      )}
       {children}
     </section>
   );
 }
+
+const CAIXA = "border-linha bg-superficie rounded-[9px] border";
 
 function Completo({
   portal,
@@ -255,7 +246,11 @@ function Completo({
   const t = portal.textos;
   const passos = montarPassos(portal, hoje);
   const feitos = passos.filter((p) => p.estado === "feito").length;
-  const proximaVisita = portal.visitas.find((v) => !v.feita)?.dia;
+  const proxima = portal.visitas.find((v) => !v.feita);
+  const proximaVisita = proxima?.dia;
+  const feitas = portal.visitas.filter((v) => v.feita).length;
+  const ac = portal.acompanhamento;
+  const curta = (iso: string) => (formatarData(iso) ?? "").slice(0, 5);
   const d = portal.datas;
   const datas: {
     chave: string;
@@ -294,56 +289,126 @@ function Completo({
 
   return (
     <>
-      <header className="rounded-colo bg-dourado-claro flex flex-col gap-4 px-5 pt-6 pb-8">
-        <h1 className="font-titulo text-display text-texto font-normal">
-          {t.titulo}
-        </h1>
-        <p className="text-3 text-texto max-w-[56ch]">{t.boas_vindas}</p>
-        <div className="flex flex-col gap-2">
-          <p className="text-corpo text-texto font-medium">
-            {feitos} de {passos.length} passos concluídos
-          </p>
-          <div
-            role="progressbar"
-            aria-label="Passos concluídos"
-            aria-valuemin={0}
-            aria-valuemax={passos.length}
-            aria-valuenow={feitos}
-            className="rounded-pilula bg-superficie h-2 w-full max-w-sm overflow-hidden"
-          >
-            <div
-              className="rounded-pilula bg-marinho h-full"
-              style={{ width: `${(feitos / passos.length) * 100}%` }}
-            />
-          </div>
-        </div>
-        <nav aria-label="Ir para" className="flex flex-wrap gap-2 pt-1">
+      <BlocoFamPortal
+        titulo={t.titulo}
+        apoio={t.boas_vindas}
+        progresso={{
+          valor: feitos,
+          maximo: passos.length,
+          rotulo: "Passos concluídos",
+        }}
+        extremos={
+          ac?.inicioEfetivo && ac.encerramento
+            ? [
+                `Início ${curta(ac.inicioEfetivo)}`,
+                `Encerra ${curta(ac.encerramento)}`,
+              ]
+            : [`${feitos} de ${passos.length} passos concluídos`, ""]
+        }
+      >
+        <nav aria-label="Ir para" className="flex flex-wrap gap-2 pt-3">
           {[
             ["#secao-passos", "Passos"],
             ["#secao-visitas", "Visitas"],
-            ["#secao-enfermeira", "Enfermeira"],
+            ["#secao-enfermeira", "Equipe"],
             ["#secao-guia", "Guia"],
             ["#contato", "Contato"],
           ].map(([href, rotulo]) => (
             <a
               key={href}
               href={href}
-              className="rounded-pilula bg-superficie text-corpo text-texto min-h-toque inline-flex items-center px-4 font-medium no-underline"
+              className={cn(
+                classesChip(),
+                "min-h-toque justify-center no-underline",
+              )}
             >
               {rotulo}
             </a>
           ))}
         </nav>
-      </header>
+      </BlocoFamPortal>
+
+      <div className="tablet:grid-cols-2 grid grid-cols-1 gap-[11px]">
+        <div className={cn(CAIXA, "p-3")}>
+          <Eyebrow className="mb-1.5 block">Próxima visita</Eyebrow>
+          {proxima ? (
+            <>
+              <b className="text-sm">
+                Dia {proxima.dia}
+                {ac ? ` de ${ac.diasContratados}` : ""}
+                {", "}
+                <span className="font-mono">
+                  {formatarData(proxima.data)}
+                  {proxima.hora ? ` · ${proxima.hora}` : ""}
+                </span>
+              </b>
+              <p className="text-tinta-50 mt-[3px] text-[11.5px]">
+                {feitas} {feitas === 1 ? "visita feita" : "visitas feitas"}
+                {ac ? ` de ${ac.diasContratados}` : ""}
+              </p>
+            </>
+          ) : (
+            <p className="text-tinta-50 text-[11.5px]">{t.visitas_vazio}</p>
+          )}
+        </div>
+        <div id="secao-enfermeira" className={cn(CAIXA, "scroll-mt-4 p-3")}>
+          <Eyebrow className="mb-1.5 block">
+            {t.enfermeira_titulo ?? "Minha equipe"}
+          </Eyebrow>
+          <div className="mb-1.5 flex items-center gap-[7px]">
+            {portal.enfermeira?.fotoPath && portal.enfermeira.nome ? (
+              <Image
+                src="/familia/foto"
+                alt={`Foto de ${portal.enfermeira.nome}`}
+                width={24}
+                height={24}
+                unoptimized
+                className="size-6 rounded-full object-cover"
+              />
+            ) : portal.enfermeira?.nome ? (
+              <Avatar
+                nome={portal.enfermeira.nome}
+                className="size-6 text-[9.5px]"
+              />
+            ) : (
+              <UserRound
+                className="text-marinho-62 size-6"
+                aria-hidden="true"
+                strokeWidth={1.5}
+              />
+            )}
+            <span className="text-[11.5px]">
+              {portal.enfermeira === null
+                ? t.enfermeira_sem_designacao
+                : (portal.enfermeira.nome ?? t.enfermeira_sem_nome)}
+            </span>
+          </div>
+          {portal.contato.nome ? (
+            <div className="flex items-center gap-[7px]">
+              <Avatar
+                nome={portal.contato.nome}
+                className="bg-marinho-claro text-texto-inverso size-6 text-[9.5px]"
+              />
+              <span className="text-[11.5px]">
+                <b>{portal.contato.nome}</b>
+                {portal.contato.funcao ? (
+                  <>
+                    <br />
+                    {portal.contato.funcao}
+                  </>
+                ) : null}
+              </span>
+            </div>
+          ) : null}
+        </div>
+      </div>
 
       <Secao
         id="passos"
         descricao={DESCRICAO.passos}
         titulo={t.passos_titulo ?? "Seus próximos passos"}
-        icone={<ClipboardList />}
-        tom="dourado"
       >
-        <ol className="flex flex-col gap-2">
+        <ol className={CAIXA}>
           {passos.map((p) => (
             <ItemPasso key={p.chave} passo={p} />
           ))}
@@ -353,117 +418,74 @@ function Completo({
       {datas.length > 0 ? (
         <Secao
           id="datas"
-        descricao={DESCRICAO.datas}
+          descricao={DESCRICAO.datas}
           titulo={t.datas_titulo ?? "Datas"}
-          icone={<CalendarDays />}
-          tom="lavanda"
         >
-          <div className="rounded-3 bg-lavanda-clara flex flex-col gap-3 p-3">
-            <dl className="tablet:grid-cols-2 grid grid-cols-1 gap-2">
-              {datas.map((x) => (
-                <div
-                  key={x.chave}
-                  className="rounded-2 bg-superficie flex flex-col gap-1 px-4 py-3"
+          <dl className={CAIXA}>
+            {datas.map((x) => (
+              <div
+                key={x.chave}
+                className="border-fio-3 flex items-center gap-[11px] border-b px-4 py-[11px] last:border-b-0"
+              >
+                <dt className="flex-1 text-[12.5px] font-semibold">
+                  {x.rotulo}
+                </dt>
+                <dd className="font-mono text-[12.5px]">
+                  {formatarData(x.valor)}
+                </dd>
+                <Selo
+                  variante={x.marca === "estimativa" ? "neutro" : "sucesso"}
                 >
-                  <dt className="text-corpo text-texto">
-                    {x.rotulo}{" "}
-                    <span className="text-texto-2 italic">
-                      ({x.marca === "estimativa" ? "estimativa" : "confirmado"})
-                    </span>
-                  </dt>
-                  <dd className="text-3 text-texto font-mono font-medium">
-                    {formatarData(x.valor)}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-            <p className="text-corpo text-texto-2 max-w-[60ch] px-2 pb-1">
-              {t.dpp_nota}
-            </p>
-          </div>
+                  {x.marca === "estimativa" ? "Estimativa" : "Confirmado"}
+                </Selo>
+              </div>
+            ))}
+          </dl>
+          <Nota className="mt-2.5 text-[11.5px]">{t.dpp_nota}</Nota>
         </Secao>
       ) : null}
-
-      <Secao
-        id="enfermeira"
-        descricao={DESCRICAO.enfermeira}
-        titulo={t.enfermeira_titulo ?? "Sua enfermeira"}
-        icone={<UserRound />}
-        tom="argila"
-      >
-        <div className="rounded-3 bg-argila-clara flex items-center gap-4 p-5">
-          {portal.enfermeira?.fotoPath && portal.enfermeira.nome ? (
-            <Image
-              src="/familia/foto"
-              alt={`Foto de ${portal.enfermeira.nome}`}
-              width={72}
-              height={72}
-              unoptimized
-              className="size-[72px] rounded-full object-cover"
-            />
-          ) : (
-            <TileIcone tom="argila" tamanho="g">
-              <UserRound />
-            </TileIcone>
-          )}
-          <p className="text-3 text-texto max-w-[52ch]">
-            {portal.enfermeira === null
-              ? t.enfermeira_sem_designacao
-              : (portal.enfermeira.nome ?? t.enfermeira_sem_nome)}
-          </p>
-        </div>
-      </Secao>
 
       <Secao
         id="visitas"
         descricao={DESCRICAO.visitas}
         titulo={t.visitas_titulo ?? "Visitas em casa"}
-        icone={<House />}
-        tom="lavanda"
       >
         {portal.visitas.length === 0 ? (
-          <p className="rounded-3 bg-lavanda-clara text-corpo text-texto max-w-[60ch] p-5">
-            {t.visitas_vazio}
-          </p>
+          <p className={cn(CAIXA, "text-corpo p-4")}>{t.visitas_vazio}</p>
         ) : (
-          <ul className="rounded-3 bg-lavanda-clara flex flex-col gap-2 p-3">
+          <ul className={CAIXA}>
             {portal.visitas.map((v) => (
-              <li
+              <Linha
                 key={v.dia}
-                className={cn(
-                  "rounded-2 grid grid-cols-[1fr_auto] items-center gap-x-3 gap-y-1 px-4 py-3",
-                  v.feita ? "bg-salvia-clara" : "bg-superficie",
-                  v.dia === proximaVisita && "border-dourado border-2",
-                )}
-              >
-                <span className="text-corpo text-texto font-medium">
-                  Dia {v.dia}
-                  {portal.acompanhamento
-                    ? ` de ${portal.acompanhamento.diasContratados}`
-                    : ""}
-                </span>
-                <span
-                  className={cn(
-                    "rounded-pilula text-corpo inline-flex items-center gap-1.5 px-3 py-0.5",
-                    v.feita
-                      ? "bg-salvia-media text-texto"
-                      : "bg-lavanda-clara text-texto",
-                  )}
-                >
-                  {v.feita ? (
-                    <Check className="size-4" aria-hidden="true" />
-                  ) : null}
-                  {v.feita
-                    ? "Feita"
-                    : v.dia === proximaVisita
-                      ? "Próxima visita"
-                      : "Marcada"}
-                </span>
-                <span className="text-corpo text-texto col-span-2 font-mono">
-                  {formatarData(v.data)}
-                  {v.hora ? `, ${v.hora}` : ""}
-                </span>
-              </li>
+                className={
+                  v.dia === proximaVisita ? "bg-dourado-lavado" : undefined
+                }
+                icone={v.feita ? <Check /> : <House />}
+                titulo={`Dia ${v.dia}${ac ? ` de ${ac.diasContratados}` : ""}`}
+                apoio={
+                  <span className="font-mono">
+                    {formatarData(v.data)}
+                    {v.hora ? `, ${v.hora}` : ""}
+                  </span>
+                }
+                selo={
+                  <Selo
+                    variante={
+                      v.feita
+                        ? "sucesso"
+                        : v.dia === proximaVisita
+                          ? "aviso"
+                          : "neutro"
+                    }
+                  >
+                    {v.feita
+                      ? "Feita"
+                      : v.dia === proximaVisita
+                        ? "Próxima visita"
+                        : "Marcada"}
+                  </Selo>
+                }
+              />
             ))}
           </ul>
         )}
@@ -473,45 +495,40 @@ function Completo({
         id="guia"
         descricao={DESCRICAO.guia}
         titulo={t.guia_titulo ?? "Guia de início"}
-        icone={<BookOpen />}
-        tom="areia"
       >
-        <p className="rounded-3 bg-areia-clara text-corpo text-texto p-5">
-          {t.guia_inicio}
-        </p>
+        <p className={cn(CAIXA, "text-corpo p-4")}>{t.guia_inicio}</p>
       </Secao>
 
       {portal.evolucoes.ativo ? (
         <Secao
           id="evolucoes"
-        descricao={DESCRICAO.evolucoes}
+          descricao={DESCRICAO.evolucoes}
           titulo={t.evolucoes_titulo ?? "Evoluções de enfermagem"}
-          icone={<ClipboardList />}
-          tom="areia"
         >
           {portal.evolucoes.itens.length === 0 ? (
-            <p className="rounded-3 bg-areia-clara text-corpo text-texto p-5">
-              {t.evolucoes_vazio}
-            </p>
+            <p className={cn(CAIXA, "text-corpo p-4")}>{t.evolucoes_vazio}</p>
           ) : (
-            <ul className="rounded-3 bg-areia-clara flex flex-col gap-2 p-3">
+            <ul className={CAIXA}>
               {portal.evolucoes.itens.map((e) => (
-                <li
+                <Linha
                   key={e.id}
-                  className="rounded-2 bg-superficie text-corpo text-texto px-4 py-3"
-                >
-                  {e.tipo === "neonatal"
-                    ? "Evolução do bebê"
-                    : "Evolução da mãe"}
-                  {e.enviadoEm ? (
-                    <>
-                      , enviada em{" "}
-                      <span className="font-mono">
-                        {formatarData(e.enviadoEm)}
-                      </span>
-                    </>
-                  ) : null}
-                </li>
+                  icone={<ClipboardList />}
+                  titulo={
+                    e.tipo === "neonatal"
+                      ? "Evolução do bebê"
+                      : "Evolução da mãe"
+                  }
+                  apoio={
+                    e.enviadoEm ? (
+                      <>
+                        Enviada em{" "}
+                        <span className="font-mono">
+                          {formatarData(e.enviadoEm)}
+                        </span>
+                      </>
+                    ) : null
+                  }
+                />
               ))}
             </ul>
           )}
@@ -522,10 +539,8 @@ function Completo({
         id="pesquisa"
         descricao={DESCRICAO.pesquisa}
         titulo={t.pesquisa_titulo ?? "Sua opinião"}
-        icone={<MessageSquareText />}
-        tom="argila"
       >
-        <p className="rounded-3 bg-argila-clara text-corpo text-texto p-5">
+        <p className={cn(CAIXA, "text-corpo p-4")}>
           {portal.pesquisa?.respondida
             ? t.pesquisa_respondida
             : portal.pesquisa?.enviada
@@ -537,23 +552,17 @@ function Completo({
       <section
         id="contato"
         aria-labelledby="contato-titulo"
-        className="rounded-3 bg-marinho flex scroll-mt-4 flex-col gap-4 p-5"
+        className="scroll-mt-4"
       >
-        <div className="flex items-center gap-3">
-          <TileIcone tom="branco" forma="quadrado">
-            <Phone />
-          </TileIcone>
-          <h2
-            id="contato-titulo"
-            className="font-titulo text-2 text-texto-inverso font-medium"
-          >
-            {t.contato_titulo ?? "Fale com a equipe"}
-          </h2>
+        <h2 id="contato-titulo" className="mb-2">
+          <Eyebrow>{t.contato_titulo ?? "Fale com a equipe"}</Eyebrow>
+        </h2>
+        <div className={cn(CAIXA, "flex flex-col gap-3 p-4")}>
+          <ContatoDaEquipe contato={portal.contato} forte={false} />
+          <p className="text-tinta-70 max-w-[56ch] text-[12.5px]">
+            {t.contato_apoio}
+          </p>
         </div>
-        <ContatoDaEquipe contato={portal.contato} forte />
-        <p className="text-corpo text-texto-inverso-2 max-w-[56ch]">
-          {t.contato_apoio}
-        </p>
       </section>
 
       <div className="border-linha bg-creme fixed inset-x-0 bottom-0 z-10 border-t px-4 py-2">
@@ -563,7 +572,7 @@ function Completo({
               ? `tel:${portal.contato.telefoneE164}`
               : "#contato"
           }
-          className="rounded-pilula bg-marinho text-texto-inverso text-corpo min-h-toque max-w-leitura mx-auto flex w-full items-center justify-center gap-2 px-5 font-semibold no-underline"
+          className="bg-marinho text-texto-inverso min-h-toque max-w-leitura mx-auto flex w-full items-center justify-center gap-2 rounded-[8px] px-[22px] text-sm font-medium no-underline"
         >
           <Phone className="size-5" aria-hidden="true" strokeWidth={1.75} />
           {t.contato_titulo ?? "Fale com a equipe"}
@@ -610,10 +619,7 @@ export function PortalFamiliaTela({
 }) {
   return (
     <div
-      className={cn(
-        "flex flex-col gap-8",
-        portal.situacao === "ok" && "pb-20",
-      )}
+      className={cn("flex flex-col gap-8", portal.situacao === "ok" && "pb-20")}
       data-portal={portal.situacao}
     >
       {portal.situacao === "ok" ? (

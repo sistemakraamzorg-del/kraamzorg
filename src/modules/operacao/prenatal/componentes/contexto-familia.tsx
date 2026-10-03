@@ -47,7 +47,7 @@ export function ContextoFamilia({
   return (
     <section
       aria-label="A família"
-      className="rounded-3 bg-areia-clara flex flex-col gap-4 p-5"
+      className="rounded-3 border-linha bg-superficie shadow-1 flex flex-col gap-4 border p-4"
     >
       <div className="flex flex-col gap-2">
         <h2 className="font-titulo text-2 text-texto font-medium">{nome}</h2>
@@ -62,7 +62,7 @@ export function ContextoFamilia({
         {dados.map((d) => (
           <div
             key={d.rotulo}
-            className="rounded-2 bg-superficie flex flex-col gap-0.5 px-3 py-2.5"
+            className="rounded-2 bg-creme-2 flex flex-col gap-0.5 px-3 py-2.5"
           >
             <dt className="text-mini text-texto-2">
               {d.rotulo}

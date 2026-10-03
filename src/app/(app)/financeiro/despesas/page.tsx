@@ -6,7 +6,7 @@ import { exigirSessao } from "@/lib/auth/sessao";
 import { hojeEmBrasilia } from "@/lib/agenda/datas";
 import { buscaParaMes, mesParaBusca } from "@/lib/gestao/formato";
 import { inicioDoMes } from "@/lib/gestao/financeiro";
-import { PainelGrafico } from "@/modules/inicio/painel-gestao";
+import { BlocoForm } from "@/modules/financeiro/mockup-ui";
 import { obterTelaDespesas } from "@/modules/financeiro/gestao/dados";
 import { FormDespesa } from "@/modules/financeiro/gestao/componentes/form-despesa";
 import {
@@ -57,7 +57,7 @@ export default async function PaginaDespesas({
             : "O que foi pago, por categoria, para o DRE do mês."
         }
       />
-      <div className="flex flex-col gap-6 pt-6">
+      <div className="flex flex-col gap-3.5 pt-6">
         <div className="flex flex-wrap items-center gap-3">
           <NavegacaoFinanceiro atual="/financeiro/despesas" mes={mes} />
           <SeletorMes mes={mes} hoje={hoje} caminho="/financeiro/despesas" />
@@ -69,7 +69,7 @@ export default async function PaginaDespesas({
         ) : tela.situacao === "ok" ? (
           <>
             <div className="max-w-[720px]">
-              <PainelGrafico
+              <BlocoForm
                 titulo={
                   emCorrecao ? "Corrigir a despesa" : "Lançar uma despesa"
                 }
@@ -81,7 +81,7 @@ export default async function PaginaDespesas({
                   despesa={emCorrecao}
                   voltarPara={`/financeiro/despesas?mes=${mesParaBusca(mes)}`}
                 />
-              </PainelGrafico>
+              </BlocoForm>
             </div>
             <ListaDespesasTela lista={tela.dados} />
           </>

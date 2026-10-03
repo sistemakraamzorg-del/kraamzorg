@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { LockKeyhole } from "lucide-react";
+import { CabecalhoTela } from "@/components/shell/cabecalho-tela";
 import { Botao } from "@/components/ui/botao";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { exigeMfa } from "@/lib/auth/papeis";
@@ -50,62 +51,58 @@ export default async function PaginaTarefasEquipe() {
   }
 
   return (
-    <div className="flex flex-col gap-3 pt-2">
-      <div className="flex flex-col gap-2">
-        <h1 className="font-titulo text-display lg:text-display-lg text-texto font-normal">
-          Tarefas por equipe
-        </h1>
-        <p className="text-apoio text-texto-2 max-w-[60ch]">
-          Cada tarefa aberta numa coluna pelo estado em que está. Toque numa
-          tarefa para ver os detalhes e passar para outra pessoa. Arraste entre
-          as colunas, ou use os botões Começar e Concluir.
-        </p>
-      </div>
-
-      {semMfa ? (
-        <div className="rounded-3 bg-superficie shadow-1 flex max-w-[560px] flex-col gap-3 p-5">
-          <p className="text-corpo text-texto flex items-start gap-3">
-            <LockKeyhole
-              className="text-texto-2 mt-1 size-4 shrink-0"
-              aria-hidden="true"
-              strokeWidth={1.75}
-            />
-            Esta tela reúne as tarefas de todas as equipes, por isso pede o
-            código do aplicativo (MFA) antes de abrir.
-          </p>
-          <Botao
-            asChild
-            variante="secundario"
-            tamanho="compacto"
-            className="self-start"
-          >
-            <Link
-              href={`${usuario.aalPossivel === "aal2" ? "/mfa/desafio" : "/mfa/cadastro"}?proximo=${encodeURIComponent("/tarefas-equipe")}`}
+    <>
+      <CabecalhoTela
+        titulo="Tarefas por equipe"
+        subtitulo="Cada tarefa aberta numa coluna pelo estado em que está. Toque numa tarefa para ver os detalhes e passar para outra pessoa. Arraste entre as colunas, ou use os botões Começar e Concluir."
+      />
+      {/* A página cabe na janela: só as colunas rolam, por dentro. */}
+      <div className="flex h-[calc(100dvh-16rem)] min-h-[28rem] flex-col gap-3 pt-3 lg:h-[calc(100dvh-9rem)]">
+        {semMfa ? (
+          <div className="rounded-3 bg-superficie shadow-1 flex max-w-[560px] flex-col gap-3 p-5">
+            <p className="text-corpo text-texto flex items-start gap-3">
+              <LockKeyhole
+                className="text-texto-2 mt-1 size-4 shrink-0"
+                aria-hidden="true"
+                strokeWidth={1.75}
+              />
+              Esta tela reúne as tarefas de todas as equipes, por isso pede o
+              código do aplicativo (MFA) antes de abrir.
+            </p>
+            <Botao
+              asChild
+              variante="secundario"
+              tamanho="compacto"
+              className="self-start"
             >
-              Confirmar com o código
-            </Link>
-          </Botao>
-        </div>
-      ) : falhou || !visao ? (
-        <FaixaAlerta
-          variante={falhou ? "erro" : "info"}
-          titulo={
-            falhou
-              ? "As tarefas não abriram agora"
-              : "Esta visão é da coordenação e da diretoria"
-          }
-        >
-          {falhou
-            ? "Confira a conexão e recarregue a página. Nada foi alterado."
-            : "Suas próprias tarefas ficam na tela Tarefas."}
-        </FaixaAlerta>
-      ) : (
-        <QuadroEquipes
-          quadro={montarQuadroEquipes(visao)}
-          pessoas={[...pessoas].map(([id, nome]) => ({ id, nome }))}
-          familias={familias}
-        />
-      )}
-    </div>
+              <Link
+                href={`${usuario.aalPossivel === "aal2" ? "/mfa/desafio" : "/mfa/cadastro"}?proximo=${encodeURIComponent("/tarefas-equipe")}`}
+              >
+                Confirmar com o código
+              </Link>
+            </Botao>
+          </div>
+        ) : falhou || !visao ? (
+          <FaixaAlerta
+            variante={falhou ? "erro" : "info"}
+            titulo={
+              falhou
+                ? "As tarefas não abriram agora"
+                : "Esta visão é da coordenação e da diretoria"
+            }
+          >
+            {falhou
+              ? "Confira a conexão e recarregue a página. Nada foi alterado."
+              : "Suas próprias tarefas ficam na tela Tarefas."}
+          </FaixaAlerta>
+        ) : (
+          <QuadroEquipes
+            quadro={montarQuadroEquipes(visao)}
+            pessoas={[...pessoas].map(([id, nome]) => ({ id, nome }))}
+            familias={familias}
+          />
+        )}
+      </div>
+    </>
   );
 }

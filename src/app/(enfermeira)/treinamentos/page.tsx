@@ -54,7 +54,7 @@ export default async function PaginaTreinamentos() {
               <section
                 key={t.id}
                 aria-label={t.nome}
-                className="rounded-3 bg-areia-clara flex flex-col gap-4 p-5"
+                className="rounded-3 border-linha bg-creme-2 border flex flex-col gap-4 p-5"
                 data-trilha={t.nome}
               >
                 <div className="flex items-center gap-3">

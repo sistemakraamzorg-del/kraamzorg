@@ -4,7 +4,12 @@ import { usePathname } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { AbasInferiores } from "@/components/ui/abas-inferiores";
 import { BarraLateral } from "@/components/ui/barra-lateral";
-import { ativo, type GrupoLateral, type ItemNavegacao } from "@/lib/navegacao";
+import {
+  ativo,
+  rotuloLateral,
+  type GrupoLateral,
+  type ItemNavegacao,
+} from "@/lib/navegacao";
 import { IconeNavegacao } from "./icones-navegacao";
 
 /**
@@ -35,6 +40,15 @@ export interface NavegacaoAppProps {
   papeis: string;
 }
 
+/** "ER" de "Edilaine Rossetto": primeira letra do primeiro e do último nome. */
+function iniciais(nome: string): string {
+  const partes = nome.trim().split(/\s+/).filter(Boolean);
+  const primeira = partes[0]?.[0] ?? "";
+  const ultima =
+    partes.length > 1 ? (partes[partes.length - 1]?.[0] ?? "") : "";
+  return (primeira + ultima).toUpperCase();
+}
+
 export function NavegacaoLateral({
   grupos,
   nome,
@@ -50,7 +64,7 @@ export function NavegacaoLateral({
       grupos={grupos.map((grupo) => ({
         titulo: grupo.titulo,
         itens: grupo.itens.map((item) => ({
-          rotulo: item.rotulo,
+          rotulo: rotuloLateral(item),
           href: item.caminho,
           icone: <IconeNavegacao nome={item.icone} />,
           ativo: ativo(item, caminho),
@@ -61,19 +75,31 @@ export function NavegacaoLateral({
         })),
       }))}
       rodape={
-        <div className="flex flex-col gap-2 px-2">
-          <div>
-            <p className="text-texto-inverso font-semibold">{nome}</p>
-            <p className="text-mini text-texto-inverso-2">{papeis}</p>
+        <div className="flex flex-col gap-1.5">
+          <div className="flex items-center gap-[9px]">
+            <span
+              aria-hidden="true"
+              className="bg-dourado-2 text-marinho grid size-[30px] shrink-0 place-items-center rounded-full text-[11.5px] font-semibold"
+            >
+              {iniciais(nome)}
+            </span>
+            <div className="min-w-0">
+              <p className="text-creme truncate text-[12.5px] font-semibold">
+                {nome}
+              </p>
+              <p className="text-texto-inverso-2 truncate text-[10.5px]">
+                {papeis}
+              </p>
+            </div>
           </div>
           <form action="/sair" method="post">
             <button
               type="submit"
-              className="min-h-toque rounded-pilula text-apoio text-texto-inverso hover:bg-lateral-hover -ml-3 inline-flex items-center gap-2 px-3 font-medium"
+              className="text-texto-inverso hover:bg-lateral-hover -ml-2 inline-flex min-h-8 items-center gap-2 rounded-[7px] px-2 text-[12.5px] font-medium"
             >
               <LogOut
                 aria-hidden="true"
-                className="text-texto-inverso-2 size-5"
+                className="text-texto-inverso-2 size-[15px]"
                 strokeWidth={1.75}
               />
               Sair

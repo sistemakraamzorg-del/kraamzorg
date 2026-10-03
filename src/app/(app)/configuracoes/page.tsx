@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { Card, CardBody, Eyebrow, Nota } from "@/components/mockup";
 import { CabecalhoTela } from "@/components/shell/cabecalho-tela";
 import { ChaveDeCasa } from "@/components/ilustracoes";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
@@ -28,6 +30,25 @@ const ABAS_DIRETORIA: AbaConfiguracoes[] = [
 
 const ABAS_COORDENACAO: AbaConfiguracoes[] = [
   { chave: "termos-alerta", rotulo: "Termos de alerta" },
+];
+
+/** Os três blocos de atalho do mockup, apontando para as abas que já existem. */
+const ATALHOS: { titulo: string; texto: string; abas: string[] }[] = [
+  {
+    titulo: "Catálogo",
+    texto: "Pacotes e versões de preço, condições de pagamento.",
+    abas: ["pacotes", "condicoes"],
+  },
+  {
+    titulo: "Operação",
+    texto: "Cidades e regiões atendidas e a régua de contato.",
+    abas: ["regioes", "regua"],
+  },
+  {
+    titulo: "Agente e segurança",
+    texto: "Mensagens da família e termos que disparam alerta.",
+    abas: ["mensagens", "termos-alerta"],
+  },
 ];
 
 const BLOCO_TABELA =
@@ -70,12 +91,16 @@ export default async function PaginaConfiguracoes({
             : "Os termos que disparam alerta ou bloqueio para a equipe de saúde."
         }
       />
-      <div className="mt-4">
+      <Nota className="mt-3.5">
+        <b>Regra de negócio não mora no código.</b> Tudo nesta tela é editável
+        pela Kraamzorg sem precisar de deploy.
+      </Nota>
+      <div className="mt-3.5">
         <AbasConfiguracoes abas={abas} ativa={aba} />
       </div>
       {/* Tela densa (DESIGN.md, 2: Restrained): as tabelas moram num bloco
           branco no computador; no celular cada linha já vira um cartão. */}
-      <div className="pt-6">
+      <div className="pt-3.5">
         {aba === "pacotes" && vePreco ? (
           <SecaoPacotes />
         ) : aba === "regioes" && vePreco ? (
@@ -100,6 +125,31 @@ export default async function PaginaConfiguracoes({
           />
         )}
       </div>
+      {vePreco ? (
+        <div className="mt-3.5 grid grid-cols-1 gap-3.5 lg:grid-cols-3">
+          {ATALHOS.map((a) => (
+            <Card key={a.titulo}>
+              <CardBody>
+                <Eyebrow>{a.titulo}</Eyebrow>
+                <p className="mt-[7px] text-[11.5px] leading-[1.7]">
+                  {a.texto}
+                </p>
+                <div className="mt-2 flex flex-wrap gap-x-3">
+                  {a.abas.map((chave) => (
+                    <Link
+                      key={chave}
+                      href={`/configuracoes?aba=${chave}`}
+                      className="text-dourado-texto inline-flex min-h-11 items-center text-[12.5px] font-medium underline underline-offset-2 lg:min-h-8"
+                    >
+                      {ABAS_DIRETORIA.find((x) => x.chave === chave)?.rotulo}
+                    </Link>
+                  ))}
+                </div>
+              </CardBody>
+            </Card>
+          ))}
+        </div>
+      ) : null}
     </>
   );
 }

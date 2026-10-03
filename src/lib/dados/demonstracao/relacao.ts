@@ -1,3 +1,4 @@
+import { dataEmBrasilia } from "@/lib/agenda/datas";
 import { exigeMfa, type Papel } from "@/lib/auth/papeis";
 import type { NivelAutenticacao } from "@/lib/auth/tipos";
 import type { Json } from "@/lib/db/types";
@@ -725,7 +726,9 @@ export function criarRelacaoDemonstracao(
             const dias = m.ultimoContatoEm
               ? Math.floor(
                   (Date.parse(`${hoje}T00:00:00Z`) -
-                    Date.parse(`${m.ultimoContatoEm.slice(0, 10)}T00:00:00Z`)) /
+                    Date.parse(
+                      `${dataEmBrasilia(m.ultimoContatoEm) ?? m.ultimoContatoEm.slice(0, 10)}T00:00:00Z`,
+                    )) /
                     86_400_000,
                 )
               : null;

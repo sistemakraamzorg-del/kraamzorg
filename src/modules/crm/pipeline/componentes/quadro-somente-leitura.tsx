@@ -5,7 +5,6 @@ import Link from "next/link";
 import { OctagonPause } from "lucide-react";
 import { FolhaLupa } from "@/components/ilustracoes";
 import { Botao } from "@/components/ui/botao";
-import { Cartao } from "@/components/ui/cartao";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import {
@@ -14,6 +13,14 @@ import {
 } from "@/components/ui/painel-lateral";
 import { Selo } from "@/components/ui/selo";
 import type { CartaoSomenteLeitura } from "../somente-leitura";
+import {
+  CLASSE_CARTAO,
+  CLASSE_COLUNA,
+  CLASSE_QUADRO,
+  CLASSE_RODAPE,
+  CabecalhoColuna,
+  ETIQUETA_MIUDA,
+} from "./visual-quadro";
 
 /**
  * Quadro das abas 3 (atendimento) e 4 (pós-venda): colunas por estágio
@@ -50,7 +57,7 @@ export function QuadroSomenteLeitura({
         Estes estágios mudam por registros e automações, não por arrastar.
       </FaixaAlerta>
       <div
-        className="-mx-4 flex snap-x snap-mandatory items-start gap-3 overflow-x-auto px-4 pt-3 pb-3 lg:mx-0 lg:px-0"
+        className={`${CLASSE_QUADRO} pt-3 lg:pt-1`}
         role="region"
         aria-label={`Estágios de ${nomeAba}, somente leitura.`}
         tabIndex={0}
@@ -63,34 +70,21 @@ export function QuadroSomenteLeitura({
             <section
               key={coluna.estagio}
               aria-labelledby={`titulo-${coluna.estagio}`}
-              className="rounded-3 border-linha bg-areia-clara shadow-1 flex max-h-[65dvh] w-[17.5rem] flex-none snap-start flex-col gap-2 border p-2 lg:w-[19rem]"
+              className={CLASSE_COLUNA}
             >
-              <div className="flex min-h-9 flex-none items-center gap-2 pl-1">
-                <span
-                  aria-hidden="true"
-                  className="bg-dourado size-2.5 flex-none rounded-full"
-                />
-                <h2
-                  id={`titulo-${coluna.estagio}`}
-                  className="font-titulo text-3 min-w-0 flex-1 truncate font-medium"
-                >
-                  {coluna.rotulo}
-                </h2>
-                <span
-                  tabIndex={0}
-                  aria-label={dica}
-                  title={dica}
-                  className="rounded-pilula bg-superficie text-apoio border-linha inline-flex min-h-8 min-w-8 items-center justify-center border px-2 font-mono font-medium"
-                >
-                  {n}
-                </span>
-              </div>
+              <CabecalhoColuna
+                id={`titulo-${coluna.estagio}`}
+                estagio={coluna.estagio}
+                rotulo={coluna.rotulo}
+                contagem={n}
+                dica={dica}
+              />
               {n === 0 ? (
-                <p className="text-apoio text-texto-2 px-2 pb-2">
+                <p className="text-tinta-50 px-1 pb-2 text-[11.5px]">
                   Nenhuma família neste estágio agora.
                 </p>
               ) : null}
-              <div className="flex min-h-0 flex-col gap-2 overflow-y-auto overscroll-contain pr-0.5">
+              <div className="flex min-h-0 flex-col gap-2 overflow-y-auto overscroll-contain lg:max-h-[calc(100dvh-22rem)]">
                 {itens.map((c) => (
                   <CartaoLeitura
                     key={c.id}
@@ -114,7 +108,31 @@ export function QuadroSomenteLeitura({
             rotuloFechar="Fechar detalhes"
           >
             <dl>
-              <Linha rotulo="Estágio">{detalhe.rotuloEstagio}</Linha>
+              <Linha rotulo="Estágio">
+                {detalhe.rotuloEstagio}
+                {detalhe.tempoNoEstagio ? (
+                  <span className="text-apoio text-texto-2">
+                    {" "}
+                    (
+                    {detalhe.tempoNoEstagio === "Hoje"
+                      ? "desde hoje"
+                      : detalhe.tempoNoEstagio.charAt(0).toLowerCase() +
+                        detalhe.tempoNoEstagio.slice(1)}
+                    )
+                  </span>
+                ) : null}
+              </Linha>
+              {detalhe.selos.length > 0 ? (
+                <Linha rotulo="Situação">
+                  <span className="flex flex-wrap gap-1.5">
+                    {detalhe.selos.map((s) => (
+                      <Selo key={s.texto} variante={s.tom}>
+                        {s.texto}
+                      </Selo>
+                    ))}
+                  </span>
+                </Linha>
+              ) : null}
               {detalhe.idadeGestacional ? (
                 <Linha rotulo="Situação da gestação">
                   <span className="font-mono">{detalhe.idadeGestacional}</span>
@@ -172,63 +190,73 @@ function CartaoLeitura({
   cartao: CartaoSomenteLeitura;
   aoAbrir: () => void;
 }) {
+  // Detalhes que saíram do cartão: ficam na dica e no painel.
+  const dica = [
+    ...cartao.linhas.map((l) => `${l.rotulo}: ${l.valor}`),
+    cartao.tempoNoEstagio
+      ? `Neste estágio ${
+          cartao.tempoNoEstagio === "Hoje"
+            ? "desde hoje"
+            : cartao.tempoNoEstagio.charAt(0).toLowerCase() +
+              cartao.tempoNoEstagio.slice(1)
+        }`
+      : null,
+    ...cartao.selos.slice(1).map((s) => s.texto),
+  ]
+    .filter(Boolean)
+    .join(". ");
+  const selo = cartao.selos[0];
   return (
-    <Cartao
-      variante="plano"
+    <div
+      title={dica || undefined}
       onClick={(e) => {
         if (!(e.target as HTMLElement).closest("button, a")) aoAbrir();
       }}
-      className={`shadow-1 hover:shadow-2 cursor-pointer motion-safe:transition-shadow motion-safe:duration-140 ${
-        cartao.emFreio ? "bg-sensivel-lavado border-sensivel-borda border" : ""
+      className={`${CLASSE_CARTAO} cursor-pointer ${
+        cartao.emFreio ? "bg-sensivel-lavado border-sensivel-borda" : ""
       }`}
     >
-      <div className="flex flex-col gap-1">
-        <button
-          type="button"
-          onClick={aoAbrir}
-          aria-label={`Ver detalhes de ${cartao.nomeFamilia}`}
-          className="font-titulo text-3 min-h-toque inline-flex items-center text-left font-medium underline-offset-4 hover:underline"
-        >
-          {cartao.nomeFamilia}
-        </button>
-        <p className="text-apoio text-texto-2 flex flex-wrap gap-x-3 gap-y-0.5">
+      <button
+        type="button"
+        onClick={aoAbrir}
+        aria-label={`Ver detalhes de ${cartao.nomeFamilia}`}
+        className="min-h-toque inline-flex w-full items-center truncate text-left text-[12.5px] font-semibold underline-offset-4 hover:underline lg:min-h-6"
+      >
+        <span className="truncate">{cartao.nomeFamilia}</span>
+      </button>
+      {cartao.idadeGestacional || cartao.localidade ? (
+        <p className="text-tinta-50 mt-[3px] flex flex-wrap gap-1.5 text-[11px]">
           {cartao.idadeGestacional ? (
             <span className="font-mono">{cartao.idadeGestacional}</span>
           ) : null}
+          {cartao.idadeGestacional && cartao.localidade ? (
+            <span aria-hidden="true">·</span>
+          ) : null}
           {cartao.localidade ? <span>{cartao.localidade}</span> : null}
         </p>
-        {cartao.linhas.map((l) => (
-          <p key={l.rotulo} className="text-mini text-texto-2">
-            {l.rotulo}: <span className="font-mono">{l.valor}</span>
-          </p>
-        ))}
-        {cartao.tempoNoEstagio ? (
-          <p className="text-mini text-texto-2">
-            Neste estágio{" "}
-            {cartao.tempoNoEstagio === "Hoje"
-              ? "desde hoje"
-              : cartao.tempoNoEstagio.charAt(0).toLowerCase() +
-                cartao.tempoNoEstagio.slice(1)}
-          </p>
-        ) : null}
-        {cartao.selos.length > 0 || cartao.emFreio ? (
-          <div className="flex flex-wrap gap-1.5">
-            {cartao.selos.map((s) => (
-              <Selo key={s.texto} variante={s.tom}>
-                {s.texto}
-              </Selo>
-            ))}
-            {cartao.emFreio ? (
-              <Selo
-                variante="sensivel"
-                icone={<OctagonPause aria-hidden="true" />}
-              >
-                Freio ativo
-              </Selo>
-            ) : null}
-          </div>
-        ) : null}
-      </div>
-    </Cartao>
+      ) : null}
+      {selo || cartao.emFreio ? (
+        <div className={CLASSE_RODAPE}>
+          {selo ? (
+            <Selo
+              key={selo.texto}
+              variante={selo.tom}
+              className={ETIQUETA_MIUDA}
+            >
+              {selo.texto}
+            </Selo>
+          ) : null}
+          {cartao.emFreio ? (
+            <Selo
+              variante="sensivel"
+              icone={<OctagonPause aria-hidden="true" />}
+              className={ETIQUETA_MIUDA}
+            >
+              Freio ativo
+            </Selo>
+          ) : null}
+        </div>
+      ) : null}
+    </div>
   );
 }

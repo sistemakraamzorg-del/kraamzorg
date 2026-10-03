@@ -1,4 +1,5 @@
 import { CabecalhoTela } from "@/components/shell/cabecalho-tela";
+import { Kpi } from "@/components/mockup";
 import { AbasPilula } from "@/components/ui/abas-pilula";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { exigirSessao } from "@/lib/auth/sessao";
@@ -61,7 +62,7 @@ export async function PaginaDeAlertas({
   }
 
   return (
-    <div className="flex flex-col gap-6 pb-8">
+    <div className="flex flex-col gap-3.5 pb-8">
       <CabecalhoTela titulo={t.titulo} subtitulo={t.subtitulo} />
       <AbasPilula
         rotulo={textosAlertas.abas.rotulo}
@@ -73,6 +74,36 @@ export async function PaginaDeAlertas({
           href: s === "abertos" ? caminho : `${caminho}?situacao=${s}`,
         }))}
       />
+      {alertas.length > 0 ? (
+        <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-3">
+          <Kpi
+            rotulo={
+              situacao === "abertos" ? "Alertas abertos" : "Alertas fechados"
+            }
+            valor={alertas.length}
+          />
+          <Kpi
+            rotulo="Imediatos"
+            valor={alertas.filter((a) => a.severidade === "imediato").length}
+            delta="conduta aprovada, sem paráfrase"
+            tomDelta="alerta"
+          />
+          <Kpi
+            rotulo="Com registro completo"
+            valor={
+              alertas.filter(
+                (a) =>
+                  a.sinalIdentificado &&
+                  a.acionadoEm &&
+                  a.orientacaoMedica &&
+                  a.condutaAdotada,
+              ).length
+            }
+            delta="os quatro campos preenchidos"
+            tomDelta="ok"
+          />
+        </div>
+      ) : null}
       {alertas.length === 0 ? (
         <VazioDosAlertas situacao={situacao} />
       ) : (

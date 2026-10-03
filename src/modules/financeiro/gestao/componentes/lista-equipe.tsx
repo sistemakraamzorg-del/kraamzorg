@@ -1,9 +1,7 @@
 import { MantaDobrada } from "@/components/ilustracoes";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
-import {
-  GradeIndicadores,
-  PainelGrafico,
-} from "@/modules/inicio/painel-gestao";
+import { Kpi } from "@/components/mockup";
+import { BlocoTabela, Grade } from "../../mockup-ui";
 import { Selo } from "@/components/ui/selo";
 import type {
   PagamentoEquipe,
@@ -89,34 +87,25 @@ export function ListaEquipe({
   // evoluções e, no fim, o que já foi pago.
   const r = dados.resumo;
   return (
-    <div className="flex flex-col gap-6">
-      <div className="[&>ul]:mt-0">
-        <GradeIndicadores
-          itens={[
-            {
-              rotulo: "Liberados para pagar",
-              valor: formatarMoeda(r.liberadoCentavos),
-              contexto: `${plural(r.liberadoQtd, "pagamento liberado", "pagamentos liberados")}.`,
-              href: "#equipe-liberado",
-              tom: "dourado",
-            },
-            {
-              rotulo: "Esperando as evoluções",
-              valor: formatarMoeda(r.bloqueadoCentavos),
-              contexto: `${plural(r.bloqueadoQtd, "pagamento bloqueado", "pagamentos bloqueados")} até o envio aos médicos.`,
-              href: "#equipe-bloqueado",
-              tom: "areia",
-            },
-            {
-              rotulo: `Pagos em ${rotuloMes(r.mes)}`,
-              valor: formatarMoeda(r.pagoNoMesCentavos),
-              contexto: `${plural(r.pagoNoMesQtd, "pagamento feito", "pagamentos feitos")} no mês.`,
-              href: "#equipe-pago",
-              tom: "salvia",
-            },
-          ]}
+    <div className="flex flex-col gap-3.5">
+      <Grade colunas={3}>
+        <Kpi
+          rotulo="Liberados para pagar"
+          valor={formatarMoeda(r.liberadoCentavos)}
+          delta={`${plural(r.liberadoQtd, "pagamento liberado", "pagamentos liberados")}.`}
         />
-      </div>
+        <Kpi
+          rotulo="Esperando as evoluções"
+          valor={formatarMoeda(r.bloqueadoCentavos)}
+          delta={`${plural(r.bloqueadoQtd, "pagamento bloqueado", "pagamentos bloqueados")} até o envio aos médicos.`}
+        />
+        <Kpi
+          rotulo={`Pagos em ${rotuloMes(r.mes)}`}
+          valor={formatarMoeda(r.pagoNoMesCentavos)}
+          delta={`${plural(r.pagoNoMesQtd, "pagamento feito", "pagamentos feitos")} no mês.`}
+          tomDelta="ok"
+        />
+      </Grade>
       {GRUPOS.map((grupo) => {
         const doGrupo = dados.pagamentos.filter(
           (p) => p.status === grupo.status,
@@ -128,16 +117,16 @@ export function ListaEquipe({
             id={`equipe-${grupo.status}`}
             className="scroll-mt-24"
           >
-            <PainelGrafico
+            <BlocoTabela
               titulo={grupo.titulo}
-              nota={plural(doGrupo.length, "pagamento", "pagamentos")}
+              direita={plural(doGrupo.length, "pagamento", "pagamentos")}
             >
-              <ul className="grid grid-cols-1 items-start gap-3 lg:grid-cols-2">
+              <ul className="grid grid-cols-1 items-start gap-3 p-4 lg:grid-cols-2">
                 {doGrupo.map((p) => (
                   <CartaoPagamento key={p.id} p={p} hoje={hoje} />
                 ))}
               </ul>
-            </PainelGrafico>
+            </BlocoTabela>
           </div>
         );
       })}

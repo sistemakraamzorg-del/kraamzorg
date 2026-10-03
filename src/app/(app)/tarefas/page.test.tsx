@@ -96,7 +96,8 @@ describe("PaginaTarefas", () => {
     expect(screen.getByText("Como as tarefas funcionam")).toBeInTheDocument();
     const cartoes = screen
       .getAllByRole("heading", { level: 3 })
-      .map((titulo) => titulo.closest(".rounded-3")!);
+      .map((titulo) => titulo.closest("[data-tarefa]"))
+      .filter((cartao): cartao is Element => cartao !== null);
     expect(cartoes.length).toBeGreaterThan(0);
     for (const cartao of cartoes) {
       expect(cartao).toHaveTextContent("Por que existe");
@@ -106,7 +107,7 @@ describe("PaginaTarefas", () => {
       .getByRole("heading", {
         name: "Justificar o freio da Família Teste Bruma",
       })
-      .closest(".rounded-3")!;
+      .closest("[data-tarefa]")!;
     expect(freio).toHaveTextContent("Nasceu quando o freio foi acionado");
     expect(freio).not.toHaveTextContent("O que fazer");
     // O follow-up: de onde veio e o que fazer.
@@ -114,7 +115,7 @@ describe("PaginaTarefas", () => {
       .getByRole("heading", {
         name: "Retomar a conversa com a Família Teste Cedro",
       })
-      .closest(".rounded-3")!;
+      .closest("[data-tarefa]")!;
     expect(cedro).toHaveTextContent("retorno combinado");
     expect(cedro).toHaveTextContent("O que fazer");
   });

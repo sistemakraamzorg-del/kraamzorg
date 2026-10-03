@@ -5,7 +5,8 @@ import { z } from "zod";
 import { CabecalhoTela } from "@/components/shell/cabecalho-tela";
 import { JanelaManha } from "@/components/ilustracoes";
 import { AbasPilula } from "@/components/ui/abas-pilula";
-import { Botao } from "@/components/ui/botao";
+import { Kpi, TituloSecao, classesChip } from "@/components/mockup";
+import { cn } from "@/lib/utils";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import {
@@ -18,13 +19,15 @@ import { exigirSessao } from "@/lib/auth/sessao";
 import { formatarData } from "@/lib/formatacao";
 import {
   ListaAgenda,
-  SemanaEmBlocos,
+  GradeSemana,
 } from "@/modules/operacao/equipe/componentes/lista-agenda";
 import { rotuloSemana } from "@/modules/operacao/equipe/componentes/semana-equipe";
 import {
   carregarAgenda,
   type AgendaTela,
 } from "@/modules/operacao/equipe/dados";
+
+const CHIP_TOQUE = "min-h-toque justify-center lg:min-h-8 no-underline";
 
 export const metadata: Metadata = { title: "Agenda · Kraamzorg OS" };
 
@@ -72,7 +75,10 @@ export default async function PaginaAgenda({
   try {
     tela = await carregarAgenda({ desde, ate, profissionalId });
   } catch (erro) {
-    console.error("[tela-erro] /agenda", erro instanceof Error ? erro.message : erro);
+    console.error(
+      "[tela-erro] /agenda",
+      erro instanceof Error ? erro.message : erro,
+    );
     tela = null;
   }
 
@@ -89,6 +95,16 @@ export default async function PaginaAgenda({
     return `/agenda?${p.toString()}`;
   };
 
+  const concluidas =
+    tela?.agenda.visitas.filter((v) =>
+      ["concluida", "ficha_entregue", "encerrada"].includes(v.estado),
+    ).length ?? 0;
+  const fichasEntregues =
+    tela?.agenda.visitas.filter((v) => v.estado === "ficha_entregue").length ??
+    0;
+  const fichasPendentes =
+    tela?.agenda.visitas.filter((v) => v.estado === "ficha_pendente").length ??
+    0;
   const comConflito =
     tela?.agenda.visitas.filter((v) => v.conflitos.length > 0).length ?? 0;
   const total = tela?.agenda.visitas.length ?? 0;
@@ -112,104 +128,150 @@ export default async function PaginaAgenda({
             : undefined
         }
       />
-      <div className="flex flex-col gap-6 pt-4">
+      <div className="flex flex-col gap-4 pt-4">
         {feito ? <FaixaAlerta variante="sucesso" titulo={feito} /> : null}
 
-        <nav aria-label="Período e enfermeira" className="flex flex-col gap-3">
-          <div className="flex flex-wrap items-center gap-2">
-            <AbasPilula
-              rotulo="Ver por dia ou por semana"
-              ativa={visao}
-              abas={[
-                {
-                  valor: "dia",
-                  rotulo: "Dia",
-                  href: ligacao({ visao: "dia" }),
-                },
-                {
-                  valor: "semana",
-                  rotulo: "Semana",
-                  href: ligacao({ visao: "semana" }),
-                },
-              ]}
-            />
-            <span className="ml-auto flex flex-wrap items-center gap-2">
-              <Botao
-                asChild
-                variante="secundario"
-                tamanho="compacto"
-                iconeEsquerda={<ChevronLeft aria-hidden="true" />}
-              >
-                <Link href={ligacao({ data: somarDias(dia, -passo) })}>
-                  {visao === "dia" ? "Dia anterior" : "Semana anterior"}
-                </Link>
-              </Botao>
-              {dia !== hoje ? (
-                <Botao asChild variante="fantasma" tamanho="compacto">
-                  <Link href={ligacao({ data: hoje })}>Hoje</Link>
-                </Botao>
-              ) : null}
-              <Botao
-                asChild
-                variante="secundario"
-                tamanho="compacto"
-                iconeDireita={<ChevronRight aria-hidden="true" />}
-              >
-                <Link href={ligacao({ data: somarDias(dia, passo) })}>
-                  {visao === "dia" ? "Próximo dia" : "Próxima semana"}
-                </Link>
-              </Botao>
-            </span>
-          </div>
-          {tela && tela.profissionais.length > 0 ? (
-            <AbasPilula
-              rotulo="Enfermeira"
-              ativa={profissionalId ?? ""}
-              className="self-start"
-              abas={[
-                {
-                  valor: "",
-                  rotulo: "Todas as enfermeiras",
-                  href: ligacao({ profissional: null }),
-                },
-                ...tela.profissionais.map((p) => ({
-                  valor: p.id,
-                  rotulo: p.nome,
-                  href: ligacao({ profissional: p.id }),
-                })),
-              ]}
-            />
-          ) : null}
-        </nav>
-
-        {tela && visao === "semana" ? (
-          <SemanaEmBlocos
-            dias={Array.from({ length: 7 }, (_, i) => somarDias(desde, i))}
-            visitas={tela.agenda.visitas}
-            hoje={hoje}
+        <nav
+          aria-label="Período e enfermeira"
+          className="flex flex-wrap items-center gap-[9px]"
+        >
+          <AbasPilula
+            rotulo="Ver por dia ou por semana"
+            ativa={visao}
+            abas={[
+              { valor: "dia", rotulo: "Dia", href: ligacao({ visao: "dia" }) },
+              {
+                valor: "semana",
+                rotulo: "Semana",
+                href: ligacao({ visao: "semana" }),
+              },
+            ]}
           />
-        ) : null}
+          {tela && tela.profissionais.length > 0 ? (
+            <>
+              <span
+                aria-hidden="true"
+                className="bg-fio-2 mx-[5px] hidden w-px self-stretch lg:block"
+              />
+              <AbasPilula
+                rotulo="Enfermeira"
+                ativa={profissionalId ?? ""}
+                abas={[
+                  {
+                    valor: "",
+                    rotulo: "Todas as enfermeiras",
+                    href: ligacao({ profissional: null }),
+                  },
+                  ...tela.profissionais.map((p) => ({
+                    valor: p.id,
+                    rotulo: p.nome,
+                    href: ligacao({ profissional: p.id }),
+                  })),
+                ]}
+              />
+            </>
+          ) : null}
+          <span className="flex flex-wrap items-center gap-[9px] lg:ml-auto">
+            <Link
+              href={ligacao({ data: somarDias(dia, -passo) })}
+              aria-label={visao === "dia" ? "Dia anterior" : "Semana anterior"}
+              className={cn(classesChip(), CHIP_TOQUE)}
+            >
+              <ChevronLeft aria-hidden="true" className="size-4" />
+            </Link>
+            <span className={cn(classesChip(), CHIP_TOQUE)}>
+              {visao === "dia" ? formatarData(dia) : rotuloSemana(desde, ate)}
+            </span>
+            <Link
+              href={ligacao({ data: somarDias(dia, passo) })}
+              aria-label={visao === "dia" ? "Próximo dia" : "Próxima semana"}
+              className={cn(classesChip(), CHIP_TOQUE)}
+            >
+              <ChevronRight aria-hidden="true" className="size-4" />
+            </Link>
+            {dia !== hoje ? (
+              <Link
+                href={ligacao({ data: hoje })}
+                className={cn(classesChip(), CHIP_TOQUE)}
+              >
+                Hoje
+              </Link>
+            ) : null}
+          </span>
+        </nav>
 
         {!tela ? (
           <FaixaAlerta variante="erro" titulo="A agenda não abriu agora">
             Nenhuma visita foi alterada. Recarregue a página; se continuar,
             avise a equipe técnica.
           </FaixaAlerta>
-        ) : tela.agenda.visitas.length === 0 &&
-          tela.sessoesDeVenda.length === 0 ? (
-          <EstadoVazio
-            nivelTitulo="h2"
-            ilustracao={<JanelaManha tamanho={112} />}
-            titulo="Nada marcado neste período"
-            texto="Quando houver visitas, elas aparecem aqui por dia, com os conflitos marcados. Use as setas para ver outro dia ou outra semana."
-          />
         ) : (
-          <ListaAgenda
-            visitas={tela.agenda.visitas}
-            sessoes={tela.sessoesDeVenda}
-            hoje={hoje}
-            limiteVisitasDia={tela.agenda.limiteVisitasDia}
-          />
+          <>
+            <GradeSemana
+              dias={Array.from({ length: visao === "dia" ? 1 : 7 }, (_, i) =>
+                somarDias(desde, i),
+              )}
+              visitas={tela.agenda.visitas}
+              sessoes={tela.sessoesDeVenda}
+              hoje={hoje}
+            />
+
+            <div className="grid grid-cols-1 gap-3.5 md:grid-cols-3">
+              <Kpi
+                rotulo={
+                  visao === "dia" ? "Visitas no dia" : "Visitas na semana"
+                }
+                valor={total}
+                delta={
+                  <>
+                    <b className="text-sucesso">
+                      {concluidas === 1
+                        ? "1 concluída"
+                        : `${concluidas} concluídas`}
+                    </b>
+                    {` · ${comConflito === 1 ? "1 conflito" : `${comConflito} conflitos`}`}
+                  </>
+                }
+              />
+              <Kpi
+                rotulo="Fichas entregues"
+                valor={fichasEntregues}
+                delta={
+                  fichasPendentes === 0
+                    ? "nenhuma ficha pendente"
+                    : fichasPendentes === 1
+                      ? "1 ficha pendente"
+                      : `${fichasPendentes} fichas pendentes`
+                }
+                tomDelta={fichasPendentes > 0 ? "alerta" : "neutro"}
+              />
+              <Kpi
+                rotulo="Deslocamento médio"
+                valor={<span className="text-[18px]">Sem dado</span>}
+                delta="o app ainda não mede o deslocamento"
+              />
+            </div>
+
+            {tela.agenda.visitas.length === 0 &&
+            tela.sessoesDeVenda.length === 0 ? (
+              <EstadoVazio
+                nivelTitulo="h2"
+                ilustracao={<JanelaManha tamanho={112} />}
+                titulo="Nada marcado neste período"
+                texto="Quando houver visitas, elas aparecem aqui por dia, com os conflitos marcados. Use as setas para ver outro dia ou outra semana."
+              />
+            ) : (
+              <>
+                <TituloSecao>Visitas do período</TituloSecao>
+                <ListaAgenda
+                  visitas={tela.agenda.visitas}
+                  sessoes={tela.sessoesDeVenda}
+                  hoje={hoje}
+                  limiteVisitasDia={tela.agenda.limiteVisitasDia}
+                />
+              </>
+            )}
+          </>
         )}
       </div>
     </>

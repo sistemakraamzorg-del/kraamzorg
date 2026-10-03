@@ -1,25 +1,17 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import {
-  CalendarClock,
-  CalendarDays,
-  ClipboardCheck,
-  ChevronDown,
-  ClipboardList,
-} from "lucide-react";
+import Link from "next/link";
+import { ChevronDown } from "lucide-react";
 import { Colunas, BarrasHorizontais } from "@/components/graficos";
-import { TileIcone } from "@/components/ui/tile-icone";
 import { MantaDobrada } from "@/components/ilustracoes";
+import { Card, CardBody, CardHead, Kpi } from "@/components/mockup";
 import { CabecalhoTela } from "@/components/shell/cabecalho-tela";
-import { CartaoResumo } from "@/components/ui/cartao-resumo";
-import type { Tom } from "@/components/ui/tons";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { exigirSessao } from "@/lib/auth/sessao";
 import { obterRepositorios } from "@/lib/dados/fabrica";
 import type { ConsultaPrenatalResumo } from "@/lib/dados/tipos-operacao";
 import { formatarDataHora } from "@/lib/formatacao";
-import { TituloSecao } from "@/modules/operacao/comum/titulo-secao";
 import {
   agruparConsultas,
   quemChegouAoAlerta,
@@ -31,20 +23,34 @@ export const metadata: Metadata = { title: "Pré-natal · Kraamzorg OS" };
 const ROLAGEM =
   "max-h-[28rem] overflow-y-auto pr-1 [scrollbar-width:thin] focus-visible:outline-2 focus-visible:outline-offset-2";
 
-/** Bloco do bento: cartão branco com fio fino, título curto e conteúdo. */
+/** Cartão do mockup (`.card`): título no topo, conteúdo embaixo. */
 function Bloco({
+  titulo,
+  direita,
   className,
   children,
 }: {
+  titulo?: ReactNode;
+  direita?: ReactNode;
   className?: string;
   children: ReactNode;
 }) {
   return (
-    <div
-      className={`border-linha bg-branco rounded-3 flex min-w-0 flex-col gap-4 border p-4 lg:p-5 ${className ?? ""}`}
-    >
+    <Card className={`min-w-0 ${className ?? ""}`}>
+      {titulo ? <CardHead titulo={titulo} direita={direita} /> : null}
+      <CardBody className="flex flex-col gap-4">{children}</CardBody>
+    </Card>
+  );
+}
+
+/** Indicador que leva à seção da lista (a âncora do antigo cartão-resumo). */
+function KpiLink({ href, children }: { href?: string; children: ReactNode }) {
+  return href ? (
+    <Link href={href} className="block min-w-0">
       {children}
-    </div>
+    </Link>
+  ) : (
+    <div className="min-w-0">{children}</div>
   );
 }
 
@@ -75,8 +81,6 @@ function Secao({
   titulo,
   texto,
   consultas,
-  icone,
-  tom,
   className,
   compacta,
 }: {
@@ -84,27 +88,25 @@ function Secao({
   titulo: string;
   texto?: string;
   consultas: ConsultaPrenatalResumo[];
-  icone: ReactNode;
-  tom: Tom;
   className?: string;
   compacta?: boolean;
 }) {
   if (consultas.length === 0) return null;
   return (
-    <Bloco className={className}>
-      <section aria-labelledby={id} className="flex flex-col gap-4">
-        <TituloSecao
-          id={id}
-          icone={icone}
-          tom={tom}
-          titulo={titulo}
-          texto={texto}
-          contagem={consultas.length}
-          unidade={consultas.length === 1 ? "família" : "famílias"}
+    <Card id={id} className={`min-w-0 scroll-mt-24 ${className ?? ""}`}>
+      <section aria-labelledby={`t-${id}`}>
+        <CardHead
+          titulo={<span id={`t-${id}`}>{titulo}</span>}
+          direita={`${consultas.length} ${consultas.length === 1 ? "família" : "famílias"}`}
         />
-        <Lista consultas={consultas} compacta={compacta} />
+        <CardBody className="flex flex-col gap-4">
+          {texto ? (
+            <p className="text-tinta-50 text-[12.5px]">{texto}</p>
+          ) : null}
+          <Lista consultas={consultas} compacta={compacta} />
+        </CardBody>
       </section>
-    </Bloco>
+    </Card>
   );
 }
 
@@ -117,22 +119,19 @@ function SecaoConcluidas({
   if (consultas.length === 0) return null;
   const n = consultas.length;
   return (
-    <Bloco className="xl:col-span-6">
+    <Card className="min-w-0 xl:col-span-6">
       <details id="concluidas" className="group scroll-mt-24">
-        <summary className="rounded-2 flex min-h-11 cursor-pointer list-none items-center gap-3 focus-visible:outline-2 focus-visible:outline-offset-2 [&::-webkit-details-marker]:hidden">
-          <TileIcone tom="salvia" forma="quadrado">
-            <ClipboardCheck />
-          </TileIcone>
-          <span className="font-titulo text-2 text-texto flex-1 font-medium">
+        <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2.5 px-4 py-[13px] focus-visible:outline-2 focus-visible:outline-offset-2 [&::-webkit-details-marker]:hidden">
+          <span className="font-titulo flex-1 text-[15.5px] font-normal tracking-[0.01em]">
             Concluídas
-            <span className="rounded-pilula bg-areia text-apoio text-texto ml-2 inline-flex min-h-7 min-w-7 items-center justify-center px-2 font-mono font-medium tabular-nums">
+            <span className="bg-sucesso-lavado text-sucesso-texto rounded-pilula ml-2 inline-flex min-h-6 min-w-6 items-center justify-center px-2 font-mono text-[11.5px] font-medium tabular-nums">
               {n}
               <span className="sr-only">
                 &nbsp;{n === 1 ? "família" : "famílias"}
               </span>
             </span>
           </span>
-          <span className="text-apoio text-texto-2 flex items-center gap-1">
+          <span className="text-tinta-50 flex items-center gap-1 text-[11.5px]">
             <span className="group-open:hidden">Ver concluídas</span>
             <span className="hidden group-open:inline">Esconder</span>
             <ChevronDown
@@ -141,7 +140,7 @@ function SecaoConcluidas({
             />
           </span>
         </summary>
-        <div className="pt-4">
+        <CardBody className="border-linha border-t">
           <ul
             tabIndex={0}
             aria-label="Concluídas, lista com rolagem"
@@ -153,9 +152,9 @@ function SecaoConcluidas({
               </li>
             ))}
           </ul>
-        </div>
+        </CardBody>
       </details>
-    </Bloco>
+    </Card>
   );
 }
 
@@ -248,62 +247,67 @@ export default async function PaginaPrenatal() {
             texto="A consulta nasce quando o pagamento de uma família é confirmado. Ela aparece aqui para marcar e conduzir a entrevista."
           />
         ) : (
-          <div className="tablet:grid-cols-2 grid grid-cols-1 gap-4 lg:gap-5 xl:grid-cols-6">
-            <CartaoResumo
-              destaque
-              className="xl:col-span-2"
-              tom="dourado"
-              icone={<CalendarClock />}
-              valor={aMarcar}
-              rotulo={
-                aMarcar === 1 ? "consulta para marcar" : "consultas para marcar"
-              }
-              contexto={
-                grupos.urgentes.length === 0
-                  ? "nenhuma urgente"
-                  : grupos.urgentes.length === 1
-                    ? "1 urgente, contratada perto do parto"
-                    : `${grupos.urgentes.length} urgentes, contratadas perto do parto`
-              }
-              href={
-                grupos.urgentes.length > 0
-                  ? "#urgentes"
-                  : grupos.paraAgendar.length > 0
-                    ? "#para-agendar"
-                    : undefined
-              }
-            />
-            <CartaoResumo
-              className="xl:col-span-2"
-              tom="lavanda"
-              icone={<CalendarDays />}
-              valor={grupos.agendadas.length}
-              rotulo="marcadas ou em andamento"
-              contexto={
-                proxima?.agendadaPara
-                  ? `a próxima em ${formatarDataHora(proxima.agendadaPara) ?? ""}`
-                  : "nenhuma marcada agora"
-              }
-              href={grupos.agendadas.length > 0 ? "#agendadas" : undefined}
-            />
-            <CartaoResumo
-              className="tablet:col-span-2 xl:col-span-2"
-              tom="salvia"
-              icone={<ClipboardCheck />}
-              valor={grupos.concluidas.length}
-              rotulo={
-                grupos.concluidas.length === 1
-                  ? "entrevista concluída"
-                  : "entrevistas concluídas"
-              }
-              contexto="guardadas na ficha de cada família"
-              href={grupos.concluidas.length > 0 ? "#concluidas" : undefined}
-            />
+          <div className="tablet:grid-cols-2 grid grid-cols-1 gap-3.5 xl:grid-cols-6">
+            <div className="grid grid-cols-1 gap-3.5 xl:col-span-6 xl:grid-cols-3">
+              <KpiLink
+                href={
+                  grupos.urgentes.length > 0
+                    ? "#urgentes"
+                    : grupos.paraAgendar.length > 0
+                      ? "#para-agendar"
+                      : undefined
+                }
+              >
+                <Kpi
+                  className="h-full"
+                  rotulo={
+                    aMarcar === 1
+                      ? "Consulta para marcar"
+                      : "Consultas para marcar"
+                  }
+                  valor={aMarcar}
+                  delta={
+                    grupos.urgentes.length === 0
+                      ? "nenhuma urgente"
+                      : grupos.urgentes.length === 1
+                        ? "1 urgente, contratada perto do parto"
+                        : `${grupos.urgentes.length} urgentes, contratadas perto do parto`
+                  }
+                  tomDelta={grupos.urgentes.length > 0 ? "alerta" : "neutro"}
+                />
+              </KpiLink>
+              <KpiLink
+                href={grupos.agendadas.length > 0 ? "#agendadas" : undefined}
+              >
+                <Kpi
+                  className="h-full"
+                  rotulo="Marcadas ou em andamento"
+                  valor={grupos.agendadas.length}
+                  delta={
+                    proxima?.agendadaPara
+                      ? `a próxima em ${formatarDataHora(proxima.agendadaPara) ?? ""}`
+                      : "nenhuma marcada agora"
+                  }
+                />
+              </KpiLink>
+              <KpiLink
+                href={grupos.concluidas.length > 0 ? "#concluidas" : undefined}
+              >
+                <Kpi
+                  className="h-full"
+                  rotulo={
+                    grupos.concluidas.length === 1
+                      ? "Entrevista concluída"
+                      : "Entrevistas concluídas"
+                  }
+                  valor={grupos.concluidas.length}
+                  delta="guardadas na ficha de cada família"
+                  tomDelta="ok"
+                />
+              </KpiLink>
+            </div>
 
-            <Bloco className="xl:col-span-3">
-              <h2 className="font-titulo text-2 text-texto font-medium">
-                Consultas por estado
-              </h2>
+            <Bloco titulo="Consultas por estado" className="xl:col-span-3">
               <BarrasHorizontais
                 rotulo="Consultas por estado"
                 larguraRotulo="9rem"
@@ -331,10 +335,7 @@ export default async function PaginaPrenatal() {
                 ]}
               />
             </Bloco>
-            <Bloco className="xl:col-span-3">
-              <h2 className="font-titulo text-2 text-texto font-medium">
-                Marcadas por semana
-              </h2>
+            <Bloco titulo="Marcadas por semana" className="xl:col-span-3">
               <Colunas
                 rotulo="Consultas marcadas nas próximas semanas"
                 altura={110}
@@ -352,16 +353,12 @@ export default async function PaginaPrenatal() {
               titulo="Urgentes"
               texto="Famílias que contrataram perto do parto. Marque estas primeiro."
               consultas={grupos.urgentes}
-              icone={<CalendarClock />}
-              tom="dourado"
               className="xl:col-span-6"
             />
             <Secao
               id="para-agendar"
               titulo="Para marcar"
               consultas={grupos.paraAgendar}
-              icone={<ClipboardList />}
-              tom="dourado"
               compacta
               className="xl:col-span-3"
             />
@@ -369,8 +366,6 @@ export default async function PaginaPrenatal() {
               id="agendadas"
               titulo="Marcadas e em andamento"
               consultas={grupos.agendadas}
-              icone={<CalendarDays />}
-              tom="lavanda"
               compacta
               className="xl:col-span-3"
             />

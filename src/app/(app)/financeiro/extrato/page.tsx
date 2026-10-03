@@ -4,7 +4,7 @@ import { CabecalhoTela } from "@/components/shell/cabecalho-tela";
 import { AvisoAcesso } from "@/components/shell/aviso-acesso";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { exigirSessao } from "@/lib/auth/sessao";
-import { PainelGrafico } from "@/modules/inicio/painel-gestao";
+import { BlocoForm } from "@/modules/financeiro/mockup-ui";
 import { obterTelaExtrato } from "@/modules/financeiro/gestao/dados";
 import { ImportarExtrato } from "@/modules/financeiro/gestao/componentes/importar-extrato";
 import { NavegacaoFinanceiro } from "@/modules/financeiro/gestao/componentes/navegacao-financeiro";
@@ -50,7 +50,7 @@ export default async function PaginaExtrato({
             : "Confira o que o banco mostra com as cobranças e as despesas do sistema."
         }
       />
-      <div className="flex flex-col gap-6 pt-6">
+      <div className="flex flex-col gap-3.5 pt-6">
         <NavegacaoFinanceiro atual="/financeiro/extrato" />
         {!tela ? (
           <FaixaAlerta variante="erro" titulo="O extrato não abriu agora">
@@ -59,12 +59,12 @@ export default async function PaginaExtrato({
         ) : tela.situacao === "ok" ? (
           <>
             <div className="max-w-[720px]">
-              <PainelGrafico
+              <BlocoForm
                 titulo="Importar um extrato"
                 nota="Serve para conferir o que o banco mostra. Nunca dá baixa em cobrança."
               >
                 <ImportarExtrato />
-              </PainelGrafico>
+              </BlocoForm>
             </div>
             <VisaoExtrato visao={tela.dados} importacaoId={importacaoId} />
           </>

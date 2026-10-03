@@ -27,6 +27,7 @@ import {
 import { Selo } from "@/components/ui/selo";
 import type { TarefaEquipe } from "@/lib/dados/tipos-relacao";
 import { formatarDataHora } from "@/lib/formatacao";
+import { classesChip } from "@/components/mockup";
 import { cn } from "@/lib/utils";
 import { fraseQuadroEquipes, type EquipeNoQuadro } from "../quadro-equipes";
 import { ROTULO_EQUIPE, ROTULO_ORIGEM_TAREFA } from "../rotulos";
@@ -234,7 +235,7 @@ function CartaoTarefa({
       }}
       onDragEnd={aoSoltarFora}
       className={cn(
-        "rounded-2 border-linha bg-superficie flex flex-col gap-2 border p-3",
+        "border-linha bg-superficie hover:shadow-1 flex flex-col gap-2 rounded-[8px] border p-2.5 transition hover:-translate-y-px",
         !concluida && "cursor-grab active:cursor-grabbing",
         arrastando && "opacity-50",
       )}
@@ -247,16 +248,16 @@ function CartaoTarefa({
       >
         <span
           className={cn(
-            "text-apoio text-texto leading-snug font-semibold",
+            "text-texto text-[12.5px] leading-snug font-semibold",
             concluida && "text-texto-2 line-through",
           )}
         >
           {tarefa.titulo}
         </span>
         {familiaFora ? (
-          <span className="text-mini text-texto-2">{familiaFora}</span>
+          <span className="text-tinta-50 text-[11px]">{familiaFora}</span>
         ) : null}
-        <span className="text-mini text-texto-2 flex items-center gap-1.5">
+        <span className="text-tinta-50 flex items-center gap-1.5 text-[11px]">
           <UserRound
             aria-hidden="true"
             className="size-3.5"
@@ -441,14 +442,18 @@ export function QuadroEquipes({
   return (
     <section
       aria-label="Tarefas por equipe"
-      className="flex h-[calc(100dvh-9rem)] min-h-[30rem] flex-col gap-3 lg:h-[calc(100dvh-8rem)]"
+      className="flex h-full min-h-0 flex-col gap-2.5"
     >
-      <p className="text-3 text-texto max-w-[60ch]">
+      <p className="text-tinta-50 max-w-[70ch] flex-none text-[12.5px]">
         {fraseQuadroEquipes(quadro)}
       </p>
 
-      <div className="flex flex-wrap items-center gap-3">
-        <Botao iconeEsquerda={<Plus />} onClick={() => definirNovaAberta(true)}>
+      <div className="flex flex-none flex-wrap items-center gap-3">
+        <Botao
+          tamanho="compacto"
+          iconeEsquerda={<Plus />}
+          onClick={() => definirNovaAberta(true)}
+        >
           Nova tarefa
         </Botao>
       </div>
@@ -457,7 +462,7 @@ export function QuadroEquipes({
         <div
           role="group"
           aria-label="Filtrar por equipe"
-          className="flex flex-wrap gap-2"
+          className="flex flex-none flex-wrap gap-1.5"
         >
           {[{ equipe: null, rotulo: "Todas as equipes" }, ...equipes].map(
             (e) => {
@@ -469,10 +474,9 @@ export function QuadroEquipes({
                   aria-pressed={ativo}
                   onClick={() => definirEquipe(e.equipe)}
                   className={cn(
-                    "rounded-pilula text-apoio focus-visible:outline-dourado min-h-11 border px-4 font-semibold focus-visible:outline-2 focus-visible:outline-offset-2",
-                    ativo
-                      ? "border-marinho bg-marinho text-texto-inverso"
-                      : "border-borda-campo bg-superficie text-texto hover:bg-marinho-08",
+                    "focus-visible:outline-dourado min-h-11 focus-visible:outline-2 focus-visible:outline-offset-2 lg:min-h-8",
+                    classesChip(ativo),
+                    !ativo && "hover:bg-marinho-08",
                   )}
                 >
                   {e.rotulo}
@@ -483,7 +487,7 @@ export function QuadroEquipes({
         </div>
       ) : null}
 
-      <div aria-live="polite">
+      <div aria-live="polite" className="flex-none empty:hidden">
         {aviso ? (
           <FaixaAlerta
             variante={aviso.erro ? "erro" : "sucesso"}
@@ -541,20 +545,20 @@ export function QuadroEquipes({
                   soltar(coluna.id);
                 }}
                 className={cn(
-                  "rounded-3 bg-areia-clara flex min-h-0 w-[17.5rem] flex-none snap-start flex-col gap-2 border p-2 lg:w-auto",
+                  "rounded-3 bg-creme-2 flex min-h-0 w-[17.5rem] flex-none snap-start flex-col gap-1.5 border p-[9px] lg:w-auto",
                   destacado
                     ? "border-dourado bg-dourado-claro"
                     : "border-linha",
                 )}
               >
-                <div className="flex min-h-9 flex-none items-center gap-2 pl-1">
+                <div className="flex flex-none items-center gap-[7px] px-1 pt-0.5 pb-1.5">
                   <h2
                     id={`coluna-${coluna.id}`}
-                    className="font-titulo text-3 min-w-0 flex-1 font-medium"
+                    className="min-w-0 flex-1 text-[12px] font-semibold"
                   >
                     {coluna.rotulo}
                   </h2>
-                  <span className="rounded-pilula bg-superficie text-apoio inline-flex min-h-8 min-w-8 items-center justify-center px-2 font-mono font-medium">
+                  <span className="text-tinta-50 font-mono text-[11px]">
                     {total}
                   </span>
                 </div>

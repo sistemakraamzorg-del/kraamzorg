@@ -48,7 +48,7 @@ export function AbasPilula({
       role="tablist"
       aria-label={rotulo}
       className={cn(
-        "rounded-pilula bg-areia inline-flex max-w-full gap-1 overflow-x-auto p-1",
+        "inline-flex max-w-full gap-1.5 overflow-x-auto",
         larga === true && "flex w-full",
         larga === "celular" && "tablet:inline-flex tablet:w-auto flex w-full",
         className,
@@ -57,14 +57,14 @@ export function AbasPilula({
       {abas.map((aba) => {
         const selecionada = aba.valor === ativa;
         const classes = cn(
-          "min-h-toque rounded-pilula text-apoio ease-estado inline-flex items-center justify-center gap-2 px-4 font-semibold no-underline transition-[background-color,box-shadow,color] duration-140",
+          "min-h-toque ease-estado inline-flex items-center justify-center gap-2 rounded-[7px] border px-3 text-[12.5px] no-underline transition-[background-color,color] duration-140 lg:min-h-8",
           larga === true && "flex-1 py-1.5 text-center leading-tight",
           larga === "celular" &&
             "tablet:flex-none tablet:whitespace-nowrap flex-1 py-1.5 text-center leading-tight",
           !larga && "whitespace-nowrap",
           selecionada
-            ? "bg-marinho text-texto-inverso shadow-1"
-            : "text-texto-2 hover:bg-areia-clara hover:text-texto",
+            ? "border-marinho bg-marinho font-medium text-texto-inverso"
+            : "border-fio-2 bg-superficie text-tinta-70 hover:bg-creme-2",
         );
         const conteudo = (
           <>

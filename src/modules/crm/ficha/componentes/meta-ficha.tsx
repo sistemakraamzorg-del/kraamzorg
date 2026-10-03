@@ -1,7 +1,6 @@
 import * as React from "react";
 import { LinhaGestacao } from "@/components/ui/linha-gestacao";
 import { Selo } from "@/components/ui/selo";
-import type { DataChaveFamilia } from "@/components/ui/cabecalho-familia";
 import type { EstadoSensivel } from "@/lib/dados/tipos";
 import { formatarData, localidade } from "@/lib/formatacao";
 import {
@@ -20,31 +19,37 @@ export function emModoSensivel(estado: EstadoSensivel): boolean {
 }
 
 /**
- * Linha de meta do cabeçalho da família (ficha e conversa usam a mesma):
- * selo do estágio, IG e bairro. Em modo sensível ficam só o lugar, porque
- * estágio de venda e semana da gestação não cabem ao lado de uma perda
- * (DESIGN.md, 11.8 e 11.9).
+ * Selos do canto do cabeçalho da família (`.tag` do mockup): estágio e IG.
+ * Em modo sensível ficam só o que não promete nada, porque estágio de venda e
+ * semana da gestação não cabem ao lado de uma perda (DESIGN.md, 11.8 e 11.9).
  */
 export function MetaFicha({ ficha }: { ficha: FichaTela }) {
   const sensivel = emModoSensivel(ficha.estadoSensivel);
-  const lugar = localidade(ficha.bairro, ficha.cidade);
   const dpp = ficha.datas.find((d) => d.rotulo === "DPP")?.valor ?? null;
   return (
     <>
       {!sensivel && ficha.estagioRotulo ? (
-        <Selo variante="marinho">{ficha.estagioRotulo}</Selo>
+        <Selo variante="neutro">{ficha.estagioRotulo}</Selo>
       ) : null}
       {!sensivel && ficha.idadeGestacional ? (
-        <span
-          className="text-corpo font-mono"
+        <Selo
+          variante="sucesso"
+          className="font-mono"
           title={dpp ? `Calculada da DPP ${formatarData(dpp)}` : undefined}
         >
           {ficha.idadeGestacional}
-        </span>
+        </Selo>
       ) : null}
-      {lugar ? <span>{lugar}</span> : null}
     </>
   );
+}
+
+/** Linha pequena sob o nome: as pessoas da família e o lugar onde moram. */
+export function subtituloFicha(ficha: FichaTela): string {
+  const nomes = ficha.pessoas.map((p) => p.nome).join(" e ");
+  return [nomes, localidade(ficha.bairro, ficha.cidade)]
+    .filter(Boolean)
+    .join(" · ");
 }
 
 /**
@@ -75,13 +80,4 @@ export function linhaDaFicha(
       semLegenda
     />
   );
-}
-
-/** As quatro datas no formato do cabeçalho ("ainda não" quando ausente). */
-export function datasDoCabecalho(ficha: FichaTela): DataChaveFamilia[] {
-  return ficha.datas.map((d) => ({
-    rotulo: d.rotulo,
-    valor: d.valor ? (formatarData(d.valor) ?? "ainda não") : "ainda não",
-    tipo: d.valor ? d.tipo : ("ausente" as const),
-  }));
 }

@@ -1,8 +1,7 @@
 import Link from "next/link";
-import { FileCheck, FileClock } from "lucide-react";
 import { FiltroPilula } from "@/components/blocos/filtro-pilula";
 import { FolhaLupa } from "@/components/ilustracoes";
-import { CartaoResumo } from "@/components/ui/cartao-resumo";
+import { Card, CardHead, Kpi, Nota } from "@/components/mockup";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
 import { Selo } from "@/components/ui/selo";
 import { TabelaLista } from "@/components/ui/tabela-lista";
@@ -46,51 +45,52 @@ export function ListaNotasTela({
   lista: ListaNotas;
   estado: EstadoNota | undefined;
 }) {
+  const aEmitir = lista.resumo.pendentes + lista.resumo.comErro;
   return (
-    <div className="flex flex-col gap-6">
-      <p className="text-3 text-texto max-w-[60ch]">
-        {fraseResumoNotas(lista.resumo)}
-      </p>
-
-      {/* O que pede o financeiro agora (dourado) e o que já foi emitido
-          (sálvia), em número grande com a frase embaixo (DESIGN.md, 2.6).
-          Erro e processamento continuam no selo de cada nota. */}
-      <div className="tablet:grid-cols-2 grid grid-cols-1 gap-2 lg:max-w-[720px] lg:gap-3">
-        <CartaoResumo
-          tom="dourado"
-          arranjo="linha"
-          icone={<FileClock />}
-          valor={lista.resumo.pendentes + lista.resumo.comErro}
-          rotulo={
-            lista.resumo.pendentes + lista.resumo.comErro === 1
-              ? "nota para emitir"
-              : "notas para emitir"
-          }
-          contexto={
+    <div className="flex flex-col gap-3.5">
+      <div className="tablet:grid-cols-4 grid grid-cols-2 gap-3.5">
+        <Kpi
+          rotulo={aEmitir === 1 ? "Nota para emitir" : "Notas para emitir"}
+          valor={aEmitir}
+          delta={
             lista.resumo.comErro > 0
               ? `${lista.resumo.comErro} com erro, com o motivo na nota`
               : "nenhuma com erro"
           }
+          tomDelta={lista.resumo.comErro > 0 ? "alerta" : "neutro"}
         />
-        <CartaoResumo
-          tom="salvia"
-          arranjo="linha"
-          icone={<FileCheck />}
-          valor={lista.resumo.emitidas}
-          rotulo={lista.resumo.emitidas === 1 ? "emitida" : "emitidas"}
-          contexto={
+        <Kpi
+          rotulo="Com erro"
+          valor={lista.resumo.comErro}
+          delta={
+            lista.resumo.comErro > 0
+              ? "voltaram do provedor"
+              : "nada a corrigir"
+          }
+          tomDelta={lista.resumo.comErro > 0 ? "alerta" : "ok"}
+        />
+        <Kpi
+          rotulo="Em processamento"
+          valor={lista.resumo.processando}
+          delta={
             lista.resumo.processando > 0
-              ? `${lista.resumo.processando} ainda no provedor`
+              ? "ainda no provedor"
               : "nenhuma esperando o provedor"
           }
         />
+        <Kpi
+          rotulo={lista.resumo.emitidas === 1 ? "Emitida" : "Emitidas"}
+          valor={lista.resumo.emitidas}
+          delta="número e arquivos guardados"
+          tomDelta="ok"
+        />
       </div>
 
-      <p className="text-apoio text-texto-2 max-w-[60ch]">
+      <Nota>
         {lista.emissaoAutomatica
           ? "A emissão automática está ligada: o sistema pede a nota ao provedor depois do pagamento confirmado."
           : "A emissão é manual: o financeiro, com a contadora, emite no portal do provedor e registra o número aqui."}
-      </p>
+      </Nota>
 
       <FiltroPilula
         rotulo="Filtrar notas"
@@ -109,7 +109,12 @@ export function ListaNotasTela({
           texto="Quando uma cobrança é paga, a nota fiscal dela aparece aqui para emitir. Depois de emitida, o número e os arquivos ficam guardados."
         />
       ) : (
-        <div className="min-[720px]:rounded-3 min-[720px]:bg-superficie min-[720px]:shadow-1 min-[720px]:p-2 lg:px-4 lg:py-3">
+        <Card className="min-w-0 overflow-hidden max-[719px]:border-0 max-[719px]:bg-transparent max-[719px]:shadow-none">
+          <CardHead
+            titulo="Notas fiscais"
+            direita={`${lista.notas.length} ${lista.notas.length === 1 ? "nota" : "notas"}`}
+            className="max-[719px]:hidden"
+          />
           <TabelaLista
             rotulo="Notas fiscais"
             colunas={[
@@ -149,7 +154,7 @@ export function ListaNotasTela({
               },
             }))}
           />
-        </div>
+        </Card>
       )}
     </div>
   );

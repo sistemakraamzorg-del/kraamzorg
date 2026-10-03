@@ -1,11 +1,8 @@
 import * as React from "react";
 import Link from "next/link";
-import { CircleCheck, Hourglass } from "lucide-react";
-import { FiltroPilula } from "@/components/blocos/filtro-pilula";
 import { FolhaLupa } from "@/components/ilustracoes";
-import { BarrasHorizontais, Colunas, Rosca } from "@/components/graficos";
+import { Kpi } from "@/components/mockup";
 import { Botao } from "@/components/ui/botao";
-import { CartaoResumo } from "@/components/ui/cartao-resumo";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
 import { Selo } from "@/components/ui/selo";
 import { TabelaLista } from "@/components/ui/tabela-lista";
@@ -17,6 +14,16 @@ import type {
 } from "@/lib/dados/tipos-contrato";
 import { formatarData, formatarMoeda } from "@/lib/formatacao";
 import { ROTULO_METODO, ROTULO_SITUACAO, VARIANTE_SITUACAO } from "../rotulos";
+import { BarrasMock, HBarrasMock, RoscaMock } from "../../graficos-mock";
+import {
+  BlocoTabela,
+  CartaoGrafico,
+  ChipsNav,
+  CLASSE_TABELA,
+  Grade,
+  SemDado,
+} from "../../mockup-ui";
+import { formatarMoedaCurta } from "@/lib/gestao/formato";
 
 const FILTROS: { valor: SituacaoCobranca | undefined; rotulo: string }[] = [
   { valor: undefined, rotulo: "Todas" },
@@ -39,26 +46,6 @@ const diasEntre = (de: string, ate: string): number =>
 
 /** Mês de vencimento (aaaa-mm) → "10/2026". */
 const rotuloMes = (m: string) => `${m.slice(5, 7)}/${m.slice(0, 4)}`;
-
-function Cartao({
-  titulo,
-  legenda,
-  children,
-}: {
-  titulo: string;
-  legenda?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="rounded-3 bg-superficie border-linha flex flex-col gap-4 border p-5">
-      <div className="flex flex-col gap-1">
-        <h2 className="font-titulo text-2 text-texto font-medium">{titulo}</h2>
-        {legenda ? <p className="text-apoio text-texto-2">{legenda}</p> : null}
-      </div>
-      {children}
-    </section>
-  );
-}
 
 function GraficosCobrancas({ todas }: { todas: LinhaCobranca[] }) {
   const contaveis = todas.filter(
@@ -89,9 +76,8 @@ function GraficosCobrancas({ todas }: { todas: LinhaCobranca[] }) {
     .slice(-MAX_MESES)
     .map(([m, v]) => ({
       rotulo: rotuloMes(m),
-      valor: Math.round(v.pendente / 100),
-      valor2: Math.round(v.recebido / 100),
-      dica: `${rotuloMes(m)}: ${formatarMoeda(v.pendente)} a receber e ${formatarMoeda(v.recebido)} recebidos`,
+      pendente: v.pendente,
+      recebido: v.recebido,
     }));
 
   // Inadimplência: valor vencido por faixa de dias de atraso.
@@ -109,75 +95,77 @@ function GraficosCobrancas({ todas }: { todas: LinhaCobranca[] }) {
   const totalVencido = vencidas.reduce((a, c) => a + c.valorCentavos, 0);
 
   return (
-    <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-      <Cartao
-        titulo="Cobranças por situação"
-        legenda="Quantas esperam pagamento, quantas venceram e quantas já foram pagas."
+    <>
+      <Grade colunas={2}>
+        <CartaoGrafico
+          titulo="Cobranças por situação"
+          nota="em aberto, vencidas e pagas"
+        >
+          <RoscaMock
+            rotulo="Cobranças por situação"
+            centro={String(contaveis.length)}
+            sub="cobranças"
+            fatias={[
+              { rotulo: "Em aberto", valor: por("aberta"), tom: "aviso" },
+              { rotulo: "Vencidas", valor: por("vencida"), tom: "alerta" },
+              { rotulo: "Pagas", valor: por("paga"), tom: "sucesso" },
+            ]}
+          />
+        </CartaoGrafico>
+
+        <CartaoGrafico
+          titulo="Atraso das vencidas"
+          nota={
+            vencidas.length === 0
+              ? "nenhuma agora"
+              : `${formatarMoeda(totalVencido)} em ${plural(vencidas.length, "cobrança vencida", "cobranças vencidas")}`
+          }
+        >
+          {vencidas.length === 0 ? (
+            <SemDado>
+              Nenhuma cobrança vencida agora. Quando uma passar do prazo, ela
+              aparece aqui por dias de atraso.
+            </SemDado>
+          ) : (
+            <HBarrasMock
+              rotulo="Valor vencido por faixa de atraso"
+              rotuloLargura={104}
+              direita={78}
+              linhas={faixas.map(({ f, centavos }) => ({
+                rotulo: f.rotulo,
+                valor: centavos,
+                tom: "alerta",
+                nota: formatarMoedaCurta(centavos),
+              }))}
+            />
+          )}
+        </CartaoGrafico>
+      </Grade>
+
+      <CartaoGrafico
+        titulo="A receber e recebido"
+        nota="por mês de vencimento, em reais"
       >
-        <Rosca
-          rotulo="Cobranças por situação"
-          centro={{ valor: String(contaveis.length), legenda: "cobranças" }}
-          fatias={[
-            { rotulo: "Em aberto", valor: por("aberta"), tom: "aviso" },
-            { rotulo: "Vencidas", valor: por("vencida"), tom: "alerta" },
-            { rotulo: "Pagas", valor: por("paga"), tom: "sucesso" },
+        <BarrasMock
+          altura={190}
+          formato="moeda"
+          rotulo="Valor a receber e recebido por mês de vencimento, em reais"
+          rotulos={colunas.map((c) => c.rotulo)}
+          series={[
+            {
+              nome: "A receber",
+              tom: "aviso",
+              valores: colunas.map((c) => c.pendente),
+            },
+            {
+              nome: "Recebido",
+              tom: "sucesso",
+              valores: colunas.map((c) => c.recebido),
+            },
           ]}
         />
-      </Cartao>
-
-      <Cartao
-        titulo="Atraso das vencidas"
-        legenda={
-          vencidas.length === 0
-            ? "Nenhuma cobrança vencida agora. Quando uma passar do prazo, ela aparece aqui por dias de atraso."
-            : `${formatarMoeda(totalVencido)} em ${plural(vencidas.length, "cobrança vencida", "cobranças vencidas")}, por dias de atraso.`
-        }
-      >
-        {vencidas.length === 0 ? null : (
-          <BarrasHorizontais
-            rotulo="Valor vencido por faixa de atraso"
-            larguraRotulo="8rem"
-            itens={faixas.map(({ f, n, centavos }) => ({
-              rotulo: f.rotulo,
-              valor: centavos,
-              tom: "alerta",
-              nota: String(n),
-              dica: `${f.rotulo}: ${formatarMoeda(centavos)} em ${plural(n, "cobrança", "cobranças")}`,
-            }))}
-          />
-        )}
-      </Cartao>
-
-      <div className="lg:col-span-2">
-        <Cartao
-          titulo="A receber e recebido, por mês de vencimento"
-          legenda="Valores em reais. Âmbar é o que falta receber, verde é o que já entrou."
-        >
-          <Colunas
-            rotulo="Valor a receber e recebido por mês"
-            itens={colunas}
-            tom="aviso"
-            tom2="sucesso"
-          />
-          <p className="text-apoio text-texto-2 flex flex-wrap gap-x-4 gap-y-1">
-            <span className="flex items-center gap-2">
-              <span
-                aria-hidden="true"
-                className="bg-aviso rounded-pilula size-2.5"
-              />
-              A receber
-            </span>
-            <span className="flex items-center gap-2">
-              <span
-                aria-hidden="true"
-                className="bg-sucesso rounded-pilula size-2.5"
-              />
-              Recebido
-            </span>
-          </p>
-        </Cartao>
-      </div>
-    </div>
+      </CartaoGrafico>
+    </>
   );
 }
 
@@ -226,45 +214,38 @@ export function ListaCobrancasTela({
   todas: LinhaCobranca[];
   situacao: SituacaoCobranca | undefined;
 }) {
+  const emAberto = lista.resumo.abertas + lista.resumo.vencidas;
   return (
-    <div className="flex flex-col gap-6">
-      <p className="text-3 text-texto max-w-[60ch]">
+    <div className="flex flex-col gap-3.5">
+      <p className="text-tinta-70 max-w-[64ch] text-[13px] leading-[1.6]">
         {fraseResumo(lista.resumo)}
       </p>
 
-      {/* Os dois números do caixa (DESIGN.md, 2.6): o que falta receber é
-          o agora (dourado), o que já entrou é o feito (sálvia). O valor em
-          Jost, grande, com a contagem em frase embaixo. */}
-      <div className="tablet:grid-cols-2 grid grid-cols-1 gap-2 lg:max-w-[720px] lg:gap-3">
-        <CartaoResumo
-          tom="dourado"
-          arranjo="linha"
-          icone={<Hourglass />}
+      <Grade colunas={2}>
+        <Kpi
+          rotulo="A receber"
           valor={formatarMoeda(lista.resumo.aReceberCentavos)}
-          rotulo="a receber"
-          contexto={
-            lista.resumo.abertas + lista.resumo.vencidas === 0
-              ? "nenhuma cobrança em aberto"
-              : `${plural(lista.resumo.abertas + lista.resumo.vencidas, "cobrança em aberto", "cobranças em aberto")}${lista.resumo.vencidas > 0 ? `, ${plural(lista.resumo.vencidas, "vencida", "vencidas")}` : ""}`
+          delta={
+            emAberto === 0
+              ? "Nenhuma cobrança em aberto."
+              : `${plural(emAberto, "cobrança em aberto", "cobranças em aberto")}${lista.resumo.vencidas > 0 ? `, ${plural(lista.resumo.vencidas, "vencida", "vencidas")}` : ""}.`
           }
         />
-        <CartaoResumo
-          tom="salvia"
-          arranjo="linha"
-          icone={<CircleCheck />}
+        <Kpi
+          rotulo="Recebido"
           valor={formatarMoeda(lista.resumo.recebidoCentavos)}
-          rotulo="recebido"
-          contexto={
+          delta={
             lista.resumo.pagas === 0
-              ? "nenhuma paga ainda"
-              : plural(lista.resumo.pagas, "cobrança paga", "cobranças pagas")
+              ? "Nenhuma paga ainda."
+              : `${plural(lista.resumo.pagas, "cobrança paga", "cobranças pagas")}.`
           }
+          tomDelta={lista.resumo.pagas === 0 ? "neutro" : "ok"}
         />
-      </div>
+      </Grade>
 
       <GraficosCobrancas todas={todas} />
 
-      <FiltroPilula
+      <ChipsNav
         rotulo="Filtrar cobranças"
         itens={FILTROS.map((f) => ({
           rotulo: f.rotulo,
@@ -282,8 +263,12 @@ export function ListaCobrancasTela({
           texto="As cobranças nascem quando o contrato é assinado. Quando houver uma, ela aparece aqui com o link de pagamento e a situação."
         />
       ) : (
-        <div className="min-[720px]:rounded-3 min-[720px]:bg-superficie min-[720px]:shadow-1 min-[720px]:p-2 lg:px-4 lg:py-3">
+        <BlocoTabela
+          titulo="Cobranças"
+          direita={plural(lista.cobrancas.length, "cobrança", "cobranças")}
+        >
           <TabelaLista
+            className={CLASSE_TABELA}
             rotulo="Cobranças"
             colunas={[
               { chave: "familia", rotulo: "Família", principal: true },
@@ -332,7 +317,7 @@ export function ListaCobrancasTela({
               },
             }))}
           />
-        </div>
+        </BlocoTabela>
       )}
     </div>
   );

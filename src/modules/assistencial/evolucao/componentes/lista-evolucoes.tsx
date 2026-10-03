@@ -1,11 +1,10 @@
 import Link from "next/link";
-import { Baby, ChevronRight, ClipboardPen, House } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { MantaDobrada } from "@/components/ilustracoes";
-import { Cartao } from "@/components/ui/cartao";
+import { Card, CardBody } from "@/components/mockup";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { Selo } from "@/components/ui/selo";
-import { TileIcone } from "@/components/ui/tile-icone";
 import type {
   AcompanhamentoEvolucao,
   ListaEvolucoes,
@@ -50,11 +49,8 @@ function Documento({
     <li>
       <Link
         href={href}
-        className="rounded-2 bg-superficie ease-estado hover:bg-marinho-08 flex min-h-16 flex-wrap items-center gap-x-3 gap-y-2 px-3 py-2.5 text-inherit no-underline transition-colors duration-140"
+        className="rounded-2 border-linha bg-creme-2 ease-estado hover:bg-creme-3 flex min-h-16 flex-wrap items-center gap-x-3 gap-y-2 border px-3 py-2.5 text-inherit no-underline transition-colors duration-140"
       >
-        <TileIcone tom="areia" forma="quadrado" tamanho="p">
-          {documento.tipo === "neonatal" ? <Baby /> : <ClipboardPen />}
-        </TileIcone>
         <span className="text-corpo text-texto min-w-0 flex-1 font-medium">
           {rotulo}
         </span>
@@ -110,77 +106,73 @@ export function ListaEvolucoesTela({
     <ul className="grid grid-cols-1 items-start gap-4 xl:grid-cols-2">
       {lista.acompanhamentos.map((a) => (
         <li key={a.acompanhamentoId}>
-          <Cartao
-            variante={a.situacao === "concluida" ? "salvia" : "padrao"}
-            className="flex flex-col gap-4"
-          >
-            <div className="flex flex-wrap items-start gap-x-3 gap-y-2">
-              <TileIcone tom={a.situacao === "concluida" ? "salvia" : "areia"}>
-                <House />
-              </TileIcone>
-              <div className="min-w-0 flex-1">
-                <h2 className="font-titulo text-2 text-texto font-medium">
-                  {a.familiaNome}
-                </h2>
-                <p className="text-apoio text-texto-2">
-                  Último dia em{" "}
-                  <span className="font-mono">
-                    {formatarData(a.concluidoEm)}
-                  </span>
-                  {a.profissionalNome ? `, com ${a.profissionalNome}` : ""}
-                </p>
+          <Card className="flex flex-col">
+            <CardBody className="flex flex-col gap-3.5">
+              <div className="flex flex-wrap items-start gap-x-3 gap-y-2">
+                <div className="min-w-0 flex-1">
+                  <h2 className="font-titulo text-texto text-[15.5px] font-normal tracking-[0.01em]">
+                    {a.familiaNome}
+                  </h2>
+                  <p className="text-apoio text-texto-2">
+                    Último dia em{" "}
+                    <span className="font-mono">
+                      {formatarData(a.concluidoEm)}
+                    </span>
+                    {a.profissionalNome ? `, com ${a.profissionalNome}` : ""}
+                  </p>
+                </div>
+                <Selo variante={VARIANTE_SITUACAO[a.situacao]}>
+                  {ROTULO_SITUACAO[a.situacao]}
+                </Selo>
               </div>
-              <Selo variante={VARIANTE_SITUACAO[a.situacao]}>
-                {ROTULO_SITUACAO[a.situacao]}
-              </Selo>
-            </div>
-            <p className="text-corpo text-texto">
-              {frasePrazo(
-                a.situacao,
-                a.prazoAviso,
-                a.prazoEscala,
-                formatarData,
-                base === "/minhas-evolucoes" ? "enfermeira" : "equipe",
-              )}
-            </p>
-            {a.bloqueadoContato ? (
-              <FaixaAlerta
-                variante="prioritario"
-                titulo="Falta o contato do médico"
-                acoes={
-                  <Link
-                    href={`${baseFamilia}/${a.familiaId}`}
-                    className="text-apoio text-texto min-h-toque inline-flex items-center font-semibold underline underline-offset-4"
-                  >
-                    Abrir a ficha da família
-                  </Link>
+              <p className="text-texto text-[13px]">
+                {frasePrazo(
+                  a.situacao,
+                  a.prazoAviso,
+                  a.prazoEscala,
+                  formatarData,
+                  base === "/minhas-evolucoes" ? "enfermeira" : "equipe",
+                )}
+              </p>
+              {a.bloqueadoContato ? (
+                <FaixaAlerta
+                  variante="prioritario"
+                  titulo="Falta o contato do médico"
+                  acoes={
+                    <Link
+                      href={`${baseFamilia}/${a.familiaId}`}
+                      className="text-apoio text-texto min-h-toque inline-flex items-center font-semibold underline underline-offset-4"
+                    >
+                      Abrir a ficha da família
+                    </Link>
+                  }
+                >
+                  Nenhum médico da família tem e-mail ou telefone no cadastro.
+                  Sem isso o documento não segue; a coordenação cadastra o
+                  contato na ficha.
+                </FaixaAlerta>
+              ) : null}
+              <ul
+                className={
+                  a.situacao === "concluida"
+                    ? "flex flex-col gap-2"
+                    : "flex flex-col gap-2"
                 }
               >
-                Nenhum médico da família tem e-mail ou telefone no cadastro. Sem
-                isso o documento não segue; a coordenação cadastra o contato na
-                ficha.
-              </FaixaAlerta>
-            ) : null}
-            <ul
-              className={
-                a.situacao === "concluida"
-                  ? "flex flex-col gap-2"
-                  : "rounded-3 bg-areia-clara -mx-2 flex flex-col gap-2 p-2 lg:-mx-1"
-              }
-            >
-              {a.documentos.map((d) => (
-                <Documento
-                  key={`${d.tipo}-${d.bebeId ?? "mae"}`}
-                  acompanhamento={a}
-                  documento={d}
-                  base={base}
-                  totalBebes={
-                    a.documentos.filter((x) => x.tipo === "neonatal").length
-                  }
-                />
-              ))}
-            </ul>
-          </Cartao>
+                {a.documentos.map((d) => (
+                  <Documento
+                    key={`${d.tipo}-${d.bebeId ?? "mae"}`}
+                    acompanhamento={a}
+                    documento={d}
+                    base={base}
+                    totalBebes={
+                      a.documentos.filter((x) => x.tipo === "neonatal").length
+                    }
+                  />
+                ))}
+              </ul>
+            </CardBody>
+          </Card>
         </li>
       ))}
     </ul>

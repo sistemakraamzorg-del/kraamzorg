@@ -4,22 +4,23 @@ import * as React from "react";
 import Link from "next/link";
 import {
   ArrowLeftRight,
-  CalendarClock,
   ChevronDown,
   ChevronRight,
-  House,
   OctagonPause,
   Search,
-  Sun,
-  Users,
 } from "lucide-react";
-import { SecaoBloco } from "@/components/blocos/secao-bloco";
 import { FolhaLupa } from "@/components/ilustracoes";
+import {
+  Card,
+  classesChip,
+  Kpi,
+  tabelaMock,
+  TituloSecao,
+} from "@/components/mockup";
 import { Botao } from "@/components/ui/botao";
 import { CampoTexto } from "@/components/ui/campo-texto";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
 import { Selo } from "@/components/ui/selo";
-import type { Tom } from "@/components/ui/tons";
 import { localidade } from "@/lib/formatacao";
 import { cn } from "@/lib/utils";
 import {
@@ -50,15 +51,6 @@ import type { FamiliaListaTela } from "../tipos";
  * na lista): o formulário envia `?busca=` como antes.
  */
 
-const TILE_FASE: Record<FaseFamilia, { tom?: Tom; icone: React.ReactNode }> = {
-  gestando: { tom: "lavanda", icone: <CalendarClock /> },
-  nasceu: { tom: "areia", icone: <House /> },
-  atendimento: { tom: "dourado", icone: <Sun /> },
-  sem_data: { tom: "areia", icone: <Users /> },
-  // Sem tom: momento sensível (DESIGN.md, 11.8).
-  freio: { icone: <OctagonPause /> },
-};
-
 /** O título da coluna do tempo muda com a fase. */
 const COLUNA_TEMPO: Record<FaseFamilia, string> = {
   gestando: "Semanas",
@@ -68,6 +60,17 @@ const COLUNA_TEMPO: Record<FaseFamilia, string> = {
   freio: "Estado",
 };
 
+/** Situação em selo (`.tag` do mockup): uma palavra por fase. */
+const SELO_FASE: Record<
+  Exclude<FaseFamilia, "freio">,
+  { rotulo: string; variante: "sucesso" | "neutro" | "destaque" }
+> = {
+  gestando: { rotulo: "Gestando", variante: "neutro" },
+  nasceu: { rotulo: "Bebê nasceu", variante: "destaque" },
+  atendimento: { rotulo: "Em atendimento", variante: "sucesso" },
+  sem_data: { rotulo: "Sem data", variante: "neutro" },
+};
+
 const ROTULO_FREIO: Record<FamiliaListaTela["estadoSensivel"], string> = {
   normal: "",
   atencao: "Freio em atenção",
@@ -75,14 +78,16 @@ const ROTULO_FREIO: Record<FamiliaListaTela["estadoSensivel"], string> = {
   encerrado_sensivel: "Encerrado sensível",
 };
 
-// Classes estáticas (o Tailwind precisa ver a string inteira).
+// Classes estáticas (o Tailwind precisa ver a string inteira). A grade imita
+// a tabela do mockup: família, cidade, situação, tempo, [estágio, próximo
+// passo] e o botão Abrir (78 px, como no `th` dela).
 const GRADE_COM_PIPELINE =
-  "lg:grid-cols-[minmax(0,2.1fr)_minmax(0,1fr)_minmax(0,1.5fr)_minmax(0,1.3fr)_minmax(0,1.4fr)_1.25rem]";
+  "lg:grid-cols-[minmax(0,2fr)_minmax(0,1.3fr)_minmax(0,1.2fr)_minmax(0,1.1fr)_minmax(0,1fr)_minmax(0,1.5fr)_78px]";
 const GRADE_SEM_PIPELINE =
-  "lg:grid-cols-[minmax(0,2.1fr)_minmax(0,1fr)_minmax(0,1.6fr)_1.25rem]";
+  "lg:grid-cols-[minmax(0,2fr)_minmax(0,1.4fr)_minmax(0,1.3fr)_minmax(0,1.3fr)_78px]";
 /** No freio: família, cidade e o estado, sem as colunas do tempo e da venda. */
 const GRADE_FREIO =
-  "lg:grid-cols-[minmax(0,2.1fr)_minmax(0,1.5fr)_minmax(0,3.7fr)_1.25rem]";
+  "lg:grid-cols-[minmax(0,2fr)_minmax(0,1.3fr)_minmax(0,3.8fr)_78px]";
 
 function gradeDa(fase: FaseFamilia, comPipeline: boolean): string {
   if (fase === "freio") return GRADE_FREIO;
@@ -92,11 +97,13 @@ function gradeDa(fase: FaseFamilia, comPipeline: boolean): string {
 function Tempo({ familia }: { familia: FamiliaListaTela }) {
   if (!familia.tempo) return null;
   return (
-    <span className="text-apoio text-texto inline-flex items-baseline gap-1.5">
+    <span className="inline-flex items-baseline gap-1.5 text-[13px]">
       {familia.tempo.frase ? (
-        <span className="text-texto-2">{familia.tempo.frase}</span>
+        <span className="text-tinta-50 text-[11.5px]">
+          {familia.tempo.frase}
+        </span>
       ) : null}
-      <span className="font-mono font-medium tabular-nums">
+      <span className="font-mono text-[11.5px] tracking-[-0.01em] tabular-nums">
         {familia.tempo.medida}
       </span>
     </span>
@@ -109,12 +116,12 @@ function ProximoPasso({ familia }: { familia: FamiliaListaTela }) {
   return (
     <span
       className={cn(
-        "text-apoio inline-flex items-center gap-1.5",
+        "inline-flex items-center gap-1.5 text-[11.5px]",
         passo.tipo === "transferencia" || passo.tipo === "voce"
           ? "text-texto font-medium"
           : passo.tipo === "sem_responsavel"
             ? "text-aviso-texto font-medium"
-            : "text-texto-2",
+            : "text-tinta-50",
       )}
     >
       {passo.tipo === "transferencia" ? (
@@ -147,20 +154,24 @@ function LinhaFamilia({
         {ROTULO_FREIO[familia.estadoSensivel]}
       </Selo>
     ) : null;
+  const seloFase = emFreio
+    ? null
+    : SELO_FASE[familia.fase as keyof typeof SELO_FASE];
   return (
-    <li>
+    <li className="border-fio-3 border-b last:border-b-0">
       <Link
         href={`/familias/${familia.id}`}
         className={cn(
-          "text-texto ease-estado hover:bg-marinho-08 flex min-h-16 flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3 no-underline transition-[background-color] duration-140 focus-visible:outline-offset-[-2px] lg:grid lg:min-h-14 lg:gap-x-4 lg:px-5 lg:py-2.5",
+          "text-texto ease-estado hover:bg-creme-3 flex min-h-16 flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3 no-underline transition-[background-color] duration-140 focus-visible:outline-offset-[-2px] lg:grid lg:min-h-0 lg:gap-x-4 lg:py-[11px]",
+          emFreio && "bg-sensivel-lavado hover:bg-sensivel-lavado",
           gradeDa(familia.fase, comPipeline),
         )}
       >
-        {/* Família: o nome e, embaixo, o que a equipe precisa saber antes
-            de escrever (não contatar, freio em atenção). */}
+        {/* Família: o nome e, embaixo (`.sm`), o que a equipe precisa saber
+            antes de escrever (não contatar, freio em atenção). */}
         <span className="flex min-w-0 basis-full items-start justify-between gap-3 lg:basis-auto">
           <span className="flex min-w-0 flex-col gap-1">
-            <span className="text-corpo leading-snug font-semibold">
+            <span className="text-[13px] leading-snug font-semibold">
               {familia.nome}
             </span>
             {familia.naoContatar || (seloFreio && !emFreio) ? (
@@ -174,7 +185,7 @@ function LinhaFamilia({
           </span>
           <ChevronRight
             aria-hidden="true"
-            className="text-texto-2 mt-0.5 size-5 shrink-0 lg:hidden"
+            className="text-tinta-50 mt-0.5 size-5 shrink-0 lg:hidden"
             strokeWidth={1.75}
           />
         </span>
@@ -184,28 +195,33 @@ function LinhaFamilia({
           // comercial (DESIGN.md, 11.8 e 11.9). Fica onde a família mora, o
           // selo calmo e quem faz o contato.
           <>
-            <span className="text-apoio text-texto-2 min-w-0">
+            <span className="text-tinta-50 min-w-0 text-[11.5px]">
               {lugar ?? ""}
             </span>
             <span className="flex min-w-0 basis-full flex-wrap items-center gap-x-3 gap-y-1 lg:basis-auto">
               {seloFreio}
-              <span className="text-apoio text-texto-2">
+              <span className="text-tinta-50 text-[11.5px]">
                 Só contato humano, pelo nome.
               </span>
             </span>
           </>
         ) : (
           <>
+            <span className="text-tinta-50 min-w-0 text-[11.5px]">
+              {lugar ?? ""}
+            </span>
+            <span className="min-w-0">
+              {seloFase ? (
+                <Selo variante={seloFase.variante}>{seloFase.rotulo}</Selo>
+              ) : null}
+            </span>
             <span className="min-w-0">
               <Tempo familia={familia} />
-            </span>
-            <span className="text-apoio text-texto-2 min-w-0">
-              {lugar ?? ""}
             </span>
             {comPipeline ? (
               <>
                 <span aria-hidden="true" className="h-0 basis-full lg:hidden" />
-                <span className="text-apoio text-texto min-w-0">
+                <span className="min-w-0 text-[11.5px]">
                   {familia.estagio ?? ""}
                 </span>
                 <span className="min-w-0">
@@ -216,11 +232,15 @@ function LinhaFamilia({
           </>
         )}
 
-        <ChevronRight
+        <span
           aria-hidden="true"
-          className="text-texto-2 hidden size-5 lg:block"
-          strokeWidth={1.75}
-        />
+          className={cn(
+            classesChip(),
+            "hidden w-fit text-[11px] lg:inline-flex",
+          )}
+        >
+          Abrir
+        </span>
       </Link>
     </li>
   );
@@ -235,42 +255,40 @@ function GrupoFase({
   familias: FamiliaListaTela[];
   comPipeline: boolean;
 }) {
-  const tile = TILE_FASE[fase];
-  const semTom = !tile.tom;
+  const idTitulo = `t-familias-${fase}`;
   return (
-    <SecaoBloco
-      idTitulo={`t-familias-${fase}`}
-      titulo={TITULO_FASE[fase]}
-      icone={tile.icone}
-      tom={tile.tom ?? "areia"}
-      semTom={semTom}
-      contagem={familias.length}
+    <section
+      aria-labelledby={idTitulo}
       data-fase={fase}
-      className={fase === "freio" ? "pt-2" : undefined}
+      className="scroll-mt-4"
     >
-      <div
-        className={cn(
-          "rounded-3 bg-superficie overflow-hidden",
-          semTom ? "border-linha border" : "shadow-1",
-        )}
-      >
+      <TituloSecao id={idTitulo} className="mt-0 mb-3 first:mt-0">
+        {TITULO_FASE[fase]}
+        <span className="text-tinta-50 ml-2 align-middle font-mono text-[12px]">
+          <span className="sr-only">, </span>
+          {familias.length}
+        </span>
+      </TituloSecao>
+      <Card className="overflow-hidden">
         <div
           aria-hidden="true"
           className={cn(
-            "border-linha text-mini text-texto-2 hidden gap-x-4 border-b px-5 py-3 font-semibold lg:grid",
+            tabelaMock.th,
+            "hidden gap-x-4 lg:grid",
             gradeDa(fase, comPipeline),
           )}
         >
           <span>Família</span>
           {fase === "freio" ? (
             <>
-              <span>Cidade e bairro</span>
+              <span>Cidade / região</span>
               <span>Estado</span>
             </>
           ) : (
             <>
+              <span>Cidade / região</span>
+              <span>Situação</span>
               <span>{COLUNA_TEMPO[fase]}</span>
-              <span>Cidade e bairro</span>
               {comPipeline ? (
                 <>
                   <span>Estágio</span>
@@ -279,9 +297,9 @@ function GrupoFase({
               ) : null}
             </>
           )}
-          <span />
+          <span>Ficha</span>
         </div>
-        <ul className="divide-linha divide-y">
+        <ul>
           {familias.map((familia) => (
             <LinhaFamilia
               key={familia.id}
@@ -290,8 +308,8 @@ function GrupoFase({
             />
           ))}
         </ul>
-      </div>
-    </SecaoBloco>
+      </Card>
+    </section>
   );
 }
 
@@ -334,6 +352,7 @@ export function ListaFamilias({
   }, [familias, consulta, buscaDoServidor, resultadoBusca]);
 
   const contagem = contarPorFiltro(achadas);
+  const totais = contarPorFiltro(familias);
   const visiveis = ordenarFamilias(
     achadas.filter((f) => passaNoFiltro(f, filtro)),
     ordem,
@@ -349,42 +368,49 @@ export function ListaFamilias({
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="rounded-3 bg-areia-clara flex flex-col gap-4 p-4 lg:p-5">
-        <form
-          id={idFormulario}
-          role="search"
-          method="get"
-          action="/familias"
-          className="tablet:flex-row tablet:items-end flex flex-col gap-3"
-        >
-          <CampoTexto
-            rotulo="Buscar"
-            name="busca"
-            type="search"
-            value={consulta}
-            onChange={(evento) => definirConsulta(evento.target.value)}
-            placeholder="Nome, bairro, cidade ou telefone"
-            autoComplete="off"
-            containerClassName="min-w-0 flex-1"
-            acessorio={
-              <Search
-                aria-hidden="true"
-                className="text-texto-2 mr-3 size-4 shrink-0"
-              />
-            }
-          />
-          {telefonePendente ? (
-            <Botao type="submit" variante="secundario">
-              Buscar pelo telefone
-            </Botao>
-          ) : null}
-        </form>
+    <div className="flex flex-col gap-[14px]">
+      <div className="grid grid-cols-2 gap-[14px] lg:grid-cols-4">
+        <Kpi rotulo="Famílias cadastradas" valor={total} />
+        <Kpi rotulo="Gestando" valor={totais.gestando} />
+        <Kpi rotulo="Em atendimento" valor={totais.atendimento} />
+        <Kpi rotulo="Com freio" valor={totais.com_freio} />
+      </div>
 
+      <form
+        id={idFormulario}
+        role="search"
+        method="get"
+        action="/familias"
+        className="tablet:flex-row tablet:items-end flex flex-col gap-3"
+      >
+        <CampoTexto
+          rotulo="Buscar"
+          name="busca"
+          type="search"
+          value={consulta}
+          onChange={(evento) => definirConsulta(evento.target.value)}
+          placeholder="Nome, bairro, cidade ou telefone"
+          autoComplete="off"
+          containerClassName="min-w-0 flex-1"
+          acessorio={
+            <Search
+              aria-hidden="true"
+              className="text-texto-2 mr-3 size-4 shrink-0"
+            />
+          }
+        />
+        {telefonePendente ? (
+          <Botao type="submit" variante="secundario">
+            Buscar pelo telefone
+          </Botao>
+        ) : null}
+      </form>
+
+      <div className="flex flex-wrap items-center gap-x-[9px] gap-y-2">
         <div
           role="group"
           aria-label="Filtrar pela fase da família"
-          className="flex flex-wrap gap-2"
+          className="flex flex-wrap gap-[9px]"
         >
           {FILTROS_FASE.map((item) => {
             const ativo = filtro === item.valor;
@@ -395,10 +421,9 @@ export function ListaFamilias({
                 aria-pressed={ativo}
                 onClick={() => definirFiltro(item.valor)}
                 className={cn(
-                  "min-h-toque rounded-pilula text-apoio ease-estado inline-flex items-center gap-2 border-[1.5px] px-4 font-semibold transition-[background-color,color,border-color] duration-140",
-                  ativo
-                    ? "border-marinho bg-marinho text-texto-inverso"
-                    : "border-borda-campo bg-superficie text-texto hover:bg-marinho-08",
+                  classesChip(ativo),
+                  "min-h-toque ease-estado cursor-pointer transition-[background-color,color,border-color] duration-140",
+                  !ativo && "hover:bg-creme-3",
                 )}
               >
                 {item.valor === "com_freio" ? (
@@ -409,7 +434,7 @@ export function ListaFamilias({
                   />
                 ) : null}
                 {item.rotulo}
-                <span className="text-mini font-mono font-medium tabular-nums">
+                <span className="font-mono text-[11px] tabular-nums">
                   <span className="sr-only">, </span>
                   {contagem[item.valor]}
                 </span>
@@ -417,21 +442,8 @@ export function ListaFamilias({
             );
           })}
         </div>
-      </div>
-
-      <div className="-mt-1 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-        <p role="status" className="text-apoio text-texto-2 max-w-[62ch]">
-          {telefonePendente
-            ? "Para achar pelo telefone, toque em Buscar pelo telefone."
-            : visiveis.length === total
-              ? `${total} ${total === 1 ? "família" : "famílias"}.`
-              : `Mostrando ${visiveis.length} de ${total} famílias.`}
-          {truncada && !algumFiltro
-            ? " A lista mostra as primeiras em ordem de nome; busque pelo nome ou pelo telefone para achar as outras."
-            : ""}
-        </p>
         {/* A ordem vai junto quando o formulário busca pelo telefone. */}
-        <label className="text-apoio text-texto-2 inline-flex items-center gap-2">
+        <label className="text-tinta-70 ml-auto inline-flex items-center gap-2 text-[12.5px]">
           Ordenar por
           <span className="relative inline-flex">
             <select
@@ -441,7 +453,10 @@ export function ListaFamilias({
               onChange={(evento) =>
                 definirOrdem(evento.target.value as OrdemFamilias)
               }
-              className="rounded-pilula border-borda-campo bg-superficie text-apoio text-texto min-h-toque hover:bg-marinho-08 ease-estado cursor-pointer appearance-none border-[1.5px] pr-10 pl-4 font-semibold transition-[background-color] duration-140"
+              className={cn(
+                classesChip(),
+                "min-h-toque ease-estado hover:bg-creme-3 cursor-pointer appearance-none pr-9 font-semibold transition-[background-color] duration-140",
+              )}
             >
               {ORDENS.map((o) => (
                 <option key={o.valor} value={o.valor}>
@@ -451,12 +466,23 @@ export function ListaFamilias({
             </select>
             <ChevronDown
               aria-hidden="true"
-              className="text-texto pointer-events-none absolute top-1/2 right-3.5 size-4 -translate-y-1/2"
+              className="text-texto pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2"
               strokeWidth={1.75}
             />
           </span>
         </label>
       </div>
+
+      <p role="status" className="text-tinta-50 max-w-[62ch] text-[11.5px]">
+        {telefonePendente
+          ? "Para achar pelo telefone, toque em Buscar pelo telefone."
+          : visiveis.length === total
+            ? `${total} ${total === 1 ? "família" : "famílias"}.`
+            : `Mostrando ${visiveis.length} de ${total} famílias.`}
+        {truncada && !algumFiltro
+          ? " A lista mostra as primeiras em ordem de nome; busque pelo nome ou pelo telefone para achar as outras."
+          : ""}
+      </p>
 
       {grupos.length === 0 ? (
         <EstadoVazio
@@ -484,7 +510,7 @@ export function ListaFamilias({
           }
         />
       ) : (
-        <div className="flex flex-col gap-10">
+        <div className="flex flex-col gap-[26px]">
           {grupos.map((grupo) => (
             <GrupoFase
               key={grupo.fase}

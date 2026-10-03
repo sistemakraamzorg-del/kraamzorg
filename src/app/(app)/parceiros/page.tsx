@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ChartColumn, LockKeyhole } from "lucide-react";
-import { SecaoBloco } from "@/components/blocos/secao-bloco";
+import { LockKeyhole } from "lucide-react";
+import { Card, CardBody, CardHead, tabelaMock } from "@/components/mockup";
 import { CabecalhoTela } from "@/components/shell/cabecalho-tela";
 import { Botao } from "@/components/ui/botao";
-import { EstadoVazio } from "@/components/ui/estado-vazio";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
+import { Selo } from "@/components/ui/selo";
 import { TabelaLista } from "@/components/ui/tabela-lista";
 import { exigeMfa } from "@/lib/auth/papeis";
 import { exigirSessao } from "@/lib/auth/sessao";
@@ -15,8 +15,14 @@ import type {
   ListaParceiros,
   RelatorioIndicacoes,
 } from "@/lib/dados/tipos-relacao";
+import { formatarData } from "@/lib/formatacao";
+import { cn } from "@/lib/utils";
 import { PainelParceiros } from "@/modules/parceiros/componentes/painel-parceiros";
-import { ROTULO_ESPECIALIDADE } from "@/modules/relacao/rotulos";
+import { FaixaIndicacoes } from "@/modules/relacao/componentes/faixa-indicacoes";
+import {
+  ROTULO_ESPECIALIDADE,
+  ROTULO_ESTADO_PARCEIRO,
+} from "@/modules/relacao/rotulos";
 
 export const metadata: Metadata = { title: "Parceiros médicos · Kraamzorg OS" };
 
@@ -97,104 +103,123 @@ export default async function PaginaParceiros() {
           </FaixaAlerta>
         ) : (
           <>
-            <FaixaAlerta
-              variante="info"
-              titulo="Parceria não tem contrapartida financeira"
-            >
-              {lista.aviso}
-            </FaixaAlerta>
-            <PainelParceiros parceiros={lista.parceiros} familias={familias} />
-            <SecaoBloco
-              idTitulo="relatorio"
-              titulo="Relatório de indicações"
-              icone={<ChartColumn />}
-              tom="areia"
-              apoio="Quem indicou, quantas famílias chegaram e quantas viraram contrato. As mesmas indicações entram na origem do marketing."
-            >
-              {relatorio && relatorio.porMedico.length > 0 ? (
-                <div className="grid items-start gap-4 2xl:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)]">
-                  <div className="min-[720px]:rounded-3 min-[720px]:bg-superficie min-[720px]:shadow-1 flex flex-col gap-2 min-[720px]:p-5">
-                    <h3 className="text-3 text-texto font-semibold">
-                      Por médico parceiro
-                    </h3>
-                    <TabelaLista
-                      rotulo="Indicações por médico parceiro"
-                      colunas={[
-                        { chave: "nome", rotulo: "Médico", principal: true },
-                        { chave: "especialidade", rotulo: "Especialidade" },
-                        {
-                          chave: "indicacoes",
-                          rotulo: "Indicações",
-                          numerica: true,
-                        },
-                        {
-                          chave: "qualificadas",
-                          rotulo: "Qualificadas",
-                          numerica: true,
-                        },
-                        {
-                          chave: "contratos",
-                          rotulo: "Viraram contrato",
-                          numerica: true,
-                        },
-                      ]}
-                      linhas={relatorio.porMedico.map((m) => ({
-                        id: m.medicoId,
-                        valores: {
-                          nome: m.nome,
-                          especialidade: ROTULO_ESPECIALIDADE[m.especialidade],
-                          indicacoes: String(m.indicacoes),
-                          qualificadas: String(m.qualificadas),
-                          contratos: String(m.contratos),
-                        },
-                      }))}
-                    />
-                  </div>
-                  {relatorio.porPromotora.length > 0 ? (
-                    <div className="min-[720px]:rounded-3 min-[720px]:bg-superficie min-[720px]:shadow-1 flex flex-col gap-2 min-[720px]:p-5">
-                      <h3 className="text-3 text-texto font-semibold">
-                        Por família que indicou
-                      </h3>
-                      <TabelaLista
-                        rotulo="Indicações por família promotora"
-                        colunas={[
-                          {
-                            chave: "nome",
-                            rotulo: "Família",
-                            principal: true,
-                          },
-                          {
-                            chave: "indicacoes",
-                            rotulo: "Indicações",
-                            numerica: true,
-                          },
-                          {
-                            chave: "contratos",
-                            rotulo: "Viraram contrato",
-                            numerica: true,
-                          },
-                        ]}
-                        linhas={relatorio.porPromotora.map((f) => ({
-                          id: f.familiaId,
-                          valores: {
-                            nome: f.nomeExibicao,
-                            indicacoes: String(f.indicacoes),
-                            contratos: String(f.contratos),
-                          },
-                        }))}
-                      />
-                    </div>
-                  ) : null}
-                </div>
+            <FaixaIndicacoes lista={lista} relatorio={relatorio} />
+            <Card>
+              <CardHead titulo="Parceiros médicos" direita="relacionamento" />
+              {lista.parceiros.length === 0 ? (
+                <CardBody>
+                  <p className="text-corpo text-texto-2">
+                    Nenhum médico parceiro ainda. Cadastre o primeiro logo
+                    abaixo.
+                  </p>
+                </CardBody>
               ) : (
-                <EstadoVazio
-                  nivelTitulo="h3"
-                  variante="tracejado"
-                  titulo="Nenhuma indicação de médico ainda"
-                  texto="Quando você registrar uma indicação de um médico parceiro, ela aparece aqui e também no relatório de origem do marketing."
-                />
+                <div className="overflow-x-auto">
+                  <table className={tabelaMock.tabela}>
+                    <caption className="sr-only">
+                      Médicos parceiros, com indicações e contratos
+                    </caption>
+                    <thead>
+                      <tr>
+                        {[
+                          "Profissional",
+                          "Especialidade",
+                          "Clínica",
+                          "Relacionamento",
+                          "Indicações",
+                          "Contratos",
+                          "Último contato",
+                        ].map((c) => (
+                          <th key={c} scope="col" className={tabelaMock.th}>
+                            {c}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[...lista.parceiros]
+                        .sort(
+                          (x, y) =>
+                            y.indicacoes - x.indicacoes ||
+                            x.nome.localeCompare(y.nome, "pt-BR"),
+                        )
+                        .map((m) => (
+                          <tr key={m.medicoId} className={tabelaMock.tr}>
+                            <td className={cn(tabelaMock.td, tabelaMock.nome)}>
+                              {m.nome}
+                            </td>
+                            <td className={cn(tabelaMock.td, tabelaMock.sub)}>
+                              {ROTULO_ESPECIALIDADE[m.especialidade]}
+                            </td>
+                            <td className={cn(tabelaMock.td, tabelaMock.sub)}>
+                              {m.hospital ?? "Sem clínica informada"}
+                            </td>
+                            <td className={tabelaMock.td}>
+                              <Selo
+                                variante={
+                                  m.estado === "ativo"
+                                    ? "sucesso"
+                                    : m.estado === "prospeccao"
+                                      ? "neutro"
+                                      : "aviso"
+                                }
+                              >
+                                {ROTULO_ESTADO_PARCEIRO[m.estado]}
+                              </Selo>
+                            </td>
+                            <td className={cn(tabelaMock.td, "font-mono")}>
+                              {m.indicacoes}
+                            </td>
+                            <td className={cn(tabelaMock.td, "font-mono")}>
+                              {m.contratos}
+                            </td>
+                            <td className={cn(tabelaMock.td, "font-mono")}>
+                              {m.ultimoContatoEm
+                                ? formatarData(m.ultimoContatoEm)
+                                : "Sem contato"}
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
               )}
-            </SecaoBloco>
+            </Card>
+            <PainelParceiros parceiros={lista.parceiros} familias={familias} />
+            {relatorio && relatorio.porPromotora.length > 0 ? (
+              <Card>
+                <CardHead
+                  titulo="Por família que indicou"
+                  direita="as mesmas indicações entram na origem do marketing"
+                />
+                <div className="overflow-x-auto">
+                  <TabelaLista
+                    rotulo="Indicações por família promotora"
+                    colunas={[
+                      { chave: "nome", rotulo: "Família", principal: true },
+                      {
+                        chave: "indicacoes",
+                        rotulo: "Indicações",
+                        numerica: true,
+                      },
+                      {
+                        chave: "contratos",
+                        rotulo: "Viraram contrato",
+                        numerica: true,
+                      },
+                    ]}
+                    linhas={relatorio.porPromotora.map((f) => ({
+                      id: f.familiaId,
+                      valores: {
+                        nome: f.nomeExibicao,
+                        indicacoes: String(f.indicacoes),
+                        contratos: String(f.contratos),
+                      },
+                    }))}
+                  />
+                </div>
+              </Card>
+            ) : null}
           </>
         )}
       </div>

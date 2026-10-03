@@ -32,14 +32,17 @@ export default async function PaginaNotas({
   try {
     tela = await obterTelaListaNotas(usuario, estado);
   } catch (erro) {
-    console.error("[tela-erro] /notas", erro instanceof Error ? erro.message : erro);
+    console.error(
+      "[tela-erro] /notas",
+      erro instanceof Error ? erro.message : erro,
+    );
     tela = null;
   }
 
   return (
     <>
       <CabecalhoTela titulo="Notas" />
-      <div className="flex flex-col gap-6 pt-6">
+      <div className="flex flex-col gap-3.5 pt-3.5">
         {!tela ? (
           <FaixaAlerta variante="erro" titulo="As notas não abriram agora">
             Confira a conexão e recarregue a página. Nada foi alterado.

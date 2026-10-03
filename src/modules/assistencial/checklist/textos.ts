@@ -10,6 +10,31 @@ export const textos = {
   paginaTitulo: (dia: number) => `Checklist do D${dia}`,
   voltarParaHoje: "Voltar para Hoje",
   diaDeTotal: (dia: number, total: number) => `D${dia} de ${total}`,
+  linhaEvolucao: {
+    titulo: "Linha de evolução da família",
+    estaVisita: "esta visita",
+  },
+  regrasRegistro: {
+    titulo: "Regras do registro",
+    itens: [
+      [
+        "Só acrescenta.",
+        "Depois de assinado, não se edita. Correção vira adendo com autor e motivo.",
+      ],
+      [
+        "Leitura auditada.",
+        "Abrir um registro também gera log, não apenas alterar.",
+      ],
+      [
+        "Offline primeiro.",
+        "A visita é domiciliar. O rascunho vive no aparelho até sincronizar.",
+      ],
+      [
+        "Assinatura nominal.",
+        "Toda ficha fica vinculada à profissional que a produziu.",
+      ],
+    ],
+  },
   etapa: (atual: number, total: number) => `Etapa ${atual} de ${total}`,
   verEtapas: (atual: number, total: number) =>
     `Etapa ${atual} de ${total}. Ver todas as etapas`,

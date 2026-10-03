@@ -17,14 +17,13 @@ import { cn } from "@/lib/utils";
  * pergunta), não só de cor.
  */
 const botaoVariantes = cva(
-  "inline-flex items-center justify-center gap-2 rounded-pilula border-[1.5px] font-sans [&_svg]:shrink-0 font-semibold leading-tight transition-[background-color,transform,border-color] duration-140 ease-estado active:translate-y-px active:scale-[0.985] disabled:cursor-not-allowed disabled:border-linha disabled:bg-marinho-08 disabled:text-texto-3 disabled:active:translate-y-0 disabled:active:scale-100 aria-disabled:cursor-not-allowed aria-disabled:border-linha aria-disabled:bg-marinho-08 aria-disabled:text-texto-3",
+  "inline-flex items-center justify-center gap-2 rounded-[7px] border font-sans [&_svg]:shrink-0 font-medium leading-tight transition-[background-color,transform,border-color] duration-140 ease-estado active:translate-y-px active:scale-[0.985] disabled:cursor-not-allowed disabled:border-linha disabled:bg-marinho-08 disabled:text-texto-3 disabled:active:translate-y-0 disabled:active:scale-100 aria-disabled:cursor-not-allowed aria-disabled:border-linha aria-disabled:bg-marinho-08 aria-disabled:text-texto-3",
   {
     variants: {
       variante: {
         primario:
           "border-acao bg-acao text-acao-texto hover:border-acao-hover hover:bg-acao-hover",
-        secundario:
-          "border-borda-campo bg-superficie text-texto hover:bg-marinho-08",
+        secundario: "border-fio-2 bg-superficie text-tinta-70 hover:bg-creme-2",
         perigo:
           "border-alerta bg-alerta text-texto-inverso hover:bg-alerta-hover",
         fantasma:
@@ -39,8 +38,9 @@ const botaoVariantes = cva(
           "border-transparent bg-transparent text-texto-2 hover:bg-marinho-08",
       },
       tamanho: {
-        padrao: "min-h-12 px-6 text-corpo",
-        compacto: "min-h-toque px-4 text-apoio",
+        padrao: "min-h-12 px-6 text-corpo lg:min-h-9 lg:px-4 lg:text-[12.5px]",
+        compacto:
+          "min-h-toque px-4 text-apoio lg:min-h-8 lg:px-3 lg:text-[12.5px]",
       },
       largaTotal: {
         true: "w-full whitespace-normal text-balance",

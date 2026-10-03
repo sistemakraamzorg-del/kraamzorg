@@ -93,6 +93,9 @@ import { VisaoDosDados } from "../componentes/visao-dos-dados";
 import type { AlertaNaTela } from "../tipos";
 import { acaoAcionarFreioDoChecklist } from "./acoes";
 import { textos } from "./textos";
+import { FaixaHorario } from "./faixa-horario";
+import { Card, CardBody, CardHead } from "@/components/mockup";
+import { LinhaEvolucao } from "./linha-evolucao";
 import { useChecklist, type Aparelho } from "./use-checklist";
 
 /**
@@ -809,7 +812,18 @@ function Edicao({
         </div>
       </header>
 
+      <FaixaHorario
+        visita={checklist.visita}
+        banco={c.aparelho?.banco ?? null}
+        usuarioId={usuarioId}
+      />
       <AvisoSemSinal c={c} />
+      <div className="mt-3">
+        <LinhaEvolucao
+          diaAtual={checklist.visita.diaNumero}
+          diasContratados={checklist.diasContratados}
+        />
+      </div>
       {freioAtivo ? (
         <FaixaAlerta variante="sensivel" titulo={textos.freio} className="mt-3">
           {freioAvisoAberto === "ok"
@@ -851,7 +865,7 @@ function Edicao({
             "flex flex-col gap-4 px-5 pt-5",
             semTom
               ? "rounded-3 bg-superficie border-linha border pb-5"
-              : "rounded-colo bg-dourado-claro pb-11",
+              : "rounded-3 border-linha bg-superficie shadow-1 border pb-5",
           )}
         >
           <div className="flex items-start gap-4">
@@ -1560,6 +1574,16 @@ function VisaoAssinada({
         </div>
       </header>
       <AvisoSemSinal c={c} />
+      <FaixaHorario
+        visita={checklist.visita}
+        banco={c.aparelho?.banco ?? null}
+        usuarioId={usuarioId}
+        somenteLeitura
+      />
+      <LinhaEvolucao
+        diaAtual={checklist.visita.diaNumero}
+        diasContratados={checklist.diasContratados}
+      />
 
       <FaixaAlerta
         variante="sucesso"
@@ -1584,7 +1608,7 @@ function VisaoAssinada({
 
       <section
         aria-labelledby="resumo-lido"
-        className="rounded-3 bg-superficie shadow-1 flex flex-col gap-2 p-4"
+        className="rounded-3 border-linha bg-superficie shadow-1 flex flex-col gap-2 border p-4"
       >
         <h2 id="resumo-lido" className="text-3 text-texto font-semibold">
           {textos.leitura.resumoDescritivo}
@@ -1664,6 +1688,19 @@ function VisaoAssinada({
           </ul>
         )}
       </section>
+
+      <Card>
+        <CardHead titulo={textos.regrasRegistro.titulo} />
+        <CardBody className="py-3">
+          <ul className="divide-fio-3 divide-y text-[11.5px] leading-[1.75]">
+            {textos.regrasRegistro.itens.map(([destaque, texto]) => (
+              <li key={destaque} className="py-1.5">
+                <b>{destaque}</b> {texto}
+              </li>
+            ))}
+          </ul>
+        </CardBody>
+      </Card>
 
       <GravadorAudio
         visitaId={checklist.visita.id}

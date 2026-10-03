@@ -651,3 +651,37 @@ export function podeAbrir(
 export function ativo(item: ItemNavegacao, caminho: string): boolean {
   return rotaDoCaminho(caminho) === item.id;
 }
+
+/**
+ * Rótulos da barra lateral no HTML da cliente, para as telas que são as
+ * mesmas do mockup. Só a barra lateral usa: as abas do celular e o resto do
+ * app seguem com `ROTAS[id].rotulo`, que é curto. A rota não muda.
+ */
+const ROTULO_LATERAL: Partial<Record<IdRota, string>> = {
+  pipeline: "CRM · pipelines",
+  radar: "Radar & capacidade",
+  painel: "Indicadores",
+  manuais: "Manuais & treinamentos",
+  agente: "Agente de IA",
+  copiloto: "Copiloto interno",
+  portalFamilia: "Portal da família",
+  posVenda: "Pesquisa & NPS",
+};
+
+export function rotuloLateral(item: ItemNavegacao): string {
+  return ROTULO_LATERAL[item.id] ?? item.rotulo;
+}
+
+/**
+ * Sobretítulo do topo (`.crumb`): o grupo da barra lateral em que a tela
+ * mora, na ordem de precedência dos papéis. O Início é da Operação.
+ */
+export function grupoDoCaminho(caminho: string): GrupoLateral | null {
+  const id = rotaDoCaminho(caminho);
+  if (!id) return null;
+  if (id === "inicio") return "Operação";
+  for (const papel of PRECEDENCIA)
+    for (const grupo of NAVEGACAO[papel].grupos)
+      if (grupo.itens.includes(id)) return grupo.titulo;
+  return null;
+}

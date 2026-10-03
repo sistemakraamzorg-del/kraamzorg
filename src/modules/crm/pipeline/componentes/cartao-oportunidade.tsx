@@ -1,18 +1,17 @@
-import { Clock, FileText, Hourglass, OctagonPause } from "lucide-react";
 import type { Papel } from "@/lib/auth/papeis";
-import { Cartao } from "@/components/ui/cartao";
-import { LinhaGestacao } from "@/components/ui/linha-gestacao";
 import { Selo } from "@/components/ui/selo";
 import { formatarData, localidade } from "@/lib/formatacao";
 import type { EstadoSensivel, NumeroPipeline } from "@/lib/dados/tipos";
-import { calcularIdadeGestacional, hojeBrasilia } from "../idade-gestacional";
 import type { CartaoPipelineTela } from "../tipos";
 import { ROTULO_ORIGEM_LEAD } from "../estagios";
-import {
-  EXPLICA_CLASSIFICACAO,
-  ROTULO_CLASSIFICACAO,
-} from "./detalhe-oportunidade";
+import { EXPLICA_CLASSIFICACAO } from "./detalhe-oportunidade";
 import { MenuMover } from "./menu-mover";
+import {
+  CLASSE_CARTAO,
+  CLASSE_RODAPE,
+  ETIQUETA_MIUDA,
+  PontuacaoCartao,
+} from "./visual-quadro";
 
 const ROTULO_FREIO: Record<Exclude<EstadoSensivel, "normal">, string> = {
   atencao: "Freio em atenção",
@@ -28,10 +27,10 @@ function fraseNoEstagio(tempo: string): string {
 }
 
 /**
- * Cartão da oportunidade (P15 item 3): nome, semanas calculadas, cidade,
- * tempo no estágio, próximo contato e sinais (apresentação enviada,
- * transferência aberta, estado sensível na cor própria). Protótipo
- * `comercial-pipeline.html`, classe `c3-cartao`.
+ * Cartão compacto da oportunidade (mockup `v-crm`): linha 1 nome e
+ * pontuação, linha 2 semanas e bairro, linha 3 selos (classificação,
+ * origem e uma só pendência). Tempo no estágio, próximo contato, DPP e as
+ * demais pendências ficam na dica de hover e no painel de detalhes.
  */
 export function CartaoOportunidadePipeline({
   cartao,
@@ -52,148 +51,112 @@ export function CartaoOportunidadePipeline({
   const sensivel =
     cartao.estadoSensivel === "bloqueio_total" ||
     cartao.estadoSensivel === "encerrado_sensivel";
-  const ig =
-    !sensivel && cartao.dpp && !cartao.dataNascimento
-      ? calcularIdadeGestacional(cartao.dpp, hojeBrasilia())
+  const lugar = localidade(cartao.bairro, cartao.cidade);
+  const semanas = !sensivel ? cartao.idadeGestacional : null;
+
+  // Uma só pendência no cartão; o resto vai na dica e nos detalhes.
+  const pendencia =
+    cartao.estadoSensivel !== "normal"
+      ? ({
+          texto: ROTULO_FREIO[cartao.estadoSensivel],
+          variante: "sensivel",
+        } as const)
+      : cartao.transferenciaAberta
+        ? ({ texto: "Transferência aberta", variante: "aviso" } as const)
+        : cartao.pdfEnviadoEm
+          ? ({ texto: "Apresentação enviada", variante: "neutro" } as const)
+          : null;
+
+  const origemTexto =
+    cartao.origem && cartao.origem !== "desconhecida"
+      ? ROTULO_ORIGEM_LEAD[cartao.origem]
       : null;
-  const dppTexto = cartao.dpp ? formatarData(cartao.dpp) : null;
+
+  const dica = [
+    fraseNoEstagio(cartao.tempoNoEstagio),
+    cartao.dpp && !sensivel
+      ? `DPP ${formatarData(cartao.dpp)} (estimativa)`
+      : null,
+    cartao.pdfEnviadoEm
+      ? `Apresentação enviada em ${formatarData(cartao.pdfEnviadoEm)}`
+      : null,
+    cartao.transferenciaAberta ? "Transferência aberta" : null,
+    emFreio
+      ? sensivel
+        ? "Nenhuma mensagem automática sai para esta família"
+        : "Conteúdo e marketing pausados; os avisos da operação continuam"
+      : cartao.proximoContatoEm
+        ? `Próximo contato em ${formatarData(cartao.proximoContatoEm)}`
+        : null,
+  ]
+    .filter(Boolean)
+    .join(". ");
 
   return (
-    <Cartao
-      variante="plano"
+    <div
+      title={dica}
       // Clique em área livre do cartão abre os detalhes; botões e menus
       // dentro dele seguem com a própria ação. Teclado: botão do nome.
       onClick={(e) => {
         if (!(e.target as HTMLElement).closest("button, a, [role=menuitem]"))
           aoAbrir?.();
       }}
-      // `areia` é a cor da família e da Isadora (cabeçalho, selo da
-      // conversa): o cartão com freio usa o ameixa lavado, como o
-      // protótipo, não areia (crítica do CRM, P1 item 9).
-      className={`shadow-1 hover:shadow-2 motion-safe:transition-[box-shadow,transform] motion-safe:duration-140 motion-safe:hover:-translate-y-0.5 ${
-        aoAbrir ? "cursor-pointer" : ""
-      } ${emFreio ? "bg-sensivel-lavado border-sensivel-borda border" : ""}`}
+      // O cartão com freio usa o ameixa lavado, nunca areia (areia é da
+      // família e da Isadora).
+      className={`${CLASSE_CARTAO} ${aoAbrir ? "cursor-pointer" : ""} ${
+        emFreio ? "bg-sensivel-lavado border-sensivel-borda" : ""
+      }`}
     >
-      <div className="flex flex-col gap-1.5">
-        <div className="flex items-start justify-between gap-2">
-          <button
-            type="button"
-            onClick={aoAbrir}
-            aria-label={`Ver detalhes de ${cartao.nomeFamilia}`}
-            className="font-titulo text-3 min-h-toque inline-flex items-center text-left font-medium underline-offset-4 hover:underline"
-          >
-            {cartao.nomeFamilia}
-          </button>
+      <div className="flex items-center gap-1.5">
+        <button
+          type="button"
+          onClick={aoAbrir}
+          aria-label={`Ver detalhes de ${cartao.nomeFamilia}`}
+          className="min-h-toque min-w-0 flex-1 truncate text-left text-[12.5px] font-semibold underline-offset-4 hover:underline lg:min-h-6"
+        >
+          {cartao.nomeFamilia}
+        </button>
+        <div className="relative flex-none">
+          <MenuMover
+            cartao={cartao}
+            pipeline={pipeline}
+            papeis={papeis}
+            compacto
+          />
+        </div>
+      </div>
+      {semanas || lugar ? (
+        <p className="text-tinta-50 mt-[3px] flex flex-wrap gap-1.5 text-[11px]">
+          {semanas ? <span className="font-mono">{semanas}</span> : null}
+          {semanas && lugar ? <span aria-hidden="true">·</span> : null}
+          {lugar ? <span>{lugar}</span> : null}
+        </p>
+      ) : null}
+      {(!sensivel && cartao.score !== null) || origemTexto || pendencia ? (
+        <div className={CLASSE_RODAPE}>
           {!sensivel && cartao.score !== null ? (
-            <Selo
-              variante={
-                cartao.classificacao === "quente"
-                  ? "sucesso"
-                  : cartao.classificacao === "morno"
-                    ? "aviso"
-                    : "neutro"
-              }
-              className="mt-2 font-mono"
+            <PontuacaoCartao
+              valor={cartao.score}
+              classificacao={cartao.classificacao}
               title={
                 cartao.classificacao
                   ? `Pontuação ${cartao.score}. ${EXPLICA_CLASSIFICACAO[cartao.classificacao]}`
                   : "Pontuação do lead"
               }
-            >
-              {cartao.score}
-            </Selo>
-          ) : null}
-        </div>
-        <p className="text-apoio text-texto-2 flex flex-wrap gap-x-3 gap-y-0.5">
-          {!sensivel && cartao.idadeGestacional ? (
-            <span
-              className="font-mono"
-              title={
-                cartao.dpp
-                  ? `Calculada da DPP ${formatarData(cartao.dpp)}`
-                  : undefined
-              }
-            >
-              {cartao.idadeGestacional}
-            </span>
-          ) : null}
-          {localidade(cartao.bairro, cartao.cidade) ? (
-            <span>{localidade(cartao.bairro, cartao.cidade)}</span>
-          ) : null}
-        </p>
-        {ig && ig.semanas <= 42 && dppTexto ? (
-          // Linha da família no tempo, fina e sem acento: nas listas o
-          // bloco atual fica em marinho cheio (DESIGN.md, 11.9).
-          <LinhaGestacao
-            semanas={ig.semanas}
-            dias={ig.dias}
-            dpp={dppTexto}
-            semLegenda
-            className="py-1"
-          />
-        ) : null}
-        <p className="text-mini text-texto-2">
-          {fraseNoEstagio(cartao.tempoNoEstagio)}
-        </p>
-
-        <div className="flex flex-wrap gap-1.5">
-          {!sensivel && cartao.classificacao ? (
-            <Selo
-              variante={
-                cartao.classificacao === "quente" ? "destaque" : "neutro"
-              }
-            >
-              {ROTULO_CLASSIFICACAO[cartao.classificacao]}
-            </Selo>
-          ) : null}
-          {cartao.origem && cartao.origem !== "desconhecida" ? (
-            <Selo title="De onde veio esta família">
-              {ROTULO_ORIGEM_LEAD[cartao.origem]}
-            </Selo>
-          ) : null}
-          {cartao.pdfEnviadoEm ? (
-            <Selo icone={<FileText aria-hidden="true" />}>
-              Apresentação enviada
-            </Selo>
-          ) : null}
-          {cartao.transferenciaAberta ? (
-            <Selo variante="aviso" icone={<Hourglass aria-hidden="true" />}>
-              Transferência aberta
-            </Selo>
-          ) : null}
-          {emFreio ? (
-            <Selo
-              variante="sensivel"
-              icone={<OctagonPause aria-hidden="true" />}
-            >
-              {cartao.estadoSensivel !== "normal"
-                ? ROTULO_FREIO[cartao.estadoSensivel]
-                : null}
-            </Selo>
-          ) : null}
-        </div>
-
-        {emFreio ? (
-          <p className="text-sensivel border-linha text-apoio flex items-start gap-2 border-t pt-2">
-            <OctagonPause
-              aria-hidden="true"
-              className="mt-0.5 size-4 shrink-0"
             />
-            {sensivel
-              ? "Nenhuma mensagem automática sai para esta família."
-              : "Conteúdo e marketing pausados; os avisos da operação continuam."}
-          </p>
-        ) : cartao.proximoContatoEm ? (
-          <p className="border-linha text-apoio flex items-start gap-2 border-t pt-2">
-            <Clock aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
-            Próximo contato em {formatarData(cartao.proximoContatoEm)}.
-          </p>
-        ) : null}
-
-        <div className="-ml-3">
-          <MenuMover cartao={cartao} pipeline={pipeline} papeis={papeis} />
+          ) : null}
+          {origemTexto ? (
+            <Selo title="De onde veio esta família" className={ETIQUETA_MIUDA}>
+              {origemTexto}
+            </Selo>
+          ) : null}
+          {pendencia ? (
+            <Selo variante={pendencia.variante} className={ETIQUETA_MIUDA}>
+              {pendencia.texto}
+            </Selo>
+          ) : null}
         </div>
-      </div>
-    </Cartao>
+      ) : null}
+    </div>
   );
 }

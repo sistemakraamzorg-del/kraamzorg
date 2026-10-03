@@ -42,7 +42,7 @@ export default async function PaginaCobrancas({
   return (
     <>
       <CabecalhoTela titulo="Cobranças" />
-      <div className="flex flex-col gap-6 pt-6">
+      <div className="flex flex-col gap-3.5 pt-6">
         {!tela ? (
           <FaixaAlerta variante="erro" titulo="As cobranças não abriram agora">
             Confira a conexão e recarregue a página. Nada foi alterado.

@@ -1,19 +1,26 @@
 import Link from "next/link";
 import { MantaDobrada } from "@/components/ilustracoes";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
+import { Kpi } from "@/components/mockup";
 import {
-  GradeIndicadores,
-  PainelGrafico,
-} from "@/modules/inicio/painel-gestao";
+  BlocoTabela,
+  CartaoGrafico,
+  CLASSE_TABELA,
+  Grade,
+} from "../../mockup-ui";
+import { RoscaMock } from "../../graficos-mock";
 import { Selo } from "@/components/ui/selo";
 import { TabelaLista } from "@/components/ui/tabela-lista";
 import type { ListaDespesas } from "@/lib/dados/tipos-gestao";
 import { formatarData, formatarMoeda } from "@/lib/formatacao";
-import { mesParaBusca, rotuloMes } from "@/lib/gestao/formato";
+import {
+  formatarMoedaCurta,
+  mesParaBusca,
+  rotuloMes,
+} from "@/lib/gestao/formato";
 import { plural, ROTULO_CATEGORIA, ROTULO_ORIGEM } from "../textos";
 import { RemoverDespesa } from "./remover-despesa";
-import { Rosca } from "@/components/graficos";
-import { fatiasDeDespesa } from "../fatias-despesa";
+import { fatiasDeDespesaMock } from "../fatias-despesa";
 
 /** Frase de abertura da tela de despesas. */
 export function fraseDespesas(l: ListaDespesas): string {
@@ -44,7 +51,7 @@ export function ListaDespesasTela({ lista }: { lista: ListaDespesas }) {
     const nome = ROTULO_CATEGORIA[d.categoria];
     porCategoria.set(nome, (porCategoria.get(nome) ?? 0) + d.valorCentavos);
   }
-  const fatias = fatiasDeDespesa(
+  const fatias = fatiasDeDespesaMock(
     [...porCategoria].map(([rotulo, centavos]) => ({ rotulo, centavos })),
   );
   const maior = [...porCategoria].sort((a, b) => b[1] - a[1])[0]!;
@@ -52,48 +59,43 @@ export function ListaDespesasTela({ lista }: { lista: ListaDespesas }) {
     (maior[1] / Math.max(lista.totalCentavos, 1)) * 100,
   );
   return (
-    <>
-      <div className="[&>ul]:mt-0">
-        <GradeIndicadores
-          itens={[
-            {
-              rotulo: "Total do mês",
-              valor: formatarMoeda(lista.totalCentavos),
-              contexto: `${plural(lista.despesas.length, "despesa lançada", "despesas lançadas")} em ${rotuloMes(lista.mes)}.`,
-              href: "#desp-lista",
-              tom: "areia",
-            },
-            {
-              rotulo: "Maior categoria",
-              valor: formatarMoeda(maior[1]),
-              contexto: `${maior[0]}, ${pctMaior}% do total do mês.`,
-              href: "#desp-comp",
-              tom: "areia",
-            },
-          ]}
+    <div className="flex flex-col gap-3.5">
+      <Grade colunas={2}>
+        <Kpi
+          rotulo="Total do mês"
+          valor={formatarMoeda(lista.totalCentavos)}
+          delta={`${plural(lista.despesas.length, "despesa lançada", "despesas lançadas")} em ${rotuloMes(lista.mes)}.`}
         />
-      </div>
+        <Kpi
+          rotulo="Maior categoria"
+          valor={formatarMoeda(maior[1])}
+          delta={`${maior[0]}, ${pctMaior}% do total do mês.`}
+        />
+      </Grade>
       <div id="desp-comp" className="scroll-mt-24">
-        <PainelGrafico
+        <CartaoGrafico
           titulo="Como as despesas se dividem"
-          nota={`Despesas de ${rotuloMes(lista.mes)} por categoria.`}
+          nota={`Despesas de ${rotuloMes(lista.mes)} por categoria`}
         >
-          <Rosca
+          <RoscaMock
             formato="moeda"
-            espessura={44}
-            centro={{ valor: "", legenda: "" }}
             rotulo={`Despesas de ${rotuloMes(lista.mes)} por categoria`}
+            centro={formatarMoedaCurta(lista.totalCentavos).replace(
+              "R$ ",
+              "R$",
+            )}
+            sub="no mês"
             fatias={fatias}
           />
-        </PainelGrafico>
+        </CartaoGrafico>
       </div>
       <div id="desp-lista" className="scroll-mt-24">
-        <PainelGrafico
+        <BlocoTabela
           titulo={`Lançadas em ${rotuloMes(lista.mes)}`}
-          nota={plural(lista.despesas.length, "despesa", "despesas")}
+          direita={plural(lista.despesas.length, "despesa", "despesas")}
         >
           <TabelaLista
-            className="[&_thead_th]:bg-areia-clara"
+            className={CLASSE_TABELA}
             rotulo={`Despesas de ${rotuloMes(lista.mes)}`}
             colunas={[
               { chave: "descricao", rotulo: "O que foi pago", principal: true },
@@ -146,8 +148,8 @@ export function ListaDespesasTela({ lista }: { lista: ListaDespesas }) {
               },
             }))}
           />
-        </PainelGrafico>
+        </BlocoTabela>
       </div>
-    </>
+    </div>
   );
 }

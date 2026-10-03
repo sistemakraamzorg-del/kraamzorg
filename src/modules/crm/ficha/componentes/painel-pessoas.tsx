@@ -1,16 +1,16 @@
-import { Mail, Phone, Users } from "lucide-react";
-import { SecaoBloco } from "@/components/blocos/secao-bloco";
+import { Mail, Phone } from "lucide-react";
+import { Card, CardBody, CardHead, classesChip } from "@/components/mockup";
 import { formatarTelefone } from "@/lib/formatacao";
 import type { PessoaFicha } from "@/lib/dados/tipos";
 import { cn } from "@/lib/utils";
 import { rotuloPapelPessoa } from "../rotulos";
 
 /**
- * Bloco "Pessoas" da ficha (protótipo `comercial-ficha.html`, `c4-lateral`;
- * direção "Colo", DESIGN.md 2.5: pessoas e conversas em argila). Cada pessoa
- * é um bloco próprio, a de contato principal primeiro (o repositório já
- * ordena assim); telefone é link `tel:` em pílula com o alvo mínimo de
- * 44 px. Família com o freio puxado: blocos brancos, sem tom de apoio.
+ * Cartão "Pessoas" da ficha (cartão "Equipe designada" do mockup, com o
+ * mesmo desenho de linha: avatar de 30 px, nome em 12,5 px e a função em
+ * 11,5 px). A pessoa de contato principal vem primeiro (o repositório já
+ * ordena assim); telefone é link `tel:` com o alvo mínimo de 44 px. Com o
+ * freio puxado, o avatar fica sem tom de apoio.
  */
 export function PainelPessoas({
   pessoas,
@@ -20,70 +20,86 @@ export function PainelPessoas({
   semTom?: boolean;
 }) {
   return (
-    <SecaoBloco
-      idTitulo="t-pessoas"
-      titulo="Pessoas"
-      icone={<Users />}
-      tom="argila"
-      semTom={semTom}
-    >
-      {pessoas.length === 0 ? (
-        <p className="text-apoio text-texto-2">
-          Nenhuma pessoa cadastrada ainda.
-        </p>
-      ) : (
-        <ul className="flex flex-col gap-2">
-          {pessoas.map((pessoa) => (
-            <li
-              key={pessoa.id}
-              className={cn(
-                "rounded-3 flex flex-col gap-1 p-4",
-                semTom
-                  ? "bg-superficie border-linha border"
-                  : "bg-argila-clara",
-              )}
-            >
-              <span className="text-corpo text-texto leading-snug font-semibold">
-                {pessoa.nome}
-              </span>
-              <span className="text-apoio text-texto-2">
-                {rotuloPapelPessoa(pessoa.papel)}
-                {pessoa.contatoPrincipal ? " e contato principal" : ""}
-              </span>
-              {pessoa.telefoneE164 || pessoa.email ? (
-                <span className="mt-1 flex flex-wrap gap-2">
-                  {pessoa.telefoneE164 ? (
-                    <a
-                      href={`tel:${pessoa.telefoneE164}`}
-                      className="rounded-pilula bg-superficie text-apoio text-texto min-h-toque hover:shadow-1 inline-flex items-center gap-2 px-3.5 font-mono tabular-nums no-underline"
-                    >
-                      <Phone
-                        aria-hidden="true"
-                        className="size-4 shrink-0"
-                        strokeWidth={1.75}
-                      />
-                      {formatarTelefone(pessoa.telefoneE164)}
-                    </a>
+    <Card>
+      <CardHead titulo="Pessoas" />
+      <CardBody className="px-4 py-[11px]">
+        {pessoas.length === 0 ? (
+          <p className="text-tinta-50 py-1.5 text-[11.5px]">
+            Nenhuma pessoa cadastrada ainda.
+          </p>
+        ) : (
+          <ul>
+            {pessoas.map((pessoa) => (
+              <li
+                key={pessoa.id}
+                className="border-fio-3 flex items-start gap-[9px] border-t py-1.5 first:border-t-0"
+              >
+                <div
+                  aria-hidden="true"
+                  className={cn(
+                    "text-marinho grid size-[30px] flex-none place-items-center rounded-full text-[11.5px] font-semibold",
+                    semTom ? "bg-areia" : "bg-dourado-2",
+                  )}
+                >
+                  {iniciais(pessoa.nome)}
+                </div>
+                <div className="min-w-0">
+                  <b className="text-[12.5px] font-semibold">{pessoa.nome}</b>
+                  <div className="text-tinta-50 text-[11.5px]">
+                    {rotuloPapelPessoa(pessoa.papel)}
+                    {pessoa.contatoPrincipal ? " e contato principal" : ""}
+                  </div>
+                  {pessoa.telefoneE164 || pessoa.email ? (
+                    <span className="mt-1 flex flex-wrap gap-2">
+                      {pessoa.telefoneE164 ? (
+                        <a
+                          href={`tel:${pessoa.telefoneE164}`}
+                          className={cn(
+                            classesChip(),
+                            "min-h-toque font-mono tabular-nums no-underline",
+                          )}
+                        >
+                          <Phone
+                            aria-hidden="true"
+                            className="size-4 shrink-0"
+                            strokeWidth={1.75}
+                          />
+                          {formatarTelefone(pessoa.telefoneE164)}
+                        </a>
+                      ) : null}
+                      {pessoa.email ? (
+                        <a
+                          href={`mailto:${pessoa.email}`}
+                          className={cn(
+                            classesChip(),
+                            "min-h-toque max-w-full break-all no-underline",
+                          )}
+                        >
+                          <Mail
+                            aria-hidden="true"
+                            className="size-4 shrink-0"
+                            strokeWidth={1.75}
+                          />
+                          {pessoa.email}
+                        </a>
+                      ) : null}
+                    </span>
                   ) : null}
-                  {pessoa.email ? (
-                    <a
-                      href={`mailto:${pessoa.email}`}
-                      className="rounded-pilula bg-superficie text-apoio text-texto min-h-toque hover:shadow-1 inline-flex max-w-full items-center gap-2 px-3.5 break-all no-underline"
-                    >
-                      <Mail
-                        aria-hidden="true"
-                        className="size-4 shrink-0"
-                        strokeWidth={1.75}
-                      />
-                      {pessoa.email}
-                    </a>
-                  ) : null}
-                </span>
-              ) : null}
-            </li>
-          ))}
-        </ul>
-      )}
-    </SecaoBloco>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </CardBody>
+    </Card>
   );
+}
+
+function iniciais(nome: string): string {
+  return nome
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((palavra) => palavra.charAt(0).toUpperCase())
+    .join("");
 }

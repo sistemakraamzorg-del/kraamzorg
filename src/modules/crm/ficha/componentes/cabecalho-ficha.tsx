@@ -5,12 +5,10 @@ import { useActionState } from "react";
 import { useRouter } from "next/navigation";
 import { AvisoEfemero } from "@/components/ui/aviso-efemero";
 import { BotaoFreio } from "@/components/ui/botao-freio";
-import {
-  CabecalhoFamilia,
-  type DataChaveFamilia,
-} from "@/components/ui/cabecalho-familia";
+import { Card, Nota } from "@/components/mockup";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { formatarDataHora } from "@/lib/formatacao";
+import { OctagonPause } from "lucide-react";
 import type { EstadoSensivel } from "@/lib/dados/tipos";
 import { acaoAcionarFreio, acaoDesfazerFreio } from "../acoes";
 import { estadoInicialFicha } from "../estado-acoes";
@@ -32,8 +30,12 @@ function textoFreioAtivo(estado: EstadoSensivel, em: string | null): string {
 export interface CabecalhoFichaProps {
   familiaId: string;
   nome: string;
+  /** Selos do canto direito (estágio, semana da gestação). */
   meta: React.ReactNode;
-  datas: DataChaveFamilia[];
+  /** Linha pequena sob o nome: as pessoas da família e o lugar. */
+  subtitulo?: React.ReactNode;
+  /** Abas da ficha: ficam coladas na base do cartão do cabeçalho (`.tabs`). */
+  abas?: React.ReactNode;
   estadoSensivelInicial: EstadoSensivel;
   estadoSensivelEmInicial: string | null;
   /** Papel de coordenação ou diretoria: pode abrir a folha de reversão. */
@@ -53,8 +55,6 @@ export interface CabecalhoFichaProps {
   justificativaPendente?: boolean;
   /** Vencimento da tarefa de justificativa, para o prazo na faixa (P2 item 13). */
   justificativaVenceEm?: string | null;
-  /** Linha da família no tempo (`linhaDaFicha`); some em modo sensível. */
-  linha?: React.ReactNode;
 }
 
 /**
@@ -67,14 +67,14 @@ export function CabecalhoFicha({
   familiaId,
   nome,
   meta,
-  datas,
+  subtitulo,
+  abas,
   estadoSensivelInicial,
   estadoSensivelEmInicial,
   podeReverter,
   freioDesfazerSegundos = 0,
   justificativaPendente = false,
   justificativaVenceEm = null,
-  linha,
 }: CabecalhoFichaProps) {
   const router = useRouter();
   const formDesfazerRef = React.useRef<HTMLFormElement>(null);
@@ -90,11 +90,20 @@ export function CabecalhoFicha({
   const [acionouAgora, definirAcionouAgora] = React.useState(false);
 
   const freioAtivo = estadoSensivelInicial !== "normal";
-  // Perda ou intercorrência (DESIGN.md, 11.8): datas sem promessa de
-  // futuro e nenhuma linha da gestação.
-  const modoSensivel =
-    estadoSensivelInicial === "bloqueio_total" ||
-    estadoSensivelInicial === "encerrado_sensivel";
+  const refSelo = React.useRef<HTMLButtonElement | HTMLSpanElement>(null);
+  const freioAtivoAnterior = React.useRef(freioAtivo);
+  React.useEffect(() => {
+    // O botão de freio (que tinha o foco) some do DOM quando o freio liga;
+    // sem isto, o foco cai no <body>. Leva o foco para o selo "Freio ativo"
+    // que aparece no lugar dele.
+    if (freioAtivo && !freioAtivoAnterior.current) refSelo.current?.focus();
+    freioAtivoAnterior.current = freioAtivo;
+  }, [freioAtivo]);
+  const iniciais = nome
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((palavra) => palavra.charAt(0).toUpperCase())
+    .join("");
   // Estável entre renderizações: o AvisoEfemero reinicia o temporizador
   // quando esta função muda, e o router.refresh() re-renderiza a ficha
   // logo depois do toque (o "Desfazer" não pode durar mais que o prazo).
@@ -138,45 +147,72 @@ export function CabecalhoFicha({
 
   return (
     <div className="flex flex-col gap-3">
-      <CabecalhoFamilia
-        nome={nome}
-        meta={meta}
-        datas={datas}
-        nivelTitulo="h1"
-        // Direção "Colo" (DESIGN.md, 2.4): a família mora num bloco macio.
-        // Sem freio, o bloco de abertura da tela tem a base em arco, como
-        // o colo do símbolo; com o freio puxado fica o bloco ameixa de
-        // cantos redondos, sem forma nem tom de apoio (seção 11.8).
-        className={
-          freioAtivo
-            ? "rounded-3 lg:px-8"
-            : "rounded-colo pb-12 lg:px-8 lg:pb-14"
-        }
-        freioAtivo={freioAtivo}
-        modoSensivel={modoSensivel}
-        linha={modoSensivel ? undefined : linha}
-        textoFreioAtivo={
-          freioAtivo
-            ? textoFreioAtivo(estadoSensivelInicial, estadoSensivelEmInicial)
-            : undefined
-        }
-        rotuloFreioAtivo="Freio ativo"
-        acaoFreioAtivo={
-          podeReverter ? () => definirReverterAberto(true) : undefined
-        }
-        acaoFreio={
-          <form action={acaoAcionar}>
-            <input type="hidden" name="familiaId" value={familiaId} />
-            <BotaoFreio
-              type="submit"
-              aria-busy={acionando || undefined}
-              aria-label={`Freio: pausa na hora todas as mensagens automáticas para ${nome}`}
-            >
-              Freio
-            </BotaoFreio>
-          </form>
-        }
-      />
+      <Card>
+        <div className="flex flex-wrap items-center gap-3.5 px-[18px] py-4">
+          <div
+            aria-hidden="true"
+            className={
+              freioAtivo
+                ? "bg-areia text-marinho grid size-11 flex-none place-items-center rounded-full text-[15px] font-semibold"
+                : "bg-dourado-2 text-marinho grid size-11 flex-none place-items-center rounded-full text-[15px] font-semibold"
+            }
+          >
+            {iniciais}
+          </div>
+          <div className="min-w-0">
+            <h1 className="font-titulo text-[22px] leading-tight font-light">
+              {nome}
+            </h1>
+            {subtitulo ? (
+              <div className="text-tinta-50 text-[11.5px]">{subtitulo}</div>
+            ) : null}
+          </div>
+          <div className="ml-auto flex flex-wrap items-center gap-[7px]">
+            {meta}
+            {freioAtivo ? (
+              podeReverter ? (
+                <button
+                  ref={refSelo as React.Ref<HTMLButtonElement>}
+                  type="button"
+                  onClick={() => definirReverterAberto(true)}
+                  className="rounded-pilula bg-sensivel-lavado text-sensivel-texto min-h-toque inline-flex items-center gap-1.5 px-3 text-[11.5px] font-semibold whitespace-nowrap"
+                >
+                  <OctagonPause className="size-4" aria-hidden="true" />
+                  Freio ativo
+                </button>
+              ) : (
+                <span
+                  ref={refSelo as React.Ref<HTMLSpanElement>}
+                  tabIndex={-1}
+                  className="rounded-pilula bg-sensivel-lavado text-sensivel-texto inline-flex items-center gap-1.5 px-3 py-1.5 text-[11.5px] font-semibold whitespace-nowrap"
+                >
+                  <OctagonPause className="size-4" aria-hidden="true" />
+                  Freio ativo
+                </span>
+              )
+            ) : (
+              <form action={acaoAcionar}>
+                <input type="hidden" name="familiaId" value={familiaId} />
+                <BotaoFreio
+                  type="submit"
+                  aria-busy={acionando || undefined}
+                  aria-label={`Freio: pausa na hora todas as mensagens automáticas para ${nome}`}
+                >
+                  Freio
+                </BotaoFreio>
+              </form>
+            )}
+          </div>
+        </div>
+        {freioAtivo ? (
+          <div className="px-[18px] pb-4">
+            <Nota tom="sensivel" role="status">
+              {textoFreioAtivo(estadoSensivelInicial, estadoSensivelEmInicial)}
+            </Nota>
+          </div>
+        ) : null}
+        {abas}
+      </Card>
 
       {estadoAcionar.erro ? (
         <FaixaAlerta variante="erro" titulo={estadoAcionar.erro} />

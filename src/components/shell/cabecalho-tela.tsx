@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { MigalhaTopo } from "./migalha-topo";
 
 /**
  * Cabeçalho de tela (protótipo, `.cab-tela`): título único da tela em
@@ -34,14 +35,10 @@ export function CabecalhoTela({
 }) {
   return (
     <>
-      <header className="bg-fundo border-areia/60 sticky top-0 lg:border-b z-[var(--z-barra)] -mx-4 flex min-h-16 flex-wrap items-center gap-x-3 gap-y-2 px-4 pt-3 pb-2 lg:-mx-8 lg:px-8 lg:pt-5">
+      <header className="bg-fundo border-linha sticky top-0 z-[var(--z-barra)] -mx-4 flex min-h-16 flex-wrap items-center gap-x-4 gap-y-2 px-4 pt-3 pb-2 lg:-mx-[26px] lg:min-h-0 lg:gap-y-1 lg:border-b lg:py-3.5 lg:pr-[var(--reserva-topo,26px)] lg:pl-[26px]">
         <div className="flex flex-col">
-          {sobretitulo ? (
-            <span className="text-mini text-texto-2 font-medium tracking-[0.14em] uppercase">
-              {sobretitulo}
-            </span>
-          ) : null}
-          <h1 className="font-titulo text-display lg:text-display-lg text-texto font-light">
+          <MigalhaTopo sobretitulo={sobretitulo} />
+          <h1 className="font-titulo text-display text-texto font-light lg:mt-px lg:text-[22px] lg:leading-snug lg:tracking-[-0.005em]">
             {titulo}
           </h1>
         </div>
@@ -54,7 +51,7 @@ export function CabecalhoTela({
       {subtitulo ? (
         <p
           className={cn(
-            "mt-3 max-w-[60ch]",
+            "mt-3 max-w-[60ch] lg:mt-2 lg:line-clamp-2 lg:text-[13px]",
             abertura ? "text-3 text-texto" : "text-apoio text-texto-2",
           )}
         >

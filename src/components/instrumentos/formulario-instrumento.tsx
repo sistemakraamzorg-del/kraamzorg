@@ -652,11 +652,7 @@ export function FormularioInstrumento({
           {t.voltar}
         </Botao>
         {ultima ? (
-          <Botao
-            type="button"
-            largaTotal
-            onClick={concluir}
-          >
+          <Botao type="button" largaTotal onClick={concluir}>
             {rotuloConcluir ?? t.concluir}
           </Botao>
         ) : (

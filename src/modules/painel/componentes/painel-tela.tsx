@@ -1,34 +1,43 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import {
-  CalendarDays,
-  Handshake,
-  Megaphone,
-  MessageCircleHeart,
-  Target,
-  Wallet,
-} from "lucide-react";
-import { BarrasHorizontais } from "@/components/graficos/barras-horizontais";
 import { Colunas } from "@/components/graficos/colunas";
-import { MedidorMeta } from "@/components/graficos/medidor-meta";
 import {
   BarrasHorizontais as BarrasValor,
   Colunas as ColunasValor,
   Rosca,
 } from "@/components/graficos";
+import {
+  Card,
+  CardHead,
+  Kpi,
+  Nota,
+  TituloSecao,
+  tabelaMock,
+} from "@/components/mockup";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
-import { TileIcone } from "@/components/ui/tile-icone";
-import type { Tom } from "@/components/ui/tons";
 import { formatarMoeda } from "@/lib/formatacao";
 import { formatarMoedaCurta, formatarPct, nomeMes } from "@/lib/gestao/formato";
 import { somarMeses } from "@/lib/gestao/financeiro";
-import { cn } from "@/lib/utils";
 import {
   INDICADORES,
   progressoDasMetas,
   type SecaoPainel,
 } from "@/lib/gestao/painel";
 import { ROTULO_ORIGEM } from "@/modules/financeiro/gestao/textos";
+import {
+  FunilMock,
+  HBarrasMock,
+  LinhaMock,
+  MiniLinhaMock,
+  BarrasMock,
+} from "@/modules/financeiro/graficos-mock";
+import {
+  CartaoGrafico,
+  Grade,
+  KpiLinha,
+  SemDado,
+  SeloPonto,
+} from "@/modules/financeiro/mockup-ui";
 import type { DadosPainel } from "../dados";
 import {
   PERGUNTAS,
@@ -43,48 +52,17 @@ import {
   textoDoCongelamento,
 } from "../textos";
 
+const semDado = "sem número";
+
+const abreviar = (mes: string) => nomeMes(mes).slice(0, 3);
+
+/** Texto do valor sem o sinal de porcentagem, para o `%` ir pequeno ao lado. */
+const semPorcento = (n: number) => formatarPct(n).replace("%", "");
+
 /**
- * Cada pergunta da diretoria mora num bloco branco com o assunto num tile
- * (DESIGN.md, 6.1): a venda e a experiência são pessoas (argila), o
- * marketing e o dinheiro são o que já foi guardado (areia), a operação é
- * agenda (lavanda). Os números da seção ficam em blocos do mesmo tom.
+ * Seção de detalhe de uma pergunta: título de seção do mockup, a frase que
+ * responde antes dos números e, no fim, de onde vêm os números.
  */
-const TOM_SECAO: Record<SecaoPainel, { tom: Tom; icone: ReactNode }> = {
-  comercial: { tom: "argila", icone: <Handshake /> },
-  marketing: { tom: "areia", icone: <Megaphone /> },
-  operacao: { tom: "lavanda", icone: <CalendarDays /> },
-  experiencia: { tom: "argila", icone: <MessageCircleHeart /> },
-  financeiro: { tom: "areia", icone: <Wallet /> },
-};
-
-const FUNDO_NUMEROS: Record<Tom, string> = {
-  dourado: "[&>div]:bg-dourado-claro",
-  areia: "[&>div]:bg-areia-clara",
-  salvia: "[&>div]:bg-salvia-clara",
-  lavanda: "[&>div]:bg-lavanda-clara",
-  argila: "[&>div]:bg-argila-clara",
-};
-
-/** Os números da seção em blocos, no tom dela. */
-function GradeNumeros({
-  secao,
-  children,
-}: {
-  secao: SecaoPainel;
-  children: ReactNode;
-}) {
-  return (
-    <dl
-      className={cn(
-        "tablet:grid-cols-3 grid grid-cols-2 gap-2",
-        FUNDO_NUMEROS[TOM_SECAO[secao].tom],
-      )}
-    >
-      {children}
-    </dl>
-  );
-}
-
 function Secao({
   id,
   secao,
@@ -98,37 +76,34 @@ function Secao({
 }) {
   const indicadores = INDICADORES.filter((i) => i.secao === secao);
   return (
-    <section
-      aria-labelledby={id}
-      className="bg-superficie rounded-3 shadow-1 flex flex-col gap-5 p-5 lg:p-6"
-    >
-      <div className="flex items-start gap-3">
-        <TileIcone tom={TOM_SECAO[secao].tom} forma="quadrado">
-          {TOM_SECAO[secao].icone}
-        </TileIcone>
-        <div className="flex flex-col gap-1">
-          <h2 id={id} className="font-titulo text-2 text-texto font-medium">
-            {PERGUNTAS[secao]}
-          </h2>
-          <p className="text-corpo text-texto max-w-[68ch]">{frase}</p>
-        </div>
+    <section aria-labelledby={id} className="flex flex-col gap-3.5">
+      <div>
+        <TituloSecao id={id} className="mb-1">
+          {PERGUNTAS[secao]}
+        </TituloSecao>
+        <p className="text-tinta-70 max-w-[68ch] text-[13px] leading-[1.6]">
+          {frase}
+        </p>
       </div>
       {children}
       <details className="group">
-        <summary className="text-apoio text-texto min-h-toque inline-flex cursor-pointer list-none items-center font-semibold underline decoration-1 underline-offset-4 [&::-webkit-details-marker]:hidden">
+        <summary className="text-tinta-70 min-h-toque inline-flex cursor-pointer list-none items-center text-[12.5px] font-semibold underline decoration-1 underline-offset-4 [&::-webkit-details-marker]:hidden">
           De onde vêm estes números
         </summary>
         <ul className="mt-2 flex flex-col gap-2">
           {indicadores.map((i) => (
-            <li key={i.id} className="text-apoio text-texto-2 max-w-[68ch]">
-              <span className="text-texto font-semibold">{i.rotulo}.</span>{" "}
+            <li
+              key={i.id}
+              className="text-tinta-70 max-w-[68ch] text-[12.5px] leading-[1.6]"
+            >
+              <span className="text-tinta font-semibold">{i.rotulo}.</span>{" "}
               {i.definicao}
               {i.tela ? (
                 <>
                   {" "}
                   <Link
                     href={i.tela.href}
-                    className="text-texto font-semibold underline decoration-1 underline-offset-4"
+                    className="text-tinta font-semibold underline decoration-1 underline-offset-4"
                   >
                     Ver em {i.tela.rotulo}
                   </Link>
@@ -143,52 +118,29 @@ function Secao({
   );
 }
 
-/** Uma linha do painel: rótulo, valor e a comparação logo abaixo. */
+/** Um número do painel: rótulo, valor e a comparação logo abaixo. */
 function Numero({
   rotulo,
   valor,
   comparacao,
-  destaque,
 }: {
   rotulo: string;
   valor: string;
   comparacao?: string;
-  destaque?: boolean;
 }) {
-  return (
-    // Rótulo pequeno em cima, número grande em Jost e a comparação em
-    // frase embaixo (DESIGN.md, 2.6; referência: a grade de check-in). O
-    // número de destaque da seção ocupa duas colunas e cresce.
-    <div
-      className={cn(
-        "rounded-2 flex flex-col gap-1 p-3.5",
-        destaque && "col-span-2",
-      )}
-    >
-      <dt className="text-mini text-texto-2 font-medium">{rotulo}</dt>
-      <dd className="flex flex-col gap-1">
-        <span
-          className={cn(
-            "font-titulo text-texto font-medium tabular-nums",
-            destaque ? "text-numero" : "text-numero-sm",
-          )}
-        >
-          {valor}
-        </span>
-        {comparacao ? (
-          <span className="text-mini text-texto-2">{comparacao}</span>
-        ) : null}
-      </dd>
-    </div>
-  );
+  return <Kpi rotulo={rotulo} valor={valor} delta={comparacao} />;
 }
 
-const semDado = "sem número";
+/** Divide dinheiro por contagem, em centavos inteiros; nulo sem divisor. */
+const dividir = (centavos: number, n: number): number | null =>
+  n > 0 ? Math.round(centavos / n) : null;
 
 /**
- * Painel executivo (P52, PRD 16.2): as cinco perguntas da diretoria, com as
- * metas da Kraamzorg e a contagem do congelamento. Todo número tem a consulta
- * documentada (docs/painel/consultas.md) e é o mesmo da tela de origem.
+ * Painel executivo (P52, PRD 16.2) no desenho do HTML de referência da
+ * cliente (Indicadores): quatro indicadores, linha e funil, famílias, receita
+ * por praça e metas, e a tabela das cinco perguntas. Abaixo, o detalhe de
+ * cada pergunta. Todo número tem a consulta documentada
+ * (docs/painel/consultas.md) e é o mesmo da tela de origem.
  */
 export function PainelTela({ dados }: { dados: DadosPainel }) {
   const { atual: p, anterior: a } = dados;
@@ -204,47 +156,95 @@ export function PainelTela({ dados }: { dados: DadosPainel }) {
     x.localeCompare(y, "pt-BR"),
   );
 
-  return (
-    <div className="flex flex-col gap-8">
-      {/* As metas são o agora do mês: o bloco de abertura em forma colo
-          (DESIGN.md, 2.4), dourado-claro, com cada medidor num bloco branco
-          que encaixa nele. */}
-      <section
-        aria-labelledby="painel-metas"
-        className="rounded-colo bg-dourado-claro flex flex-col gap-4 px-5 pt-5 pb-12 lg:px-8 lg:pt-7"
-      >
-        <h2
-          id="painel-metas"
-          className="font-titulo text-2 text-texto flex items-center gap-3 font-medium"
-        >
-          <TileIcone tom="dourado" forma="quadrado">
-            <Target />
-          </TileIcone>
-          As metas do mês
-        </h2>
-        <div className="tablet:grid-cols-2 grid grid-cols-1 gap-2 lg:gap-3">
-          {metas.map((meta) => {
-            const t = textoDaMeta(meta);
-            return (
-              <div key={meta.chave} className="rounded-3 bg-superficie p-4">
-                <MedidorMeta
-                  rotulo={meta.rotulo}
-                  atualTexto={t.atualTexto}
-                  metaTexto={t.metaTexto}
-                  fracao={meta.fracao}
-                  aviso={avisoDaMeta(meta, e.amostraMinima)}
-                />
-              </div>
-            );
-          })}
-        </div>
-        {p.congelamento ? (
-          <p className="text-apoio text-texto">
-            {textoDoCongelamento(p.congelamento)}
-          </p>
-        ) : null}
-      </section>
+  const cac = dividir(m.custoTotalCentavos, c.contratosAssinados);
+  const cacAnterior = a
+    ? dividir(a.marketing.custoTotalCentavos, a.comercial.contratosAssinados)
+    : null;
+  const meses = a
+    ? [abreviar(somarMeses(mes, -1)), abreviar(mes)]
+    : [abreviar(mes)];
+  const dois = (atual: number, antes: number | undefined) =>
+    a && antes !== undefined ? [antes, atual] : [atual];
 
+  const sobrevenda = o.semanasEmSobrevenda;
+  const situacaoOperacao =
+    sobrevenda > 0
+      ? {
+          v: "alerta" as const,
+          t: `${sobrevenda} ${sobrevenda === 1 ? "semana" : "semanas"} em sobrevenda`,
+        }
+      : o.semanasEmAtencao > 0
+        ? {
+            v: "aviso" as const,
+            t: `${o.semanasEmAtencao} ${o.semanasEmAtencao === 1 ? "semana" : "semanas"} em atenção`,
+          }
+        : { v: "sucesso" as const, t: "Capacidade tranquila" };
+
+  const perguntas: {
+    bloco: string;
+    responde: string;
+    situacao: ReactNode;
+  }[] = [
+    {
+      bloco: "Comercial",
+      responde:
+        "Quantos leads, sessões e contratos? Qual conversão e ticket médio?",
+      situacao: (
+        <SeloPonto variante={c.contratosAssinados > 0 ? "sucesso" : "neutro"}>
+          {c.leads} {c.leads === 1 ? "lead" : "leads"} e {c.contratosAssinados}{" "}
+          {c.contratosAssinados === 1 ? "contrato" : "contratos"}
+        </SeloPonto>
+      ),
+    },
+    {
+      bloco: "Marketing",
+      responde:
+        "De onde vieram? Qual o custo por canal? Qual campanha gera receita, não apenas lead?",
+      situacao: (
+        <SeloPonto variante="neutro">
+          Custo do mês {formatarMoeda(m.custoTotalCentavos)}
+        </SeloPonto>
+      ),
+    },
+    {
+      bloco: "Operação",
+      responde:
+        "Quantas famílias ativas, quantas visitas, qual capacidade nas próximas semanas, quantas ocorrências?",
+      situacao: (
+        <SeloPonto variante={situacaoOperacao.v}>
+          {situacaoOperacao.t}
+        </SeloPonto>
+      ),
+    },
+    {
+      bloco: "Experiência",
+      responde: "Satisfação, NPS, indicações geradas, depoimentos coletados",
+      situacao:
+        e.nps === null ? (
+          <SeloPonto variante="neutro">NPS sem amostra</SeloPonto>
+        ) : (
+          <SeloPonto variante={e.nps >= p.metas.nps ? "sucesso" : "aviso"}>
+            NPS {e.nps}
+          </SeloPonto>
+        ),
+    },
+    {
+      bloco: "Financeiro",
+      responde:
+        "Receita, recebimentos, inadimplência, custos, margem por cliente, previsão",
+      situacao:
+        f.margemPct === null ? (
+          <SeloPonto variante="neutro">Sem margem no mês</SeloPonto>
+        ) : (
+          <SeloPonto variante={f.resultadoCentavos >= 0 ? "sucesso" : "alerta"}>
+            Margem {formatarPct(f.margemPct)}
+          </SeloPonto>
+        ),
+    },
+  ];
+
+  return (
+    <div className="flex flex-col gap-3.5">
       {o.semanasEmSobrevenda > 0 ? (
         <FaixaAlerta
           variante="prioritario"
@@ -263,6 +263,243 @@ export function PainelTela({ dados }: { dados: DadosPainel }) {
         </FaixaAlerta>
       ) : null}
 
+      <Grade colunas={4}>
+        <KpiLinha
+          rotulo="Leads no mês"
+          valor={String(c.leads)}
+          grafico={
+            <MiniLinhaMock
+              valores={dois(c.leads, a?.comercial.leads)}
+              rotulo="Leads do mês anterior e deste mês"
+            />
+          }
+          delta={contraAnterior(c.leads, a?.comercial.leads, mes)}
+        />
+        <KpiLinha
+          rotulo="Conversão lead → contrato"
+          valor={
+            c.conversaoPct === null ? semDado : semPorcento(c.conversaoPct)
+          }
+          unidade={c.conversaoPct === null ? undefined : "%"}
+          grafico={
+            <MiniLinhaMock
+              valores={
+                a &&
+                a.comercial.conversaoPct !== null &&
+                c.conversaoPct !== null
+                  ? [a.comercial.conversaoPct, c.conversaoPct]
+                  : []
+              }
+              tom="sucesso"
+              rotulo="Conversão do mês anterior e deste mês"
+            />
+          }
+          delta={contraAnteriorPct(
+            c.conversaoPct,
+            a?.comercial.conversaoPct,
+            mes,
+          )}
+        />
+        <KpiLinha
+          rotulo="CAC médio"
+          valor={cac === null ? semDado : formatarMoeda(cac)}
+          grafico={
+            <MiniLinhaMock
+              valores={
+                cac !== null && cacAnterior !== null ? [cacAnterior, cac] : []
+              }
+              tom="alerta"
+              rotulo="CAC do mês anterior e deste mês"
+            />
+          }
+          delta={
+            cac === null
+              ? "Sem contrato assinado para dividir o custo de marketing."
+              : (contraAnterior(cac, cacAnterior, mes, formatarMoeda) ??
+                "Custo de marketing dividido pelos contratos assinados.")
+          }
+        />
+        <KpiLinha
+          rotulo="Ciclo de venda"
+          valor={semDado}
+          grafico={<MiniLinhaMock valores={[]} rotulo="Ciclo de venda" />}
+          delta="O sistema ainda não mede os dias entre o lead e o contrato."
+        />
+      </Grade>
+
+      <Grade colunas={2}>
+        <CartaoGrafico
+          titulo="Leads, sessões e contratos"
+          nota={a ? "mês anterior e mês atual" : "só este mês"}
+        >
+          <LinhaMock
+            altura={200}
+            rotulo="Leads, sessões realizadas e contratos assinados por mês"
+            rotulos={meses}
+            series={[
+              {
+                nome: "Leads",
+                tom: "dourado2",
+                area: true,
+                valores: dois(c.leads, a?.comercial.leads),
+              },
+              {
+                nome: "Sessões",
+                tom: "dourado",
+                valores: dois(
+                  c.sessoesRealizadas,
+                  a?.comercial.sessoesRealizadas,
+                ),
+              },
+              {
+                nome: "Contratos",
+                tom: "sucesso",
+                valores: dois(
+                  c.contratosAssinados,
+                  a?.comercial.contratosAssinados,
+                ),
+              },
+            ]}
+          />
+        </CartaoGrafico>
+        <CartaoGrafico
+          titulo="Funil completo do mês"
+          nota="do lead ao contrato"
+        >
+          {c.leads === 0 ? (
+            <SemDado>
+              Nenhum lead neste mês. Quando entrar o primeiro, o funil mostra
+              quantos chegam a sessão e a contrato.
+            </SemDado>
+          ) : (
+            <FunilMock
+              rotulo="Funil do mês"
+              etapas={[
+                { rotulo: "Leads", valor: c.leads, tom: "areia" },
+                {
+                  rotulo: "Sessões realizadas",
+                  valor: c.sessoesRealizadas,
+                  tom: "dourado",
+                },
+                {
+                  rotulo: "Contratos",
+                  valor: c.contratosAssinados,
+                  tom: "sucesso",
+                },
+              ]}
+            />
+          )}
+        </CartaoGrafico>
+      </Grade>
+
+      <Grade colunas={3}>
+        <CartaoGrafico titulo="Famílias atendidas" nota="começaram no mês">
+          <BarrasMock
+            altura={160}
+            larguraInicial={340}
+            rotulo="Famílias que começaram o acompanhamento, por mês"
+            rotulos={meses}
+            series={[
+              {
+                nome: "Famílias",
+                tom: "dourado",
+                valores: dois(
+                  o.familiasIniciadas,
+                  a?.operacao.familiasIniciadas,
+                ),
+              },
+            ]}
+          />
+        </CartaoGrafico>
+        <CartaoGrafico titulo="Receita por praça" nota="no mês">
+          <SemDado>
+            O sistema ainda não separa a receita por praça. A receita por origem
+            da família está em Marketing e, mais abaixo, nos detalhes do mês.
+          </SemDado>
+        </CartaoGrafico>
+        <CartaoGrafico titulo="As metas do mês" nota="realizado ÷ meta">
+          <HBarrasMock
+            formato="percentual"
+            rotulo="Progresso de cada meta do mês, em porcentagem"
+            linhas={metas.map((meta) => {
+              const t = textoDaMeta(meta);
+              return {
+                rotulo: meta.rotulo,
+                valor: Math.round((meta.fracao ?? 0) * 100),
+                tom:
+                  meta.fracao !== null && meta.fracao >= 1
+                    ? "sucesso"
+                    : "aviso",
+                medidor: {
+                  nome: `${meta.rotulo}: ${t.atualTexto ?? semDado} de ${t.metaTexto}`,
+                  agora:
+                    meta.fracao === null ? null : Math.round(meta.fracao * 100),
+                },
+              };
+            })}
+          />
+          <ul className="text-tinta-50 mt-2.5 flex flex-col gap-0.5 text-[11.5px]">
+            {metas.map((meta) => {
+              const t = textoDaMeta(meta);
+              return (
+                <li key={meta.chave}>
+                  <span className="text-tinta font-semibold">
+                    {meta.rotulo}:
+                  </span>{" "}
+                  {t.atualTexto ?? semDado} de {t.metaTexto}.
+                  {avisoDaMeta(meta, e.amostraMinima)
+                    ? ` ${avisoDaMeta(meta, e.amostraMinima)}`
+                    : ""}
+                </li>
+              );
+            })}
+          </ul>
+        </CartaoGrafico>
+      </Grade>
+
+      {p.congelamento ? (
+        <Nota>{textoDoCongelamento(p.congelamento)}</Nota>
+      ) : null}
+
+      <Card>
+        <CardHead titulo="As cinco perguntas do painel executivo" />
+        <div className="overflow-x-auto">
+          <table className={tabelaMock.tabela}>
+            <caption className="sr-only">
+              As cinco perguntas do painel e a situação de cada uma agora
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col" className={`${tabelaMock.th} w-[120px]`}>
+                  Bloco
+                </th>
+                <th scope="col" className={tabelaMock.th}>
+                  O que o painel responde
+                </th>
+                <th scope="col" className={`${tabelaMock.th} w-[190px]`}>
+                  Situação agora
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {perguntas.map((q) => (
+                <tr key={q.bloco} className={tabelaMock.tr}>
+                  <td className={`${tabelaMock.td} ${tabelaMock.nome}`}>
+                    {q.bloco}
+                  </td>
+                  <td className={`${tabelaMock.td} ${tabelaMock.sub}`}>
+                    {q.responde}
+                  </td>
+                  <td className={tabelaMock.td}>{q.situacao}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+
+      <TituloSecao>Detalhes do mês</TituloSecao>
+
       <Secao
         id="painel-comercial"
         secao="comercial"
@@ -272,7 +509,7 @@ export function PainelTela({ dados }: { dados: DadosPainel }) {
             : `${c.leads} ${c.leads === 1 ? "lead chegou" : "leads chegaram"}, ${c.sessoesRealizadas} ${c.sessoesRealizadas === 1 ? "sessão foi feita" : "sessões foram feitas"} e ${c.contratosAssinados} ${c.contratosAssinados === 1 ? "contrato foi assinado" : "contratos foram assinados"}.`
         }
       >
-        <GradeNumeros secao="comercial">
+        <Grade colunas={3}>
           <Numero
             rotulo="Leads novos"
             valor={String(c.leads)}
@@ -325,7 +562,7 @@ export function PainelTela({ dados }: { dados: DadosPainel }) {
                 : formatarMoeda(c.ticketMedioCentavos)
             }
           />
-        </GradeNumeros>
+        </Grade>
       </Secao>
 
       <Secao
@@ -337,100 +574,95 @@ export function PainelTela({ dados }: { dados: DadosPainel }) {
             : `O canal que mais trouxe famílias foi ${ROTULO_ORIGEM[m.leadsPorOrigem[0]?.origem ?? "desconhecida"].toLowerCase()}, com ${m.leadsPorOrigem[0]?.leads} ${m.leadsPorOrigem[0]?.leads === 1 ? "lead" : "leads"}. O custo de marketing do mês foi ${formatarMoeda(m.custoTotalCentavos)}.`
         }
       >
-        <div className="grid gap-8 lg:grid-cols-2">
-          <div className="flex flex-col gap-3">
-            <h3 className="text-3 text-texto font-semibold">
-              Leads por origem
-            </h3>
+        <Grade colunas={2}>
+          <CartaoGrafico titulo="Leads por origem" nota="no mês">
             {m.leadsPorOrigem.length === 0 ? (
-              <p className="text-apoio text-texto-2">Nenhum lead neste mês.</p>
+              <SemDado>Nenhum lead neste mês.</SemDado>
             ) : (
-              <BarrasHorizontais
-                descricao="Leads do mês por origem"
-                dados={m.leadsPorOrigem.map((x) => ({
-                  id: x.origem,
+              <HBarrasMock
+                rotulo="Leads do mês por origem"
+                rotuloLargura={140}
+                linhas={m.leadsPorOrigem.map((x) => ({
                   rotulo: ROTULO_ORIGEM[x.origem],
                   valor: x.leads,
-                  valorTexto: String(x.leads),
+                  tom: "dourado",
+                  nota: String(x.leads),
                 }))}
               />
             )}
-          </div>
-          <div className="flex flex-col gap-3">
-            <h3 className="text-3 text-texto font-semibold">Custo por canal</h3>
+          </CartaoGrafico>
+          <CartaoGrafico titulo="Custo por canal" nota="no mês">
             {m.custoPorCanal.length === 0 ? (
-              <p className="text-apoio text-texto-2">
+              <SemDado>
                 Nenhum gasto de marketing lançado neste mês. Lance as despesas
                 de anúncios, com o canal, em{" "}
                 <Link
                   href="/financeiro/despesas"
-                  className="text-texto font-semibold underline decoration-1 underline-offset-4"
+                  className="text-tinta font-semibold underline decoration-1 underline-offset-4"
                 >
                   Despesas
                 </Link>
                 .
-              </p>
+              </SemDado>
             ) : (
-              <BarrasHorizontais
-                descricao="Custo de marketing do mês por canal"
-                dados={m.custoPorCanal.map((x) => ({
-                  id: x.canal ?? "sem-canal",
+              <HBarrasMock
+                rotulo="Custo de marketing do mês por canal"
+                rotuloLargura={140}
+                direita={78}
+                linhas={m.custoPorCanal.map((x) => ({
                   rotulo: x.canal
                     ? ROTULO_ORIGEM[x.canal]
                     : "Sem canal informado",
                   valor: x.centavos,
-                  valorTexto: formatarMoeda(x.centavos),
+                  tom: "aviso",
+                  nota: formatarMoedaCurta(x.centavos),
                 }))}
               />
             )}
-          </div>
-          <div className="flex flex-col gap-3">
-            <h3 className="text-3 text-texto font-semibold">
-              Receita por origem
-            </h3>
+          </CartaoGrafico>
+          <CartaoGrafico titulo="Receita por origem" nota="no mês">
             {m.receitaPorOrigem.length === 0 ? (
-              <p className="text-apoio text-texto-2">
-                Nenhum pagamento recebido neste mês.
-              </p>
+              <SemDado>Nenhum pagamento recebido neste mês.</SemDado>
             ) : (
-              <BarrasHorizontais
-                descricao="Receita do mês por origem da família"
-                dados={m.receitaPorOrigem.map((x) => ({
-                  id: x.origem,
+              <HBarrasMock
+                rotulo="Receita do mês por origem da família"
+                rotuloLargura={140}
+                direita={78}
+                linhas={m.receitaPorOrigem.map((x) => ({
                   rotulo: ROTULO_ORIGEM[x.origem],
                   valor: x.centavos,
-                  valorTexto: formatarMoeda(x.centavos),
+                  tom: "sucesso",
+                  nota: formatarMoedaCurta(x.centavos),
                 }))}
               />
             )}
-          </div>
-          <div className="flex flex-col gap-3">
-            <h3 className="text-3 text-texto font-semibold">
-              Receita por campanha
-            </h3>
+          </CartaoGrafico>
+          <CartaoGrafico titulo="Receita por campanha" nota="no mês">
             {m.receitaPorCampanha.length === 0 ? (
-              <p className="text-apoio text-texto-2">
+              <SemDado>
                 Nenhuma campanha com código de origem recebeu neste mês. As
                 campanhas aparecem quando os links de WhatsApp por canal, com o
                 código de origem, estiverem em uso.
-              </p>
+              </SemDado>
             ) : (
-              <BarrasHorizontais
-                descricao="Receita do mês por campanha"
-                dados={m.receitaPorCampanha.map((x) => ({
-                  id: x.campanha,
+              <HBarrasMock
+                rotulo="Receita do mês por campanha"
+                rotuloLargura={140}
+                direita={78}
+                linhas={m.receitaPorCampanha.map((x) => ({
                   rotulo: x.campanha,
                   valor: x.centavos,
-                  valorTexto: formatarMoeda(x.centavos),
+                  tom: "dourado",
+                  nota: formatarMoedaCurta(x.centavos),
                 }))}
               />
             )}
-          </div>
-        </div>
+          </CartaoGrafico>
+        </Grade>
       </Secao>
 
       <Secao id="painel-operacao" secao="operacao" frase={frasesDeOperacao(p)}>
-        <GradeNumeros secao="operacao">
+        <Grade colunas={4}>
           <Numero rotulo="Famílias ativas" valor={String(o.familiasAtivas)} />
           <Numero
             rotulo="Famílias que começaram no mês"
@@ -454,39 +686,41 @@ export function PainelTela({ dados }: { dados: DadosPainel }) {
             rotulo="Ocorrências abertas"
             valor={String(o.ocorrenciasAbertas)}
           />
-        </GradeNumeros>
-        <div className="flex flex-col gap-4">
-          <h3 className="text-3 text-texto font-semibold">
-            Capacidade das próximas {o.capacidadeSemanas} semanas
-          </h3>
-          {regioes.map((regiao) => (
-            <div key={regiao} className="flex flex-col gap-1">
-              <p className="text-apoio text-texto font-semibold">{regiao}</p>
-              <Colunas
-                descricao={`Ocupação de ${regiao} nas próximas ${o.capacidadeSemanas} semanas`}
-                dados={colunasDaCapacidade(
-                  o.capacidade.filter((x) => x.regiao === regiao),
-                )}
-                eixo="porcentagem"
-                legenda={
-                  regiao === regioes[regioes.length - 1]
-                    ? [
-                        { estado: "neutro", rotulo: "Tranquila" },
-                        { estado: "atencao", rotulo: "Atenção" },
-                        { estado: "alerta", rotulo: "Sobrevenda provável" },
-                      ]
-                    : undefined
-                }
-              />
-            </div>
-          ))}
-          <Link
-            href="/capacidade"
-            className="text-texto text-apoio min-h-toque inline-flex items-center self-start font-semibold underline decoration-1 underline-offset-4"
-          >
-            Ver a capacidade com a tabela e o backup
-          </Link>
-        </div>
+        </Grade>
+        <CartaoGrafico
+          titulo={`Capacidade das próximas ${o.capacidadeSemanas} semanas`}
+          nota="ocupação por região"
+        >
+          <div className="flex flex-col gap-4">
+            {regioes.map((regiao) => (
+              <div key={regiao} className="flex flex-col gap-1">
+                <p className="text-[12.5px] font-semibold">{regiao}</p>
+                <Colunas
+                  descricao={`Ocupação de ${regiao} nas próximas ${o.capacidadeSemanas} semanas`}
+                  dados={colunasDaCapacidade(
+                    o.capacidade.filter((x) => x.regiao === regiao),
+                  )}
+                  eixo="porcentagem"
+                  legenda={
+                    regiao === regioes[regioes.length - 1]
+                      ? [
+                          { estado: "neutro", rotulo: "Tranquila" },
+                          { estado: "atencao", rotulo: "Atenção" },
+                          { estado: "alerta", rotulo: "Sobrevenda provável" },
+                        ]
+                      : undefined
+                  }
+                />
+              </div>
+            ))}
+            <Link
+              href="/capacidade"
+              className="text-tinta min-h-toque inline-flex items-center self-start text-[12.5px] font-semibold underline decoration-1 underline-offset-4"
+            >
+              Ver a capacidade com a tabela e o backup
+            </Link>
+          </div>
+        </CartaoGrafico>
       </Secao>
 
       <Secao
@@ -494,26 +728,24 @@ export function PainelTela({ dados }: { dados: DadosPainel }) {
         secao="experiencia"
         frase={fraseDeExperiencia(p)}
       >
-        <div className="grid gap-6 lg:grid-cols-2">
-          <div className="border-linha rounded-3 flex flex-col gap-4 border p-5">
-            <h3 className="text-3 text-texto font-semibold">NPS do mês</h3>
-            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-              <span className="font-titulo text-numero text-texto font-medium tabular-nums">
+        <Grade colunas={2}>
+          <CartaoGrafico titulo="NPS do mês" nota={`meta de ${p.metas.nps}`}>
+            <div className="mb-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <span className="font-titulo text-[33px] leading-[1.1] font-light tracking-[-0.02em] tabular-nums">
                 {e.nps === null ? semDado : e.nps}
               </span>
-              <span className="text-apoio text-texto-2">
-                meta de {p.metas.nps}
-                {e.nps !== null && a?.experiencia.nps != null
-                  ? `. ${contraAnterior(e.nps, a.experiencia.nps, mes)}`
-                  : ""}
-              </span>
+              {e.nps !== null && a?.experiencia.nps != null ? (
+                <span className="text-tinta-50 text-[11.5px]">
+                  {contraAnterior(e.nps, a.experiencia.nps, mes)}
+                </span>
+              ) : null}
             </div>
             {e.nps === null ? (
-              <p className="text-apoio text-texto-2 max-w-[60ch]">
+              <SemDado>
                 Com menos de {e.amostraMinima} respostas o NPS não aparece, para
                 não enganar. {e.respostas} de {e.amostraMinima} até agora. A
                 nota e o gráfico surgem quando a pesquisa chegar lá.
-              </p>
+              </SemDado>
             ) : (
               <BarrasValor
                 rotulo="NPS contra a meta e o mês anterior"
@@ -547,14 +779,13 @@ export function PainelTela({ dados }: { dados: DadosPainel }) {
                 ]}
               />
             )}
-          </div>
-          <div className="border-linha rounded-3 flex flex-col gap-4 border p-5">
-            <h3 className="text-3 text-texto font-semibold">Quem respondeu</h3>
+          </CartaoGrafico>
+          <CartaoGrafico titulo="Quem respondeu" nota="no mês">
             {e.nps === null ? (
-              <p className="text-apoio text-texto-2 max-w-[60ch]">
+              <SemDado>
                 A divisão entre promotores, neutros e detratores aparece junto
                 com o NPS, a partir de {e.amostraMinima} respostas no mês.
-              </p>
+              </SemDado>
             ) : (
               <Rosca
                 rotulo="Respostas do mês por tipo"
@@ -573,10 +804,12 @@ export function PainelTela({ dados }: { dados: DadosPainel }) {
                 ]}
               />
             )}
-          </div>
-        </div>
-        <div className="border-linha rounded-3 flex flex-col gap-4 border p-5">
-          <h3 className="text-3 text-texto font-semibold">NPS mês a mês</h3>
+          </CartaoGrafico>
+        </Grade>
+        <CartaoGrafico
+          titulo="NPS mês a mês"
+          nota="promotores menos detratores"
+        >
           {dados.npsMensal ? (
             <>
               <ColunasValor
@@ -601,7 +834,7 @@ export function PainelTela({ dados }: { dados: DadosPainel }) {
                         ],
                 }))}
               />
-              <p className="text-mini text-texto-2 max-w-[60ch]">
+              <p className="text-tinta-50 mt-3 max-w-[60ch] text-[11.5px] leading-[1.6]">
                 Mesma conta do NPS do mês: promotores menos detratores. O mês só
                 ganha número a partir de {dados.npsMensal.amostraMinima}{" "}
                 respostas, para uma porcentagem sobre poucas famílias não
@@ -609,13 +842,13 @@ export function PainelTela({ dados }: { dados: DadosPainel }) {
               </p>
             </>
           ) : (
-            <p className="text-apoio text-texto-2 max-w-[60ch]">
+            <SemDado>
               Não foi possível ler as respostas da pesquisa agora. Recarregue a
               página; nada foi alterado.
-            </p>
+            </SemDado>
           )}
-        </div>
-        <GradeNumeros secao="experiencia">
+        </CartaoGrafico>
+        <Grade colunas={3}>
           <Numero
             rotulo="Respostas da pesquisa"
             valor={String(e.respostas)}
@@ -638,7 +871,7 @@ export function PainelTela({ dados }: { dados: DadosPainel }) {
             rotulo="Depoimentos autorizados"
             valor={String(e.depoimentos)}
           />
-        </GradeNumeros>
+        </Grade>
       </Secao>
 
       <Secao
@@ -646,11 +879,11 @@ export function PainelTela({ dados }: { dados: DadosPainel }) {
         secao="financeiro"
         frase={fraseDeFinanceiro(p)}
       >
-        <div className="grid gap-6 lg:grid-cols-2">
-          <div className="border-linha rounded-3 flex flex-col gap-4 border p-5">
-            <h3 className="text-3 text-texto font-semibold">
-              Este mês contra o anterior e a meta
-            </h3>
+        <Grade colunas={2}>
+          <CartaoGrafico
+            titulo="Este mês contra o anterior e a meta"
+            nota="em reais"
+          >
             <ColunasValor
               formato="moeda"
               maxValoresNoTopo={6}
@@ -701,59 +934,55 @@ export function PainelTela({ dados }: { dados: DadosPainel }) {
               ]}
             />
             {a ? null : (
-              <p className="text-mini text-texto-2">
+              <p className="text-tinta-50 mt-3 text-[11.5px]">
                 Sem mês anterior para comparar. As colunas mostram só este mês.
               </p>
             )}
-          </div>
-          <div className="border-linha rounded-3 flex flex-col gap-4 border p-5">
-            <h3 className="text-3 text-texto font-semibold">
-              Receita, recebido, a receber e despesas
-            </h3>
-            <BarrasValor
+          </CartaoGrafico>
+          <CartaoGrafico
+            titulo="Receita, recebido, a receber e despesas"
+            nota="no mês"
+          >
+            <HBarrasMock
               rotulo="Dinheiro do mês em reais"
-              larguraRotulo="8.5rem"
-              itens={[
+              rotuloLargura={128}
+              direita={78}
+              linhas={[
                 {
                   rotulo: "Faturamento",
                   valor: f.faturamentoCentavos,
                   tom: "marinho",
                   nota: formatarMoedaCurta(f.faturamentoCentavos),
-                  dica: `Faturamento: ${formatarMoeda(f.faturamentoCentavos)}`,
                 },
                 {
                   rotulo: "Recebido",
                   valor: f.recebimentosCentavos,
                   tom: "sucesso",
                   nota: formatarMoedaCurta(f.recebimentosCentavos),
-                  dica: `Recebido: ${formatarMoeda(f.recebimentosCentavos)}`,
                 },
                 {
                   rotulo: "A receber",
                   valor: f.previsaoAVencerCentavos,
                   tom: "dourado",
                   nota: formatarMoedaCurta(f.previsaoAVencerCentavos),
-                  dica: `A receber nos próximos meses: ${formatarMoeda(f.previsaoAVencerCentavos)}`,
                 },
                 {
                   rotulo: "Vencido em aberto",
                   valor: f.vencidoCentavos,
                   tom: "aviso",
                   nota: formatarMoedaCurta(f.vencidoCentavos),
-                  dica: `Vencido e em aberto: ${formatarMoeda(f.vencidoCentavos)}`,
                 },
                 {
                   rotulo: "Despesas",
                   valor: f.custosCentavos,
                   tom: "areia",
                   nota: formatarMoedaCurta(f.custosCentavos),
-                  dica: `Despesas: ${formatarMoeda(f.custosCentavos)}`,
                 },
               ]}
             />
-          </div>
-        </div>
-        <GradeNumeros secao="financeiro">
+          </CartaoGrafico>
+        </Grade>
+        <Grade colunas={3}>
           <Numero
             rotulo="Recebimentos"
             valor={formatarMoeda(f.recebimentosCentavos)}
@@ -783,7 +1012,6 @@ export function PainelTela({ dados }: { dados: DadosPainel }) {
               mes,
               formatarMoeda,
             )}
-            destaque
           />
           <Numero
             rotulo="Margem"
@@ -821,10 +1049,10 @@ export function PainelTela({ dados }: { dados: DadosPainel }) {
             valor={formatarMoeda(f.faturamentoCentavos)}
             comparacao="Contratos assinados no mês."
           />
-        </GradeNumeros>
+        </Grade>
         <Link
           href="/financeiro"
-          className="text-texto text-apoio min-h-toque inline-flex items-center self-start font-semibold underline decoration-1 underline-offset-4"
+          className="text-tinta min-h-toque inline-flex items-center self-start text-[12.5px] font-semibold underline decoration-1 underline-offset-4"
         >
           Ver o DRE, as despesas e a previsão
         </Link>

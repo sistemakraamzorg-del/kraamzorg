@@ -1,38 +1,45 @@
-import { BarrasHorizontais, Colunas, Rosca } from "@/components/graficos";
-import { Cartao } from "@/components/ui/cartao";
+import { Card, CardBody } from "@/components/mockup";
 import type { NumeroPipeline } from "@/lib/dados/tipos";
-import {
-  ORDEM_P1,
-  ORDEM_P2,
-  ROTULO_MOTIVO_PERDA,
-  rotuloEstagio,
-} from "../estagios";
+import { ROTULO_MOTIVO_PERDA } from "../estagios";
 import { calcularIdadeGestacional, hojeBrasilia } from "../idade-gestacional";
 import type { CartaoPipelineTela } from "../tipos";
+import {
+  BarrasHorizontaisMockup,
+  BarrasMockup,
+  CabecalhoGrafico,
+} from "./grafico-mockup";
 
 /**
- * Faixas de semana do gráfico (só o recorte do eixo; não é regra de
- * negócio). A última faixa não tem teto.
+ * Faixas de semana do gráfico do mockup (só o recorte do eixo; não é regra
+ * de negócio). "Já nasceu" vem da data de nascimento, não da DPP.
  */
-const FAIXAS: readonly { rotulo: string; de: number; ate: number }[] = [
-  { rotulo: "Até 14", de: 0, ate: 14 },
-  { rotulo: "15 a 20", de: 15, ate: 20 },
-  { rotulo: "21 a 26", de: 21, ate: 26 },
-  { rotulo: "27 a 32", de: 27, ate: 32 },
-  { rotulo: "33 a 38", de: 33, ate: 38 },
-  { rotulo: "39 ou mais", de: 39, ate: Infinity },
+const FAIXAS: readonly { rotulo: string; ate: number }[] = [
+  { rotulo: "8-14", ate: 14 },
+  { rotulo: "15-20", ate: 20 },
+  { rotulo: "21-26", ate: 26 },
+  { rotulo: "27-32", ate: 32 },
+  { rotulo: "33-36", ate: 36 },
+  { rotulo: "37+", ate: Infinity },
 ];
 
-const SEM_DADOS = "Ainda sem dados suficientes";
+/** Cores das barras de motivo (tokens). Perda gestacional é sempre ameixa. */
+const CORES_MOTIVO = [
+  "var(--tinta-30)",
+  "var(--alerta)",
+  "var(--aviso)",
+  "var(--dourado-2)",
+  "var(--marinho-3)",
+];
 
-function Vazio() {
-  return <p className="text-apoio text-texto-2 py-6">{SEM_DADOS}.</p>;
+function Vazio({ texto }: { texto: string }) {
+  return <p className="text-tinta-50 py-4 text-[12.5px]">{texto}</p>;
 }
 
 /**
- * Gráficos de baixo do pipeline 1 (mockup da Camila), derivados só dos
+ * Gráficos de baixo do pipeline (mockup da Camila), derivados só dos
  * cartões que a tela já carregou. Sem dado, estado vazio honesto.
- * "Viraram contrato" não entra: o pipeline 1 não traz esse vínculo.
+ * "Viraram contrato" e as medidas de tempo parado e contratos por mês não
+ * existem nos cartões: o bloco fica no lugar, com aviso.
  */
 export function GraficosPipeline({
   cartoes,
@@ -41,24 +48,57 @@ export function GraficosPipeline({
   cartoes: CartaoPipelineTela[];
   pipeline: NumeroPipeline;
 }) {
+  if (pipeline === 2) {
+    return (
+      <div className="mt-4 grid gap-[14px] md:grid-cols-2">
+        <Card>
+          <CardBody>
+            <CabecalhoGrafico
+              titulo="Tempo médio parado por etapa"
+              legenda="dias, onde a receita trava"
+            />
+            <Vazio texto="Ainda sem dados suficientes. O tempo parado por etapa aparece quando o histórico de movimentos estiver disponível aqui." />
+          </CardBody>
+        </Card>
+        <Card>
+          <CardBody>
+            <CabecalhoGrafico
+              titulo="Contratos por mês"
+              legenda="assinados e valor"
+            />
+            <Vazio texto="Ainda sem dados suficientes. Os contratos assinados por mês ficam no painel financeiro." />
+          </CardBody>
+        </Card>
+      </div>
+    );
+  }
+
   const hoje = hojeBrasilia();
-  const contagem = FAIXAS.map(() => 0);
+  const contagem = [...FAIXAS.map(() => 0), 0];
   for (const c of cartoes) {
-    if (c.dataNascimento) continue;
+    if (c.dataNascimento) {
+      contagem[FAIXAS.length] = (contagem[FAIXAS.length] ?? 0) + 1;
+      continue;
+    }
     const ig = calcularIdadeGestacional(c.dpp, hoje);
     if (!ig) continue;
-    const i = FAIXAS.findIndex(
-      (f) => ig.semanas >= f.de && ig.semanas <= f.ate,
-    );
+    const i = FAIXAS.findIndex((f) => ig.semanas <= f.ate);
     if (i >= 0) contagem[i] = (contagem[i] ?? 0) + 1;
   }
-  const temSemanas = contagem.some((n) => n > 0);
+  const semanas = [...FAIXAS.map((f) => f.rotulo), "nasceu"].map(
+    (rotulo, i) => ({
+      rotulo,
+      valor: contagem[i] ?? 0,
+    }),
+  );
+  const temSemanas = semanas.some((s) => s.valor > 0);
 
   const perdas = new Map<string, number>();
   for (const c of cartoes) {
     if (c.motivoPerda)
       perdas.set(c.motivoPerda, (perdas.get(c.motivoPerda) ?? 0) + 1);
   }
+  let n = 0;
   const motivos = [...perdas.entries()]
     .sort((a, b) => b[1] - a[1])
     .map(([motivo, valor]) => ({
@@ -66,105 +106,47 @@ export function GraficosPipeline({
         ROTULO_MOTIVO_PERDA[motivo as keyof typeof ROTULO_MOTIVO_PERDA] ??
         motivo,
       valor,
-      // Perda gestacional nunca em vermelho nem dourado: cor própria.
-      tom:
+      cor:
         motivo === "perda_gestacional"
-          ? ("sensivel" as const)
-          : ("dourado" as const),
+          ? "var(--sensivel)"
+          : (CORES_MOTIVO[n++ % CORES_MOTIVO.length] ?? "var(--dourado-2)"),
     }));
 
-  const funil = (pipeline === 1 ? ORDEM_P1 : ORDEM_P2)
-    .map((e) => ({
-      rotulo: rotuloEstagio(pipeline, e),
-      valor: cartoes.filter(
-        (c) => (pipeline === 1 ? c.estagioP1 : c.estagioP2) === e,
-      ).length,
-      tom: "dourado" as const,
-    }))
-    .filter((f) => f.valor > 0);
-
-  const porClasse = (k: string) =>
-    cartoes.filter((c) => c.classificacao === k).length;
-  const fatias = [
-    { rotulo: "Quente", valor: porClasse("quente"), tom: "sucesso" as const },
-    { rotulo: "Morno", valor: porClasse("morno"), tom: "aviso" as const },
-    { rotulo: "Frio", valor: porClasse("frio"), tom: "areia" as const },
-  ].filter((f) => f.valor > 0);
-  const comPontuacao = fatias.reduce((a, f) => a + f.valor, 0);
-
   return (
-    <div className="grid gap-3 pt-2 lg:grid-cols-2 xl:grid-cols-3">
-      <Cartao variante="areia-clara">
-        <h2 className="font-titulo text-3 font-medium">Famílias por estágio</h2>
-        <p className="text-apoio text-texto-2 mb-2">
-          Para onde o movimento está indo.
-        </p>
-        {funil.length > 0 ? (
-          <BarrasHorizontais
-            rotulo="Famílias por estágio"
-            larguraRotulo="9rem"
-            itens={funil}
+    <div className="mt-4 grid gap-[14px] md:grid-cols-2">
+      <Card>
+        <CardBody>
+          <CabecalhoGrafico
+            titulo="Leads por semana gestacional de entrada"
+            legenda="pela DPP, na lista acima"
           />
-        ) : (
-          <Vazio />
-        )}
-      </Cartao>
-      <Cartao variante="dourado">
-        <h2 className="font-titulo text-3 font-medium">
-          Como estão as pontuações
-        </h2>
-        <p className="text-apoio text-texto-2 mb-2">
-          Quantas famílias estão quentes, mornas e frias.
-        </p>
-        {comPontuacao > 0 ? (
-          <Rosca
-            rotulo="Famílias por classificação"
-            fatias={fatias}
-            centro={{ valor: String(comPontuacao), legenda: "famílias" }}
+          {temSemanas ? (
+            <BarrasMockup
+              dados={semanas}
+              cor="var(--dourado-2)"
+              descricao="Famílias por faixa de semanas gestacionais"
+            />
+          ) : (
+            <Vazio texto="Ainda sem dados suficientes." />
+          )}
+        </CardBody>
+      </Card>
+      <Card>
+        <CardBody>
+          <CabecalhoGrafico
+            titulo="Motivos de perda"
+            legenda="das famílias desta lista"
           />
-        ) : (
-          <Vazio />
-        )}
-      </Cartao>
-      {pipeline === 1 ? (
-        <>
-          <Cartao>
-            <h2 className="font-titulo text-3 font-medium">
-              Famílias por semana gestacional
-            </h2>
-            <p className="text-apoio text-texto-2 mb-2">
-              Onde a família está hoje, pela DPP.
-            </p>
-            {temSemanas ? (
-              <Colunas
-                rotulo="Famílias por faixa de semanas"
-                altura={160}
-                itens={FAIXAS.map((f, i) => ({
-                  rotulo: f.rotulo,
-                  valor: contagem[i] ?? 0,
-                }))}
-              />
-            ) : (
-              <Vazio />
-            )}
-          </Cartao>
-          <Cartao>
-            <h2 className="font-titulo text-3 font-medium">Motivos de perda</h2>
-            <p className="text-apoio text-texto-2 mb-2">
-              Das famílias que aparecem nesta lista.
-            </p>
-            {motivos.length > 0 ? (
-              <BarrasHorizontais
-                rotulo="Motivos de perda"
-                larguraRotulo="9rem"
-                itens={motivos}
-              />
-            ) : (
-              <Vazio />
-            )}
-          </Cartao>
-        </>
-      ) : null}
+          {motivos.length > 0 ? (
+            <BarrasHorizontaisMockup
+              dados={motivos}
+              descricao="Famílias por motivo de perda"
+            />
+          ) : (
+            <Vazio texto="Ainda sem dados suficientes." />
+          )}
+        </CardBody>
+      </Card>
     </div>
   );
 }

@@ -1,8 +1,7 @@
 import * as React from "react";
-import Link from "next/link";
 import { ArrowRight, Inbox, ListTodo } from "lucide-react";
 import { saudacao } from "@/components/shell/saudacao";
-import { EstadoVazio } from "@/components/ui/estado-vazio";
+import { Nota } from "@/components/mockup";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { TileIcone } from "@/components/ui/tile-icone";
 import { hojeBrasilia } from "@/modules/crm/pipeline/idade-gestacional";
@@ -13,7 +12,7 @@ import type { Dre, Inadimplencia } from "@/lib/dados/tipos-gestao";
 import type { ListaCobrancas } from "@/lib/dados/tipos-contrato";
 import type { RelatorioMarketing } from "@/lib/dados/tipos-relacao";
 import type { SessaoVenda } from "@/lib/dados/tipos-venda";
-import { formatarDiaSemanaEData, formatarMoeda } from "@/lib/formatacao";
+import { formatarMoeda } from "@/lib/formatacao";
 import { compararComAnterior, nomeMes } from "@/lib/gestao/formato";
 import { somarMeses } from "@/lib/gestao/financeiro";
 import { fraseDoDia } from "@/app/(app)/inicio/frase-do-dia";
@@ -39,6 +38,8 @@ import {
   FaixaDoDia,
   GradeGraficos,
   GradeIndicadores,
+  CartaoLista,
+  LinhaLista,
   PainelGrafico,
   Rosca,
   type Indicador,
@@ -86,48 +87,37 @@ function PedeAcao({
   vazio: string;
 }) {
   return (
-    <section aria-labelledby="inicio-acao" className="mt-6">
-      <h2 id="inicio-acao" className="font-titulo text-2 text-texto mb-3">
-        O que pede ação agora
-      </h2>
-      {falhas.length > 0 ? (
-        <FaixaAlerta
-          variante="erro"
-          titulo={`${falhas.join(" e ")} não carregou`}
-        >
-          Nada se perdeu. Confira a conexão e recarregue a página.
-        </FaixaAlerta>
-      ) : null}
-      {pedidos.length > 0 ? (
-        <ul className="rounded-3 border-linha bg-superficie divide-linha divide-y border">
-          {pedidos.map((p) => (
-            <li key={p.titulo}>
-              <Link
+    <div className="mb-[14px]">
+      <CartaoLista
+        titulo="O que pede ação agora"
+        direita={pedidos.length > 0 ? `${pedidos.length} abertos` : undefined}
+      >
+        {falhas.length > 0 ? (
+          <Nota tom="alerta" className="m-4">
+            <b>{falhas.join(" e ")} não carregou.</b> Nada se perdeu. Confira a
+            conexão e recarregue a página.
+          </Nota>
+        ) : null}
+        {pedidos.length > 0 ? (
+          <ul>
+            {pedidos.map((p) => (
+              <LinhaLista
+                key={p.titulo}
                 href={p.href}
-                className="ease-estado hover:bg-areia-clara flex min-h-[44px] items-center justify-between gap-4 px-5 py-3 text-inherit no-underline transition-colors duration-140"
-              >
-                <span className="flex flex-col">
-                  <span className="text-corpo text-texto font-semibold">
-                    {p.titulo}
-                  </span>
-                  <span className="text-apoio text-texto-2">{p.apoio}</span>
-                </span>
-                <ArrowRight
-                  aria-hidden="true"
-                  className="text-texto-2 size-5 shrink-0"
-                />
-              </Link>
-            </li>
-          ))}
-        </ul>
-      ) : falhas.length === 0 ? (
-        <EstadoVazio
-          variante="tracejado"
-          titulo="Nada pede ação agora"
-          texto={vazio}
-        />
-      ) : null}
-    </section>
+                tom="dourado"
+                icone={<ArrowRight />}
+                titulo={<b>{p.titulo}</b>}
+                apoio={p.apoio}
+              />
+            ))}
+          </ul>
+        ) : falhas.length === 0 ? (
+          <p className="text-tinta-70 p-4 text-[12.5px] leading-normal">
+            <b>Nada pede ação agora.</b> {vazio}
+          </p>
+        ) : null}
+      </CartaoLista>
+    </div>
   );
 }
 
@@ -265,7 +255,6 @@ export async function InicioComercial({
     <>
       <FaixaDoDia
         saudacao={saudacao(nome)}
-        titulo={formatarDiaSemanaEData(new Date()) ?? "Início"}
         frase={contagem ? fraseDoDia(contagem) : undefined}
       />
       <PedeAcao
@@ -279,7 +268,7 @@ export async function InicioComercial({
         <GraficoPontuacao cartoes={abertos} falhou={cartoes === null} />
         <GraficoSessoes sessoes={sessoes} />
       </GradeGraficos>
-      <div className="grid grid-cols-1 gap-8 pt-8 lg:grid-cols-[62fr_38fr]">
+      <div className="grid grid-cols-1 gap-[14px] lg:grid-cols-[62fr_38fr]">
         <section
           aria-labelledby="inicio-transferencias"
           className="scroll-mt-4"
@@ -570,7 +559,6 @@ export async function InicioFinanceiro({ sessao }: { sessao: SessaoUsuario }) {
     <>
       <FaixaDoDia
         saudacao={saudacao(sessao.nome)}
-        titulo={formatarDiaSemanaEData(new Date()) ?? "Início"}
         frase={
           inad
             ? inad.vencidasQtd > 0
@@ -729,7 +717,6 @@ export async function InicioMarketing({ sessao }: { sessao: SessaoUsuario }) {
     <>
       <FaixaDoDia
         saudacao={saudacao(sessao.nome)}
-        titulo={formatarDiaSemanaEData(new Date()) ?? "Início"}
         frase={
           t
             ? `${plural(t.leads, "lead chegou", "leads chegaram")} neste mês. Os números são agregados, sem dado de família.`

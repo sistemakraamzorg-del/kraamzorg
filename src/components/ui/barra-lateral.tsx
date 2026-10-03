@@ -4,11 +4,11 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 /**
- * Barra lateral (DESIGN.md, 2.9 e seção 6). Computador, marinho, solta 12
- * px das bordas com raio 28, como um bloco que segura a navegação. Símbolo
- * e nome do sistema no topo; grupos com título em frase; itens de 44 px em
- * pílula; o ativo ganha fundo dourado translúcido com halo. Fundo em degradê sutil, grupos em caixa alta, selos dourado (neutro) e alerta.
- * Mostra só o que o papel pode abrir.
+ * Barra lateral no desenho do HTML da cliente (`.side`): coluna marinho de
+ * 224 px, colada nas bordas, com o símbolo e o nome do sistema no topo (com
+ * divisor), grupos com rótulo de 9 px em caixa alta, itens de 12,5 px, o
+ * ativo em dourado translúcido com filete na esquerda e selos de contagem
+ * dourado (neutro) e vermelho (alerta). Mostra só o que o papel pode abrir.
  *
  * Este componente é estático (sem papel): os grupos e itens vêm sempre por
  * propriedade. Os grupos por papel (Comercial, Operação, Experiência,
@@ -67,61 +67,75 @@ export function BarraLateral({
     <nav
       aria-label={rotulo}
       className={cn(
-        "bg-marinho text-texto-inverso rounded-3 shadow-2 flex flex-col overflow-hidden bg-[image:var(--brilho-marinho)]",
-        posicao === "fixa" &&
-          "sticky top-3 m-3 h-[calc(100dvh-24px)] w-[calc(var(--container-lateral)-24px)]",
+        "bg-marinho text-texto-inverso flex flex-col overflow-hidden py-3.5",
+        posicao === "fixa" ? "sticky top-0 h-dvh w-[224px]" : "rounded-3",
         visivelEm === "computador" && "hidden lg:flex",
         className,
       )}
     >
-      <div className="border-texto-inverso/10 mx-4 flex shrink-0 flex-col items-center border-b pt-7 pb-6">
-        <Image
-          src={logoSrc}
-          alt=""
-          width={120}
-          height={103}
-          priority
-          className="mx-auto"
-          style={{ height: "auto" }}
-        />
+      <div className="border-texto-inverso/10 mb-3 flex shrink-0 items-center gap-2.5 border-b px-[18px] pt-0.5 pb-4">
+        {/* O símbolo é o arquivo oficial recortado pela moldura: nenhuma tela redesenha a logo. */}
+        <span
+          aria-hidden="true"
+          className="relative block h-[30px] w-[38px] shrink-0 overflow-hidden"
+        >
+          <Image
+            src={logoSrc}
+            alt=""
+            width={87}
+            height={75}
+            priority
+            className="absolute max-w-none"
+            style={{ left: -22, top: -23 }}
+          />
+        </span>
+        <span aria-hidden="true" className="font-titulo flex flex-col">
+          <span className="text-creme text-[11px] tracking-[0.2em]">
+            KRAAMZORG
+          </span>
+          <span className="text-dourado-2 mt-0.5 text-[7.5px] tracking-[0.24em]">
+            BRASIL · OS
+          </span>
+        </span>
         <span className="sr-only">{nomeMarca}</span>
       </div>
 
-      <div className="rolagem-fina-inversa rolagem-esmaecida flex min-h-0 flex-1 [scrollbar-gutter:stable_both-edges] flex-col gap-5 overflow-y-auto px-3 py-4">
+      <div className="rolagem-fina-inversa flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto px-2.5">
         {grupos.map((grupo) => {
           const idGrupo = `barra-lateral-grupo-${grupo.titulo.toLowerCase().replace(/\s+/g, "-")}`;
           return (
-            <div key={grupo.titulo} className="flex flex-col gap-0.5">
+            <div key={grupo.titulo} className="flex flex-col">
               <span
                 id={idGrupo}
-                className="text-mini text-texto-inverso-2 px-4 pb-1 font-medium tracking-[0.12em] uppercase"
+                className="text-texto-inverso-2 px-2 pt-2.5 pb-1 text-[9px] font-semibold tracking-[0.16em] uppercase"
               >
                 {grupo.titulo}
               </span>
-              <ul aria-labelledby={idGrupo} className="flex flex-col gap-0.5">
+              <ul aria-labelledby={idGrupo} className="flex flex-col">
                 {grupo.itens.map((item) => (
                   <li key={item.href}>
                     <Link
                       href={item.href}
+                      title={item.rotulo}
                       aria-current={item.ativo ? "page" : undefined}
                       className={cn(
-                        "min-h-toque rounded-pilula text-apoio ease-estado flex items-center gap-3 px-4 font-medium no-underline transition-[background-color,color,box-shadow] duration-140",
-                        "[&>svg]:size-5",
+                        "ease-estado flex w-full items-center gap-[9px] rounded-[7px] px-[9px] py-1.5 text-left text-[12.5px] no-underline transition-[background-color,color] duration-140",
+                        "[&>svg]:size-[15px] [&>svg]:shrink-0",
                         item.ativo
-                          ? "bg-dourado/20 text-creme shadow-halo [&>svg]:text-dourado font-semibold"
-                          : "text-texto-inverso hover:bg-texto-inverso/8 [&>svg]:text-texto-inverso-2 hover:[&>svg]:text-dourado",
+                          ? "bg-dourado-2/15 text-creme [&>svg]:text-dourado-2 font-medium shadow-[inset_2px_0_0_var(--dourado-2)]"
+                          : "text-texto-inverso/80 hover:bg-texto-inverso/8 hover:text-creme [&>svg]:text-texto-inverso-2",
                       )}
                     >
                       {item.icone}
-                      <span>{item.rotulo}</span>
+                      <span className="min-w-0 truncate">{item.rotulo}</span>
                       {item.contador ? (
                         <span
                           aria-hidden="true"
                           className={cn(
-                            "text-mini ml-auto font-mono",
+                            "ml-auto min-w-[18px] shrink-0 rounded-full px-1.5 py-px text-center text-[10px] font-bold",
                             item.contadorAlerta
-                              ? "rounded-pilula bg-alerta text-branco px-2"
-                              : "rounded-pilula bg-dourado text-marinho px-2 font-semibold",
+                              ? "bg-alerta text-branco"
+                              : "bg-dourado text-marinho",
                           )}
                         >
                           {item.contador}
@@ -140,7 +154,7 @@ export function BarraLateral({
       </div>
 
       {rodape ? (
-        <div className="border-texto-inverso/10 text-apoio mx-4 shrink-0 border-t pt-4 pb-5">
+        <div className="border-texto-inverso/10 mt-2 shrink-0 border-t px-[18px] pt-3.5">
           {rodape}
         </div>
       ) : null}

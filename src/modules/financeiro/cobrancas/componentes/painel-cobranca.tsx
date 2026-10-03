@@ -17,7 +17,6 @@ import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { Selo } from "@/components/ui/selo";
 import { TileIcone } from "@/components/ui/tile-icone";
 import type { CobrancaDetalhe } from "@/lib/dados/tipos-contrato";
-import { cn } from "@/lib/utils";
 import {
   formatarData,
   formatarDataHora,
@@ -95,21 +94,12 @@ export function PainelCobranca({
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* O valor é o número da cobrança (DESIGN.md, 2.6): em Jost, grande,
-          num bloco com a cor do que ela é. Paga é o feito (sálvia); a
-          receber é o agora (dourado); encerrada fica em branco. O estado
-          continua no selo, com a palavra. */}
+    <div className="flex flex-col gap-3.5">
+      {/* O valor é o número da cobrança, no desenho do `.kpi` do mockup: Jost
+          leve e grande. O estado continua no selo, com a palavra. */}
       <section
         aria-label="Situação da cobrança"
-        className={cn(
-          "rounded-3 flex flex-col gap-3 p-5 lg:p-6",
-          paga
-            ? "bg-salvia-clara"
-            : encerrada
-              ? "bg-superficie border-linha border"
-              : "bg-dourado-claro",
-        )}
+        className="rounded-3 border-linha bg-superficie shadow-1 flex flex-col gap-3 border px-4 py-[15px]"
       >
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
           <Selo variante={VARIANTE_SITUACAO[cobranca.situacao]}>
@@ -125,7 +115,7 @@ export function PainelCobranca({
             </Selo>
           ) : null}
         </div>
-        <p className="font-titulo text-numero text-texto font-medium tabular-nums">
+        <p className="font-titulo text-[33px] leading-[1.1] font-light tracking-[-0.02em] tabular-nums">
           {formatarMoeda(cobranca.valorCentavos)}
         </p>
         <p className="text-corpo text-texto">
@@ -213,8 +203,8 @@ export function PainelCobranca({
       </section>
 
       {!paga && !encerrada ? (
-        <section className="rounded-3 bg-superficie shadow-1 flex flex-col gap-3 p-5">
-          <h2 className="font-titulo text-2 text-texto flex items-center gap-3 font-medium">
+        <section className="rounded-3 border-linha bg-superficie shadow-1 flex flex-col gap-3 border p-4">
+          <h2 className="font-titulo flex items-center gap-2.5 text-[15.5px] font-normal tracking-[0.01em]">
             <TileIcone tom="areia" forma="quadrado" tamanho="p">
               <Link2 />
             </TileIcone>
@@ -294,9 +284,9 @@ export function PainelCobranca({
       ) : null}
 
       {cobranca.podeBaixarManual ? (
-        <section className="rounded-3 bg-superficie shadow-1 flex flex-col gap-4 p-5 lg:p-6">
+        <section className="rounded-3 border-linha bg-superficie shadow-1 flex flex-col gap-4 border p-4">
           <div className="flex flex-col gap-1">
-            <h2 className="font-titulo text-2 text-texto flex items-center gap-3 font-medium">
+            <h2 className="font-titulo flex items-center gap-2.5 text-[15.5px] font-normal tracking-[0.01em]">
               <TileIcone tom="areia" forma="quadrado" tamanho="p">
                 <Banknote />
               </TileIcone>

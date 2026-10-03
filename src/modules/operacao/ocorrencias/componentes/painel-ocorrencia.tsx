@@ -256,7 +256,7 @@ export function PainelOcorrencia({
       {ocorrencia.podeGerir || !encerrada ? (
         <section
           aria-labelledby="andamento"
-          className="rounded-3 bg-superficie shadow-1 flex flex-col gap-4 p-5 lg:sticky lg:top-24"
+          className="rounded-3 border-linha bg-superficie shadow-1 flex flex-col gap-4 border p-5 lg:sticky lg:top-24"
         >
           <TituloSecao
             id="andamento"

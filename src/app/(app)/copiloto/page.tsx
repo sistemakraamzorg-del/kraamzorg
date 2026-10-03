@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Coins, History, LockKeyhole } from "lucide-react";
+import { LockKeyhole } from "lucide-react";
 import { CabecalhoTela } from "@/components/shell/cabecalho-tela";
-import { BarraProgresso } from "@/components/ui/barra-progresso";
+import { Barra, Card, CardBody, CardHead, Nota } from "@/components/mockup";
 import { Botao } from "@/components/ui/botao";
-import { TileIcone } from "@/components/ui/tile-icone";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
-import { exigeMfa } from "@/lib/auth/papeis";
+import { descreverPapeis, exigeMfa } from "@/lib/auth/papeis";
 import { exigirSessao } from "@/lib/auth/sessao";
 import { ErroRepositorio } from "@/lib/dados/erros";
 import { obterRepositorios } from "@/lib/dados/fabrica";
@@ -63,9 +62,9 @@ export default async function PaginaCopiloto() {
         titulo="Copiloto"
         subtitulo="Pergunte em uma frase e veja os números com a conta que os sustenta."
       />
-      <div className="flex flex-col gap-8 pt-6">
+      <div className="flex flex-col gap-3.5 pt-5">
         {semMfa ? (
-          <div className="rounded-3 bg-superficie shadow-1 flex max-w-[560px] flex-col gap-3 p-5">
+          <div className="rounded-3 bg-superficie shadow-1 border-linha flex max-w-[560px] flex-col gap-3 border p-5">
             <p className="text-corpo text-texto flex items-start gap-3">
               <LockKeyhole
                 className="text-texto-2 mt-1 size-4 shrink-0"
@@ -110,90 +109,103 @@ export default async function PaginaCopiloto() {
               </FaixaAlerta>
             ) : null}
 
-            {/* Computador: a pergunta e a resposta à esquerda; o custo e as
-              últimas perguntas na coluna da direita. */}
-            <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-[62fr_38fr]">
-              <PainelCopiloto
-                limite={config.perguntaMaxCaracteres}
-                exemplos={EXEMPLOS}
-              />
+            <PainelCopiloto
+              limite={config.perguntaMaxCaracteres}
+              exemplos={EXEMPLOS}
+              sessao={`Sessão de ${usuario.nome} · ${descreverPapeis(usuario.papeis)}`}
+              lateral={
+                <>
+                  <Card>
+                    <CardHead titulo="Limite de acesso" />
+                    <CardBody>
+                      <p className="text-tinta-50 text-[11.5px] leading-[1.7]">
+                        O copiloto responde exatamente o que o papel de quem
+                        pergunta permite ver. Registro assistencial ele não
+                        consulta: a pergunta recebe uma negativa clara, e não um
+                        resumo suavizado.
+                      </p>
+                      <Nota tom="sensivel" className="mt-3 text-[11.5px]">
+                        Regra aplicada no banco, não no prompt. Um modelo pode
+                        ser convencido; uma permissão de leitura, não.
+                      </Nota>
+                    </CardBody>
+                  </Card>
 
-              <div className="flex flex-col gap-8">
-                <section
-                  aria-labelledby="custo"
-                  className="rounded-3 bg-lavanda-clara flex flex-col gap-3 p-5"
-                >
-                  <h2
-                    id="custo"
-                    className="font-titulo text-2 text-texto flex items-center gap-3 font-medium"
-                  >
-                    <TileIcone tom="lavanda" forma="quadrado" tamanho="p">
-                      <Coins />
-                    </TileIcone>
-                    Custo do mês
-                  </h2>
-                  <p className="text-corpo text-texto" data-teste="custo-mes">
-                    {config.perguntasMes === 0
-                      ? "Nenhuma pergunta neste mês ainda."
-                      : `${config.perguntasMes} ${config.perguntasMes === 1 ? "pergunta" : "perguntas"} neste mês, com custo de ${formatarMoeda(config.custoMesCentavos)}${config.orcamentoMensalCentavos !== null ? `, de um limite de ${formatarMoeda(config.orcamentoMensalCentavos)}` : ""}.`}
-                    {config.perguntasMes === 0 &&
-                    config.orcamentoMensalCentavos !== null
-                      ? ` O limite do mês é de ${formatarMoeda(config.orcamentoMensalCentavos)}.`
-                      : ""}
-                  </p>
-                  {config.orcamentoMensalCentavos ? (
-                    <BarraProgresso
-                      valor={config.custoMesCentavos}
-                      total={config.orcamentoMensalCentavos}
-                      texto={`${Math.min(100, Math.round((config.custoMesCentavos / config.orcamentoMensalCentavos) * 100))}% do limite do mês usado`}
-                      textoCompleta="O limite do mês foi todo usado"
-                    />
+                  <Card>
+                    <CardHead titulo="Custo do mês" />
+                    <CardBody className="flex flex-col gap-3">
+                      <p
+                        className="text-tinta-70 text-[12.5px] leading-[1.6]"
+                        data-teste="custo-mes"
+                      >
+                        {config.perguntasMes === 0
+                          ? "Nenhuma pergunta neste mês ainda."
+                          : `${config.perguntasMes} ${config.perguntasMes === 1 ? "pergunta" : "perguntas"} neste mês, com custo de ${formatarMoeda(config.custoMesCentavos)}${config.orcamentoMensalCentavos !== null ? `, de um limite de ${formatarMoeda(config.orcamentoMensalCentavos)}` : ""}.`}
+                        {config.perguntasMes === 0 &&
+                        config.orcamentoMensalCentavos !== null
+                          ? ` O limite do mês é de ${formatarMoeda(config.orcamentoMensalCentavos)}.`
+                          : ""}
+                      </p>
+                      {config.orcamentoMensalCentavos ? (
+                        <>
+                          <Barra
+                            valor={
+                              (config.custoMesCentavos /
+                                config.orcamentoMensalCentavos) *
+                              100
+                            }
+                            tom={
+                              config.custoMesCentavos >=
+                              config.orcamentoMensalCentavos
+                                ? "alerta"
+                                : "dourado"
+                            }
+                            rotulo="Parte do limite do mês usada"
+                          />
+                          <p className="text-tinta-50 text-[11.5px]">
+                            {config.custoMesCentavos >=
+                            config.orcamentoMensalCentavos
+                              ? "O limite do mês foi todo usado"
+                              : `${Math.min(100, Math.round((config.custoMesCentavos / config.orcamentoMensalCentavos) * 100))}% do limite do mês usado`}
+                          </p>
+                        </>
+                      ) : null}
+                    </CardBody>
+                  </Card>
+
+                  {historico.length > 0 ? (
+                    <Card>
+                      <CardHead titulo="Últimas perguntas" />
+                      <ul className="px-4 py-2.5 text-[11.5px]">
+                        {historico.map((p) => (
+                          <li
+                            key={p.id}
+                            className="border-fio-3 flex flex-col gap-0.5 border-b py-2 last:border-b-0"
+                          >
+                            <span className="text-texto text-[12.5px]">
+                              {p.pergunta}
+                            </span>
+                            <span className="text-tinta-50">
+                              {formatarDataHora(p.em)}
+                              {p.quem ? `, ${p.quem}` : ""}
+                              {p.situacao === "respondida"
+                                ? ", respondida"
+                                : p.situacao === "recusada"
+                                  ? ", recusada"
+                                  : p.situacao === "desligado"
+                                    ? ", copiloto desligado"
+                                    : p.situacao === "orcamento"
+                                      ? ", sem orçamento"
+                                      : ", com erro"}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </Card>
                   ) : null}
-                </section>
-
-                {historico.length > 0 ? (
-                  <section
-                    aria-labelledby="historico"
-                    className="flex flex-col gap-3"
-                  >
-                    <h2
-                      id="historico"
-                      className="font-titulo text-2 text-texto flex items-center gap-3 font-medium"
-                    >
-                      <TileIcone tom="areia" forma="quadrado" tamanho="p">
-                        <History />
-                      </TileIcone>
-                      Últimas perguntas
-                    </h2>
-                    <ul className="flex flex-col gap-2">
-                      {historico.map((p) => (
-                        <li
-                          key={p.id}
-                          className="rounded-2 bg-areia-clara flex flex-col gap-1 px-4 py-3"
-                        >
-                          <span className="text-corpo text-texto">
-                            {p.pergunta}
-                          </span>
-                          <span className="text-apoio text-texto-2">
-                            {formatarDataHora(p.em)}
-                            {p.quem ? `, ${p.quem}` : ""}
-                            {p.situacao === "respondida"
-                              ? ", respondida"
-                              : p.situacao === "recusada"
-                                ? ", recusada"
-                                : p.situacao === "desligado"
-                                  ? ", copiloto desligado"
-                                  : p.situacao === "orcamento"
-                                    ? ", sem orçamento"
-                                    : ", com erro"}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  </section>
-                ) : null}
-              </div>
-            </div>
+                </>
+              }
+            />
           </>
         )}
       </div>

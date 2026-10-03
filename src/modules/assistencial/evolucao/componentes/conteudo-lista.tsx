@@ -1,6 +1,5 @@
-import { ClipboardPen, MailCheck, UserCheck } from "lucide-react";
 import { AbasPilula } from "@/components/ui/abas-pilula";
-import { CartaoResumo } from "@/components/ui/cartao-resumo";
+import { Kpi } from "@/components/mockup";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { obterTelaListaEvolucoes, type TelaListaEvolucoes } from "../dados";
 import { ListaEvolucoesTela } from "./lista-evolucoes";
@@ -71,22 +70,18 @@ export async function ConteudoListaEvolucoes({
         <div
           className={
             filtro === "todas"
-              ? "tablet:grid-cols-3 grid grid-cols-2 gap-2 lg:gap-3"
-              : "tablet:grid-cols-2 grid grid-cols-2 gap-2 lg:max-w-[720px] lg:gap-3"
+              ? "grid grid-cols-1 gap-3.5 sm:grid-cols-3"
+              : "grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:max-w-[720px]"
           }
         >
-          <CartaoResumo
-            destaque
-            className="tablet:col-span-1 col-span-2"
-            tom="dourado"
-            icone={<ClipboardPen />}
-            valor={pendentes}
+          <Kpi
             rotulo={
               pendentes === 1
-                ? "evolução para preencher"
-                : "evoluções para preencher"
+                ? "Evolução para preencher"
+                : "Evoluções para preencher"
             }
-            contexto={
+            valor={pendentes}
+            delta={
               escaladas === 0
                 ? pendentes === 0
                   ? "nada esperando agora"
@@ -95,30 +90,25 @@ export async function ConteudoListaEvolucoes({
                   ? "1 passou do prazo e está com a coordenação"
                   : `${escaladas} passaram do prazo e estão com a coordenação`
             }
+            tomDelta={escaladas > 0 ? "alerta" : "neutro"}
           />
-          <CartaoResumo
-            tom="argila"
-            className={
-              filtro === "todas" ? undefined : "tablet:col-span-1 col-span-2"
-            }
-            icone={<UserCheck />}
+          <Kpi
+            rotulo="Em revisão ou envio"
             valor={emRevisao}
-            rotulo="em revisão ou envio"
-            contexto={
+            delta={
               daEnfermeira
                 ? "com a coordenação"
                 : "a coordenação revisa e envia"
             }
           />
           {filtro === "todas" ? (
-            <CartaoResumo
-              tom="salvia"
-              icone={<MailCheck />}
-              valor={enviadas}
+            <Kpi
               rotulo={
-                enviadas === 1 ? "enviada aos médicos" : "enviadas aos médicos"
+                enviadas === 1 ? "Enviada aos médicos" : "Enviadas aos médicos"
               }
-              contexto="com o PDF no e-mail de cada médico"
+              valor={enviadas}
+              delta="com o PDF no e-mail de cada médico"
+              tomDelta="ok"
             />
           ) : null}
         </div>

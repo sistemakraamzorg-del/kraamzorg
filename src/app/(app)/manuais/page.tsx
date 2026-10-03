@@ -1,18 +1,25 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { BookOpen, ClipboardList, FilePlus, Route } from "lucide-react";
+import { FilePlus, Route } from "lucide-react";
+import { BarrasHorizontais } from "@/components/graficos";
+import {
+  Barra,
+  Card,
+  CardBody,
+  Eyebrow,
+  Nota,
+  tabelaMock,
+  TituloSecao,
+} from "@/components/mockup";
 import { Broto } from "@/components/ilustracoes";
 import { CabecalhoTela } from "@/components/shell/cabecalho-tela";
-import { BarraProgresso } from "@/components/ui/barra-progresso";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { Selo } from "@/components/ui/selo";
-import { TileIcone } from "@/components/ui/tile-icone";
 import { exigirSessao } from "@/lib/auth/sessao";
 import { obterRepositorios } from "@/lib/dados/fabrica";
 import type { ResumoManual, Trilha } from "@/lib/dados/tipos-relacao";
 import { formatarData } from "@/lib/formatacao";
-import { cn } from "@/lib/utils";
 import { FormularioManual } from "@/modules/manuais/componentes/form-manual";
 import { FormularioTrilha } from "@/modules/manuais/componentes/form-trilha";
 import { ROTULO_PAPEL_ALVO } from "@/modules/relacao/rotulos";
@@ -43,13 +50,49 @@ export default async function PaginaManuais() {
     falhou = true;
   }
 
+  const lidos = manuais.filter((m) => m.lido).length;
+  // Andamento de cada pessoa somando todas as trilhas ativas (só a gestão vê).
+  const porPessoa = new Map<
+    string,
+    { nome: string; feitos: number; total: number }
+  >();
+  for (const t of trilhas)
+    for (const p of t.equipe ?? []) {
+      const atual = porPessoa.get(p.usuarioId) ?? {
+        nome: p.nome,
+        feitos: 0,
+        total: 0,
+      };
+      atual.feitos += p.feitos;
+      atual.total += p.total;
+      porPessoa.set(p.usuarioId, atual);
+    }
+  const andamento = [...porPessoa.values()]
+    .filter((p) => p.total > 0)
+    .map((p) => ({
+      rotulo: p.nome,
+      valor: Math.round((p.feitos / p.total) * 100),
+      tom: (p.feitos === p.total
+        ? "sucesso"
+        : p.feitos / p.total < 0.5
+          ? "alerta"
+          : "aviso") as "sucesso" | "alerta" | "aviso",
+    }));
+  const comConfirmacoes = manuais
+    .filter((m) => m.confirmacoes !== null)
+    .map((m) => ({
+      rotulo: `${m.titulo} v${m.versao}`,
+      valor: m.confirmacoes ?? 0,
+      tom: "sucesso" as const,
+    }));
+
   return (
     <>
       <CabecalhoTela
         titulo="Manuais e protocolos"
         subtitulo="O que a sua função precisa ler, na versão de hoje. Quando um texto muda, a leitura pede uma nova confirmação."
       />
-      <div className="flex flex-col gap-8 pt-6">
+      <div className="flex flex-col gap-3.5 pt-3.5">
         {falhou ? (
           <FaixaAlerta variante="erro" titulo="Os manuais não abriram agora">
             Confira a conexão e recarregue a página. Nada foi alterado.
@@ -66,160 +109,247 @@ export default async function PaginaManuais() {
             }
           />
         ) : (
-          <div className="flex flex-col gap-4">
-            {/* A leitura da pessoa como progresso de verdade (DESIGN.md, 2.8):
-              quantos dos textos da função dela já têm a leitura confirmada
-              na versão de hoje. */}
-            <div className="rounded-3 bg-salvia-clara flex flex-col gap-3 p-5 lg:max-w-[560px]">
-              <p className="text-3 text-texto font-semibold">Sua leitura</p>
-              <BarraProgresso
-                valor={manuais.filter((m) => m.lido).length}
-                total={manuais.length}
-                texto={`${manuais.filter((m) => m.lido).length} de ${manuais.length} com a leitura confirmada`}
-                textoCompleta="Tudo lido na versão de hoje"
-              />
-            </div>
-            <ul className="grid grid-cols-1 items-start gap-3 lg:grid-cols-2">
-              {manuais.map((m) => (
-                // Lido é o que está feito (sálvia); o que falta ler é o
-                // trabalho (branco, com sombra leve).
-                <li
-                  key={m.id}
-                  className={cn(
-                    "rounded-3 flex items-start gap-3 p-5",
-                    m.lido ? "bg-salvia-clara" : "bg-superficie shadow-1",
+          <>
+            <div className="grid grid-cols-1 gap-3.5 lg:grid-cols-2">
+              <Card>
+                <CardBody>
+                  <div className="mb-3 flex items-baseline gap-[9px]">
+                    <b className="text-[13px] font-semibold">
+                      {gestao && andamento.length > 0
+                        ? "Conclusão da trilha obrigatória"
+                        : "Sua leitura"}
+                    </b>
+                    <span className="text-tinta-50 text-[11px]">
+                      {gestao && andamento.length > 0
+                        ? "por profissional"
+                        : "na versão de hoje"}
+                    </span>
+                  </div>
+                  {gestao && andamento.length > 0 ? (
+                    <BarrasHorizontais
+                      rotulo="Conclusão da trilha por profissional"
+                      larguraRotulo="7rem"
+                      formato="percentual"
+                      itens={andamento}
+                    />
+                  ) : (
+                    <div className="flex flex-col gap-2">
+                      <Barra
+                        valor={(lidos / manuais.length) * 100}
+                        tom="sucesso"
+                        rotulo="Manuais com a leitura confirmada"
+                      />
+                      <p className="text-tinta-50 text-[12.5px]">
+                        {lidos === manuais.length
+                          ? "Tudo lido na versão de hoje"
+                          : `${lidos} de ${manuais.length} com a leitura confirmada`}
+                      </p>
+                    </div>
                   )}
-                  data-manual={m.titulo}
-                >
-                  <TileIcone tom={m.lido ? "salvia" : "areia"} forma="quadrado">
-                    {m.categoria === "protocolo" ? (
-                      <ClipboardList />
-                    ) : (
-                      <BookOpen />
-                    )}
-                  </TileIcone>
-                  <div className="flex min-w-0 flex-1 flex-col gap-2">
-                    <div className="flex min-w-0 flex-col gap-1">
+                </CardBody>
+              </Card>
+              <Card>
+                <CardBody>
+                  <div className="mb-3 flex items-baseline gap-[9px]">
+                    <b className="text-[13px] font-semibold">
+                      Leituras confirmadas
+                    </b>
+                    <span className="text-tinta-50 text-[11px]">
+                      por manual, na versão vigente
+                    </span>
+                  </div>
+                  {gestao && comConfirmacoes.length > 0 ? (
+                    <BarrasHorizontais
+                      rotulo="Leituras confirmadas por manual"
+                      larguraRotulo="9rem"
+                      itens={comConfirmacoes}
+                    />
+                  ) : (
+                    <p className="text-tinta-50 text-[12.5px]">
+                      A contagem de quem já leu cada manual aparece para a
+                      coordenação e a diretoria.
+                    </p>
+                  )}
+                </CardBody>
+              </Card>
+            </div>
+
+            <TituloSecao className="mt-[11px]">Manuais da equipe</TituloSecao>
+            <ul className="grid grid-cols-1 items-start gap-3.5 lg:grid-cols-3">
+              {manuais.map((m) => (
+                <li key={m.id} data-manual={m.titulo}>
+                  <Card className="h-full">
+                    <CardBody>
+                      <Eyebrow>
+                        {m.categoria === "protocolo" ? "Protocolo" : "Manual"}
+                      </Eyebrow>
                       <Link
                         href={`/manuais/${m.id}`}
-                        className="font-titulo text-2 text-texto font-medium underline-offset-4 hover:underline"
+                        className="font-titulo mt-1.5 mb-[9px] block text-[17px] font-normal underline-offset-4 hover:underline"
                       >
                         {m.titulo}
                       </Link>
-                      <p className="text-apoio text-texto-2">
-                        {m.categoria === "protocolo" ? "Protocolo" : "Manual"},
-                        versão {m.versao}, publicada em{" "}
+                      <p className="text-tinta-50 mb-[11px] text-[11.5px]">
+                        Versão {m.versao}, publicada em{" "}
                         {formatarData(m.publicadaEm)}.
                         {m.papeisAlvo.length > 0
                           ? ` Para: ${m.papeisAlvo.map((p) => ROTULO_PAPEL_ALVO[p] ?? p).join(", ")}.`
                           : ""}
                       </p>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      {!m.ativo ? (
-                        <Selo variante="contorno">Fora de uso</Selo>
-                      ) : null}
-                      {m.confirmacoes !== null ? (
-                        <Selo variante="neutro">
-                          {m.confirmacoes}{" "}
-                          {m.confirmacoes === 1
-                            ? "confirmação"
-                            : "confirmações"}
+                      <div className="flex flex-wrap items-center gap-[5px]">
+                        {!m.ativo ? (
+                          <Selo variante="contorno">Fora de uso</Selo>
+                        ) : null}
+                        {m.confirmacoes !== null ? (
+                          <Selo variante="neutro">
+                            {m.confirmacoes}{" "}
+                            {m.confirmacoes === 1
+                              ? "confirmação"
+                              : "confirmações"}
+                          </Selo>
+                        ) : null}
+                        <Selo variante={m.lido ? "sucesso" : "aviso"}>
+                          {m.lido ? "Lido" : "Falta confirmar a leitura"}
                         </Selo>
-                      ) : null}
-                      <Selo variante={m.lido ? "sucesso" : "aviso"}>
-                        {m.lido ? "Lido" : "Falta confirmar a leitura"}
-                      </Selo>
-                    </div>
-                  </div>
+                      </div>
+                    </CardBody>
+                  </Card>
                 </li>
               ))}
             </ul>
-          </div>
+          </>
         )}
 
         {gestao && !falhou ? (
           <>
-            <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-2">
+            <TituloSecao className="mt-[11px]" id="trilhas">
+              Trilhas de treinamento
+            </TituloSecao>
+            {trilhas.length === 0 ? (
+              <Card>
+                <CardBody>
+                  <p className="text-tinta-50 text-[12.5px]">
+                    Nenhuma trilha ainda. Monte a primeira abaixo.
+                  </p>
+                </CardBody>
+              </Card>
+            ) : (
+              <Card className="overflow-x-auto">
+                <table className={`${tabelaMock.tabela} min-w-[34rem]`}>
+                  <thead>
+                    <tr>
+                      <th className={tabelaMock.th}>Trilha</th>
+                      <th className={tabelaMock.th}>Cargo</th>
+                      <th className={tabelaMock.th}>Módulos</th>
+                      <th className={tabelaMock.th}>Conclusão</th>
+                      <th className={tabelaMock.th}>Situação</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {trilhas.map((t) => {
+                      const eq = t.equipe ?? [];
+                      const feitos = eq.reduce((a, p) => a + p.feitos, 0);
+                      const total = eq.reduce((a, p) => a + p.total, 0);
+                      const pct = total > 0 ? (feitos / total) * 100 : 0;
+                      return (
+                        <tr key={t.id} className={tabelaMock.tr}>
+                          <td className={`${tabelaMock.td} ${tabelaMock.nome}`}>
+                            {t.nome}
+                            <div className={`${tabelaMock.sub} font-normal`}>
+                              {t.itens.map((i) => i.titulo).join(", ") ||
+                                "Sem manuais"}
+                            </div>
+                          </td>
+                          <td className={`${tabelaMock.td} text-tinta-70`}>
+                            {ROTULO_PAPEL_ALVO[t.papelAlvo] ?? t.papelAlvo}
+                          </td>
+                          <td className={`${tabelaMock.td} font-mono`}>
+                            {t.itens.length}
+                          </td>
+                          <td className={`${tabelaMock.td} min-w-[110px]`}>
+                            {total > 0 ? (
+                              <Barra
+                                valor={pct}
+                                tom={
+                                  pct >= 100
+                                    ? "sucesso"
+                                    : pct < 50
+                                      ? "alerta"
+                                      : "aviso"
+                                }
+                                rotulo={`Conclusão da trilha ${t.nome}`}
+                              />
+                            ) : (
+                              <span className={tabelaMock.sub}>Sem equipe</span>
+                            )}
+                          </td>
+                          <td className={tabelaMock.td}>
+                            <Selo
+                              variante={
+                                !t.ativa
+                                  ? "contorno"
+                                  : total > 0 && pct >= 100
+                                    ? "sucesso"
+                                    : "aviso"
+                              }
+                            >
+                              {!t.ativa
+                                ? "Fora de uso"
+                                : total > 0 && pct >= 100
+                                  ? "Completa"
+                                  : "Em curso"}
+                            </Selo>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </Card>
+            )}
+
+            <div className="grid grid-cols-1 items-start gap-3.5 lg:grid-cols-2">
               <section
                 aria-labelledby="novo"
                 className="flex min-w-0 flex-col gap-3"
               >
                 <h2
                   id="novo"
-                  className="font-titulo text-2 text-texto flex items-center gap-3 font-medium"
+                  className="font-titulo flex items-center gap-3 text-[19px] font-light"
                 >
-                  <TileIcone tom="dourado" forma="quadrado">
-                    <FilePlus />
-                  </TileIcone>
+                  <FilePlus
+                    aria-hidden="true"
+                    className="text-dourado size-5"
+                    strokeWidth={1.75}
+                  />
                   Cadastrar
                 </h2>
                 <FormularioManual />
               </section>
               <section
-                aria-labelledby="trilhas"
+                aria-labelledby="montar-trilha"
                 className="flex min-w-0 flex-col gap-3"
               >
                 <h2
-                  id="trilhas"
-                  className="font-titulo text-2 text-texto flex items-center gap-3 font-medium"
+                  id="montar-trilha"
+                  className="font-titulo flex items-center gap-3 text-[19px] font-light"
                 >
-                  <TileIcone tom="lavanda" forma="quadrado">
-                    <Route />
-                  </TileIcone>
-                  Trilhas de treinamento
+                  <Route
+                    aria-hidden="true"
+                    className="text-dourado size-5"
+                    strokeWidth={1.75}
+                  />
+                  Montar trilha
                 </h2>
-                {trilhas.length === 0 ? (
-                  <p className="text-corpo text-texto-2">
-                    Nenhuma trilha ainda. Monte a primeira abaixo.
-                  </p>
-                ) : (
-                  <ul className="flex flex-col gap-3">
-                    {trilhas.map((t) => (
-                      <li
-                        key={t.id}
-                        className="rounded-3 bg-lavanda-clara flex flex-col gap-3 p-5"
-                      >
-                        <p className="font-titulo text-2 text-texto font-medium">
-                          {t.nome}{" "}
-                          <span className="text-apoio text-texto-2 font-sans">
-                            ({ROTULO_PAPEL_ALVO[t.papelAlvo] ?? t.papelAlvo}
-                            {t.ativa ? "" : ", fora de uso"})
-                          </span>
-                        </p>
-                        <p className="text-apoio text-texto-2">
-                          {t.itens.map((i) => i.titulo).join(", ") ||
-                            "Sem manuais"}
-                        </p>
-                        {t.equipe ? (
-                          // Cada pessoa com a barra da trilha dela (DESIGN.md,
-                          // 2.8): um progresso real, de manuais confirmados.
-                          <ul className="flex flex-col gap-2">
-                            {t.equipe.map((p) => (
-                              <li
-                                key={p.usuarioId}
-                                className="rounded-2 bg-superficie flex flex-col gap-2 p-3"
-                              >
-                                <span className="text-corpo text-texto font-semibold">
-                                  {p.nome}
-                                </span>
-                                <BarraProgresso
-                                  valor={p.feitos}
-                                  total={p.total}
-                                  texto={`${p.feitos} de ${p.total}`}
-                                  textoCompleta="Trilha completa"
-                                />
-                              </li>
-                            ))}
-                          </ul>
-                        ) : null}
-                      </li>
-                    ))}
-                  </ul>
-                )}
                 <FormularioTrilha manuais={manuais} />
               </section>
             </div>
+
+            <Nota>
+              <b>Versão e aceite andam juntos.</b> Publicar uma nova versão de
+              um protocolo derruba o aceite da anterior e recoloca a pessoa como
+              pendente. Assim, &ldquo;todo mundo leu&rdquo; sempre tem lastro.
+            </Nota>
           </>
         ) : null}
       </div>

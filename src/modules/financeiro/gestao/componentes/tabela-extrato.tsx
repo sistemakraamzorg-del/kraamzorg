@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { FolhaLupa } from "@/components/ilustracoes";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
-import { PainelGrafico } from "@/modules/inicio/painel-gestao";
+import { BlocoForm, CLASSE_TABELA } from "../../mockup-ui";
 import { Selo } from "@/components/ui/selo";
 import { TabelaLista } from "@/components/ui/tabela-lista";
 import { cn } from "@/lib/utils";
@@ -90,9 +90,9 @@ export function VisaoExtrato({
   importacaoId: string | null;
 }) {
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-3.5">
       {visao.importacoes.length > 0 ? (
-        <PainelGrafico
+        <BlocoForm
           titulo="Extratos importados"
           nota="Abra um para ver a conferência, linha por linha."
         >
@@ -135,11 +135,11 @@ export function VisaoExtrato({
               );
             })}
           </ul>
-        </PainelGrafico>
+        </BlocoForm>
       ) : null}
 
       {importacaoId ? (
-        <PainelGrafico
+        <BlocoForm
           titulo="Conferência"
           nota="O par que o sistema encontrou para cada lançamento do banco."
         >
@@ -154,7 +154,7 @@ export function VisaoExtrato({
               />
             ) : (
               <TabelaLista
-                className="[&_thead_th]:bg-areia-clara"
+                className={CLASSE_TABELA}
                 rotulo="Lançamentos do extrato e o par de cada um"
                 colunas={[
                   { chave: "descricao", rotulo: "Lançamento", principal: true },
@@ -180,7 +180,7 @@ export function VisaoExtrato({
               />
             )}
           </div>
-        </PainelGrafico>
+        </BlocoForm>
       ) : null}
     </div>
   );

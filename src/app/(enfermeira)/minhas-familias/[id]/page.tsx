@@ -72,7 +72,6 @@ function Secao({
       <TituloSecao
         id={id}
         icone={icone}
-        tom={semTom ? "neutro" : tom}
         titulo={titulo}
       />
       <div

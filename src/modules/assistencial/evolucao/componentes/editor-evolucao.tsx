@@ -197,7 +197,7 @@ export function EditorEvolucao({
           {completar.length > 0 ? (
             <section
               aria-labelledby="grupo-completar"
-              className="rounded-3 bg-superficie shadow-1 flex flex-col gap-5 p-5"
+              className="rounded-3 border-linha bg-superficie shadow-1 flex flex-col gap-5 border p-5"
             >
               <TituloSecao
                 id="grupo-completar"
@@ -219,7 +219,7 @@ export function EditorEvolucao({
 
           <section
             aria-labelledby="grupo-julgamento"
-            className="rounded-3 bg-superficie shadow-1 flex flex-col gap-5 p-5"
+            className="rounded-3 border-linha bg-superficie shadow-1 flex flex-col gap-5 border p-5"
           >
             <TituloSecao
               id="grupo-julgamento"
@@ -268,7 +268,7 @@ export function EditorEvolucao({
 
       <section
         aria-labelledby="grupo-acoes"
-        className="rounded-3 bg-dourado-claro flex flex-col gap-4 p-5"
+        className="rounded-3 border-linha bg-superficie flex flex-col gap-4 border p-5"
       >
         <TituloSecao
           id="grupo-acoes"
@@ -378,7 +378,7 @@ export function EditorEvolucao({
       </section>
 
       {conteudo ? (
-        <details className="rounded-3 bg-areia-clara p-5" open>
+        <details className="rounded-3 border-linha bg-creme-2 border p-5" open>
           <summary className="font-titulo text-2 text-texto min-h-toque cursor-pointer font-medium">
             Como o médico vai ler
           </summary>

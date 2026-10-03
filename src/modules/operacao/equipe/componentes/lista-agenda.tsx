@@ -1,14 +1,14 @@
 import Link from "next/link";
-import { MapPin, MessagesSquare, TriangleAlert, UserRound } from "lucide-react";
+import { MapPin, TriangleAlert, UserRound } from "lucide-react";
+import { Card, CardHead, Nota } from "@/components/mockup";
 import { Botao } from "@/components/ui/botao";
 import { Selo } from "@/components/ui/selo";
-import { TileIcone } from "@/components/ui/tile-icone";
 import {
   dataEmBrasilia,
   diaDaSemanaDesdeSegunda,
   horaEmBrasilia,
 } from "@/lib/agenda/datas";
-import type { VisitaAgenda } from "@/lib/dados/tipos-equipe";
+import type { EstadoVisita, VisitaAgenda } from "@/lib/dados/tipos-equipe";
 import type { SessaoVenda } from "@/lib/dados/tipos-venda";
 import { formatarDiaSemanaEData } from "@/lib/formatacao";
 import { cn } from "@/lib/utils";
@@ -56,125 +56,167 @@ function agruparPorDia(
     }));
 }
 
-const DIAS_CURTOS = ["seg", "ter", "qua", "qui", "sex", "sáb", "dom"] as const;
+const DIAS_CURTOS = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"] as const;
+
+const ESTADOS_CONCLUIDOS: EstadoVisita[] = [
+  "concluida",
+  "ficha_entregue",
+  "encerrada",
+];
+
+type Tom = "ok" | "conf" | "normal";
+
+interface Evento {
+  chave: string;
+  titulo: string;
+  apoio: string;
+  tom: Tom;
+}
+
+const CLASSE_EVENTO: Record<Tom, string> = {
+  ok: "bg-sucesso-lavado border-sucesso",
+  conf: "bg-alerta-lavado border-alerta",
+  normal: "bg-dourado-lavado border-dourado",
+};
 
 /**
- * A semana em sete blocos (direção "Colo"; referência: o calendário de
- * estudo em blocos): o dia da semana, a data e quantas visitas tem, em
- * número grande. Hoje fica no bloco marinho [polimento]; os outros dias em
- * lavanda (o tempo), médio com visita e claro sem. Dia com visita é link
- * para a lista daquele dia.
+ * Calendário da semana (mockup `v-agenda`, `.cal`): horas nas linhas, dias
+ * nas colunas, cada visita como evento com a borda na cor do estado (verde
+ * concluída, vermelho conflito ou ficha pendente, dourado o resto). Mostra
+ * segunda a sexta; se houver visita no fim de semana, mostra os sete dias.
+ * No celular rola para os lados. Os detalhes e o "Reagendar" ficam na lista
+ * por dia logo abaixo, que traz o mesmo conteúdo em texto.
  */
-export function SemanaEmBlocos({
+export function GradeSemana({
   dias,
   visitas,
+  sessoes,
   hoje,
 }: {
   dias: string[];
   visitas: VisitaAgenda[];
+  sessoes: SessaoVenda[];
   hoje: string;
 }) {
+  const comFimDeSemana = visitas.some(
+    (v) => diaDaSemanaDesdeSegunda(v.data) >= 5,
+  );
+  const colunas =
+    dias.length === 1
+      ? dias
+      : dias.filter((d) => comFimDeSemana || diaDaSemanaDesdeSegunda(d) < 5);
+  const porHora = new Map<string, Map<string, Evento[]>>();
+  const poe = (hora: string, dia: string, e: Evento) => {
+    const linha = porHora.get(hora) ?? new Map<string, Evento[]>();
+    linha.set(dia, [...(linha.get(dia) ?? []), e]);
+    porHora.set(hora, linha);
+  };
+  for (const v of visitas) {
+    if (!colunas.includes(v.data)) continue;
+    const tom: Tom =
+      v.conflitos.length > 0 || v.estado === "ficha_pendente"
+        ? "conf"
+        : ESTADOS_CONCLUIDOS.includes(v.estado)
+          ? "ok"
+          : "normal";
+    const nota =
+      v.conflitos.length > 0
+        ? "Conflito"
+        : v.estado === "ficha_pendente"
+          ? "Ficha pendente"
+          : null;
+    poe(v.horaPrevista ?? "", v.data, {
+      chave: v.visitaId,
+      titulo: `${v.nomeExibicao} · D${v.diaNumero}`,
+      apoio: [v.profissionalNome, nota].filter(Boolean).join(" · "),
+      tom,
+    });
+  }
+  for (const s of sessoes) {
+    if (!s.agendadaPara) continue;
+    const dia = dataEmBrasilia(s.agendadaPara);
+    if (!dia || !colunas.includes(dia)) continue;
+    poe(horaEmBrasilia(s.agendadaPara) ?? "", dia, {
+      chave: `sessao-${s.id}`,
+      titulo: `Conversa · ${s.nomeFamilia}`,
+      apoio: s.conduzidaPorNome ?? "Sem quem conduza definido",
+      tom: "normal",
+    });
+  }
+  const horas = [...porHora.keys()].sort((a, b) =>
+    a === "" ? 1 : b === "" ? -1 : a.localeCompare(b),
+  );
   return (
-    <ol
-      aria-label="Visitas por dia da semana"
-      className="grid grid-cols-7 gap-1.5 lg:gap-2"
+    <div
+      role="region"
+      aria-label="Calendário do período, role para os lados no celular"
+      tabIndex={0}
+      className="rounded-3 border-linha bg-superficie overflow-x-auto border"
     >
-      {dias.map((dia) => {
-        const doDia = visitas.filter((v) => v.data === dia);
-        const conflito = doDia.some((v) => v.conflitos.length > 0);
-        const ehHoje = dia === hoje;
-        const frase = `${formatarDiaSemanaEData(`${dia}T12:00:00-03:00`) ?? dia}: ${
-          doDia.length === 1 ? "1 visita" : `${doDia.length} visitas`
-        }${conflito ? ", com conflito" : ""}${ehHoje ? ", hoje" : ""}`;
-        // [polimento] Hoje em marinho (o único bloco marinho da tela, texto
-        // creme); dia com visita no lavanda médio, dia vazio no claro. Sobre
-        // tom médio o texto é só marinho (PRD 20.2).
-        const cheio = doDia.length > 0;
-        const visual = (
-          <span aria-hidden="true" className="contents">
-            <span
-              className={cn(
-                "text-mini",
-                ehHoje
-                  ? "text-texto-inverso-2"
-                  : cheio
-                    ? "text-texto"
-                    : "text-texto-2",
-              )}
-            >
-              {DIAS_CURTOS[diaDaSemanaDesdeSegunda(dia)]}
-            </span>
-            <span
-              className={cn(
-                "text-dado font-mono",
-                ehHoje ? "text-texto-inverso" : "text-texto",
-              )}
-            >
-              {dia.slice(8, 10)}
-            </span>
-            <span
-              className={cn(
-                "font-titulo text-numero-sm mt-1 font-medium tabular-nums",
-                ehHoje
-                  ? "text-texto-inverso"
-                  : cheio
-                    ? "text-texto"
-                    : "text-texto-2",
-              )}
-            >
-              {doDia.length}
-            </span>
-            {conflito ? (
-              <TriangleAlert
-                className={cn(
-                  "mt-0.5 size-4",
-                  ehHoje ? "text-dourado" : "text-aviso-texto",
-                )}
-              />
-            ) : null}
-          </span>
-        );
-        const classes = cn(
-          "rounded-2 flex min-h-[92px] flex-col items-center px-1 py-2 text-center no-underline",
-          ehHoje
-            ? "bg-marinho"
-            : cheio
-              ? "bg-lavanda-media"
-              : "bg-lavanda-clara",
-        );
-        return (
-          <li key={dia} aria-current={ehHoje ? "date" : undefined}>
-            {doDia.length > 0 ? (
-              <Link
-                href={`#dia-${dia}`}
-                aria-label={frase}
-                className={cn(
-                  classes,
-                  "ease-estado transition-transform duration-140 active:scale-[0.97]",
-                )}
-              >
-                {visual}
-              </Link>
-            ) : (
-              <div className={classes}>
-                <span className="sr-only">{frase}</span>
-                {visual}
-              </div>
+      <div
+        className="grid"
+        style={{
+          minWidth: `${56 + colunas.length * 104}px`,
+          gridTemplateColumns: `56px repeat(${colunas.length}, minmax(0, 1fr))`,
+        }}
+      >
+        <div className="bg-creme-2 border-linha border-b" />
+        {colunas.map((d) => (
+          <div
+            key={d}
+            aria-current={d === hoje ? "date" : undefined}
+            className={cn(
+              "bg-creme-2 border-linha border-b px-2 py-[9px] text-center text-[11px] font-semibold",
+              d === hoje && "text-marinho border-b-dourado border-b-2",
             )}
-          </li>
-        );
-      })}
-    </ol>
+          >
+            {DIAS_CURTOS[diaDaSemanaDesdeSegunda(d)]} {d.slice(8, 10)}
+          </div>
+        ))}
+        {horas.length === 0 ? (
+          <p
+            className="text-tinta-50 px-4 py-6 text-[12.5px]"
+            style={{ gridColumn: "1 / -1" }}
+          >
+            Nenhuma visita neste período.
+          </p>
+        ) : null}
+        {horas.map((h) => (
+          <div key={h} className="contents">
+            <div className="text-tinta-50 border-linha border-fio-3 border-r border-b p-2 text-right font-mono text-[10px]">
+              {h || "sem hora"}
+            </div>
+            {colunas.map((d) => (
+              <div
+                key={d}
+                className="border-fio-3 min-h-[52px] border-r border-b p-1"
+              >
+                {(porHora.get(h)?.get(d) ?? []).map((e) => (
+                  <div
+                    key={e.chave}
+                    className={cn(
+                      "mb-[3px] rounded-[5px] border-l-[3px] px-[7px] py-[5px] text-[11px]",
+                      CLASSE_EVENTO[e.tom],
+                    )}
+                  >
+                    <b className="block text-[11.5px]">{e.titulo}</b>
+                    {e.apoio}
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 
 /**
- * Agenda por dia (P37 item 2; direção "Colo"): cada dia é um bloco de
- * tempo (lavanda; hoje em dourado, o único acento da tela) com as visitas
- * de todas as enfermeiras (ou de uma) e as conversas de orientação
- * marcadas. A hora fica numa coluna à esquerda, como numa agenda de papel;
- * os conflitos de cada visita aparecem antes de qualquer ação, e só a
- * visita que ainda não começou leva o "Reagendar".
+ * Visitas por dia (mockup `.list-i`): cada dia é um cartão com as visitas de
+ * todas as enfermeiras (ou de uma) e as conversas de orientação marcadas. A
+ * hora fica na coluna da esquerda; os conflitos de cada visita aparecem antes
+ * de qualquer ação, e só a visita que ainda não começou leva o "Reagendar".
  */
 export function ListaAgenda({
   visitas,
@@ -191,7 +233,7 @@ export function ListaAgenda({
   return (
     <div
       className={cn(
-        "grid grid-cols-1 items-start gap-4",
+        "grid grid-cols-1 items-start gap-3.5",
         dias.length > 1 && "xl:grid-cols-2",
       )}
     >
@@ -199,29 +241,21 @@ export function ListaAgenda({
         const doDia = itens.filter((i) => i.visita).length;
         const ehHoje = dia === hoje;
         return (
-          <section
+          <Card
             key={dia}
-            aria-labelledby={`dia-${dia}`}
-            className={cn(
-              "rounded-3 flex scroll-mt-24 flex-col gap-3 p-3 lg:p-4",
-              ehHoje ? "bg-dourado-claro" : "bg-lavanda-clara",
-            )}
+            id={`dia-${dia}`}
+            className={cn("scroll-mt-24", ehHoje && "border-dourado")}
           >
-            <h3
-              id={`dia-${dia}`}
-              className="font-titulo text-2 text-texto flex flex-wrap items-center gap-2 px-2 pt-1 font-medium"
-            >
-              {formatarDiaSemanaEData(`${dia}T12:00:00-03:00`) ?? dia}
-              {ehHoje ? (
-                <span className="rounded-pilula bg-dourado text-mini text-marinho px-2.5 py-0.5 font-sans font-semibold">
-                  hoje
+            <CardHead
+              titulo={formatarDiaSemanaEData(`${dia}T12:00:00-03:00`) ?? dia}
+              direita={
+                <span className="flex items-center gap-2">
+                  {ehHoje ? <Selo variante="destaque">hoje</Selo> : null}
+                  {doDia === 1 ? "1 visita" : `${doDia} visitas`}
                 </span>
-              ) : null}
-              <span className="text-apoio text-texto-2 font-sans font-normal">
-                {doDia === 1 ? "1 visita" : `${doDia} visitas`}
-              </span>
-            </h3>
-            <ul className="flex flex-col gap-2">
+              }
+            />
+            <ul>
               {itens.map((item) =>
                 item.visita ? (
                   <ItemVisita
@@ -234,36 +268,36 @@ export function ListaAgenda({
                 ) : null,
               )}
             </ul>
-          </section>
+          </Card>
         );
       })}
     </div>
   );
 }
 
+const LINHA =
+  "border-fio-3 hover:bg-creme-3 grid grid-cols-[4.25rem_minmax(0,1fr)] gap-x-3 border-b px-4 py-3 last:border-b-0";
+
 function ItemVisita({ visita: v }: { visita: VisitaAgenda; limite: number }) {
   return (
     <li
       data-visita={v.visitaId}
       data-conflito={v.conflitos.length > 0 ? "sim" : undefined}
-      className={cn(
-        "rounded-2 bg-superficie shadow-1 grid grid-cols-[4.25rem_minmax(0,1fr)] gap-x-3 p-4 lg:grid-cols-[5rem_minmax(0,1fr)]",
-        v.conflitos.length > 0 && "outline-aviso-borda outline outline-2",
-      )}
+      className={LINHA}
     >
       <p className="flex flex-col">
-        <span className="text-dado-lg text-texto font-mono font-semibold">
+        <span className="font-mono text-[12.5px] font-semibold">
           {v.horaPrevista ?? "sem hora"}
         </span>
         {v.turno ? (
-          <span className="text-mini text-texto-2">
+          <span className="text-tinta-50 text-[11px]">
             {ROTULO_TURNO[v.turno]}
           </span>
         ) : null}
       </p>
-      <div className="flex min-w-0 flex-col gap-2">
+      <div className="flex min-w-0 flex-col gap-1.5">
         <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1">
-          <p className="text-corpo text-texto min-w-0">
+          <p className="min-w-0 text-[13px]">
             <Link
               href={`/familias/${v.familiaId}`}
               className="font-semibold underline-offset-4 hover:underline"
@@ -276,37 +310,36 @@ function ItemVisita({ visita: v }: { visita: VisitaAgenda; limite: number }) {
             {v.diasContratados}
           </Selo>
         </div>
-        <p className="text-apoio text-texto-2 flex flex-wrap items-center gap-x-3 gap-y-1">
+        <p className="text-tinta-50 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11.5px]">
           {v.bairro ? (
             <span className="inline-flex items-center gap-1">
-              <MapPin aria-hidden="true" className="size-4" />
+              <MapPin aria-hidden="true" className="size-3.5" />
               {v.bairro}
             </span>
           ) : null}
           <span className="inline-flex items-center gap-1">
-            <UserRound aria-hidden="true" className="size-4" />
+            <UserRound aria-hidden="true" className="size-3.5" />
             {v.profissionalNome}
           </span>
           <span>{ROTULO_ESTADO_VISITA[v.estado]}</span>
         </p>
         {v.conflitos.length > 0 ? (
-          <ul
-            className="rounded-2 bg-aviso-lavado flex flex-col gap-1 px-3 py-2"
-            aria-label="Conflitos desta visita"
-          >
-            {v.conflitos.map((c, i) => (
-              <li
-                key={`${c.codigo}-${i}`}
-                className="text-apoio text-aviso-texto flex items-start gap-2"
-              >
-                <TriangleAlert
-                  className="mt-0.5 size-4 shrink-0"
-                  aria-hidden="true"
-                />
-                {fraseConflito(c)}
-              </li>
-            ))}
-          </ul>
+          <Nota tom="alerta" className="text-[11.5px]">
+            <ul
+              aria-label="Conflitos desta visita"
+              className="flex flex-col gap-1"
+            >
+              {v.conflitos.map((c, i) => (
+                <li key={`${c.codigo}-${i}`} className="flex items-start gap-2">
+                  <TriangleAlert
+                    className="mt-0.5 size-3.5 shrink-0"
+                    aria-hidden="true"
+                  />
+                  {fraseConflito(c)}
+                </li>
+              ))}
+            </ul>
+          </Nota>
         ) : null}
         {v.movivel ? (
           <Botao
@@ -330,31 +363,24 @@ function ItemVisita({ visita: v }: { visita: VisitaAgenda; limite: number }) {
 
 function ItemSessao({ sessao: s }: { sessao: SessaoVenda }) {
   return (
-    <li className="rounded-2 bg-argila-clara grid grid-cols-[4.25rem_minmax(0,1fr)] gap-x-3 p-4 lg:grid-cols-[5rem_minmax(0,1fr)]">
-      <p className="flex flex-col">
-        <span className="text-dado-lg text-texto font-mono font-semibold">
-          {s.agendadaPara ? horaEmBrasilia(s.agendadaPara) : ""}
-        </span>
+    <li className={LINHA}>
+      <p className="font-mono text-[12.5px] font-semibold">
+        {s.agendadaPara ? horaEmBrasilia(s.agendadaPara) : ""}
       </p>
-      <div className="flex min-w-0 items-start gap-3">
-        <TileIcone tom="argila" tamanho="p">
-          <MessagesSquare />
-        </TileIcone>
-        <div className="flex min-w-0 flex-col gap-0.5">
-          <p className="text-apoio text-texto-2">Conversa de orientação</p>
-          <p className="text-corpo text-texto font-semibold">{s.nomeFamilia}</p>
-          <p className="text-apoio text-texto-2">
-            {s.conduzidaPorNome
-              ? `Conduz ${s.conduzidaPorNome}`
-              : "Sem quem conduza definido"}
-          </p>
-          <Link
-            href={`/sessoes-venda/${s.id}`}
-            className="text-apoio text-texto min-h-toque inline-flex items-center self-start underline underline-offset-4"
-          >
-            Abrir a conversa
-          </Link>
-        </div>
+      <div className="flex min-w-0 flex-col gap-0.5">
+        <p className="text-tinta-50 text-[11.5px]">Conversa de orientação</p>
+        <p className="text-[13px] font-semibold">{s.nomeFamilia}</p>
+        <p className="text-tinta-50 text-[11.5px]">
+          {s.conduzidaPorNome
+            ? `Conduz ${s.conduzidaPorNome}`
+            : "Sem quem conduza definido"}
+        </p>
+        <Link
+          href={`/sessoes-venda/${s.id}`}
+          className="min-h-toque inline-flex items-center self-start text-[12.5px] underline underline-offset-4"
+        >
+          Abrir a conversa
+        </Link>
       </div>
     </li>
   );

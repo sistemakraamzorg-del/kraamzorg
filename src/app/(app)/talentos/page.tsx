@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { LockKeyhole } from "lucide-react";
 import { BarrasHorizontais, type ItemBarra } from "@/components/graficos";
+import { TituloSecao } from "@/components/mockup";
 import { Botao } from "@/components/ui/botao";
 import { ChaveDeCasa } from "@/components/ilustracoes";
 import { CabecalhoTela } from "@/components/shell/cabecalho-tela";
@@ -118,7 +119,7 @@ export default async function PaginaTalentos() {
         titulo="Banco de talentos"
         subtitulo="As candidatas em seleção, a etapa de cada uma e a nota da entrevista."
       />
-      <div className="flex flex-col gap-8 pt-6">
+      <div className="flex flex-col gap-3.5 pt-3.5">
         {semMfa ? (
           <div className="rounded-3 bg-superficie shadow-1 flex max-w-[560px] flex-col gap-3 p-5">
             <p className="text-corpo text-texto flex items-start gap-3">
@@ -212,12 +213,9 @@ export default async function PaginaTalentos() {
                   aria-labelledby="t-funil"
                   className="flex flex-col gap-3"
                 >
-                  <h2
-                    id="t-funil"
-                    className="font-titulo text-2 text-texto font-medium"
-                  >
+                  <TituloSecao id="t-funil" className="mt-[11px] mb-0">
                     Funil de seleção
-                  </h2>
+                  </TituloSecao>
                   <QuadroTalentos candidatas={lista.candidatas} />
                 </section>
               </>

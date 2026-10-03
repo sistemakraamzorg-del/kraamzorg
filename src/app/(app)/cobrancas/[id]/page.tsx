@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, LockKeyhole } from "lucide-react";
 import { z } from "zod";
+import { CabecalhoTela } from "@/components/shell/cabecalho-tela";
 import { Botao } from "@/components/ui/botao";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { exigirSessao } from "@/lib/auth/sessao";
@@ -96,12 +97,11 @@ export default async function PaginaCobranca({
   return (
     <>
       {voltar}
-      <div className="flex flex-col gap-6 pt-2">
-        <header className="rounded-3 bg-superficie-2 flex flex-col gap-2 p-5 lg:px-8 lg:py-6">
-          <h1 className="font-titulo text-1 text-texto font-normal">
-            Cobrança da {cobranca.familiaNome}
-          </h1>
-        </header>
+      <div className="flex flex-col gap-3.5 pt-2">
+        <CabecalhoTela
+          sobretitulo="Cobranças"
+          titulo={`Cobrança da ${cobranca.familiaNome}`}
+        />
         <PainelCobranca cobranca={cobranca} demonstracao={demonstracao} />
       </div>
     </>
