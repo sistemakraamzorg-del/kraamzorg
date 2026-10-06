@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { formatarData, formatarDataHora } from "./data";
+import {
+  formatarData,
+  formatarDataHora,
+  formatarDuracao,
+  formatarHora,
+} from "./data";
 
 describe("formatarData", () => {
   it("formata coluna date (aaaa-mm-dd) sem deslocar fuso", () => {
@@ -39,5 +44,37 @@ describe("formatarDataHora", () => {
 
   it("devolve null para data inválida", () => {
     expect(formatarDataHora("xyz")).toBeNull();
+  });
+});
+
+describe("formatarHora", () => {
+  it("mostra a hora de Brasília de um instante UTC", () => {
+    expect(formatarHora("2026-09-24T12:34:00.000Z")).toBe("09:34");
+  });
+
+  it("não troca o dia: 01:05 UTC é 22:05 em Brasília", () => {
+    expect(formatarHora("2026-09-24T01:05:00.000Z")).toBe("22:05");
+  });
+
+  it("devolve null para instante inválido", () => {
+    expect(formatarHora("ontem")).toBeNull();
+  });
+});
+
+describe("formatarDuracao", () => {
+  it("horas e minutos com dois dígitos", () => {
+    expect(formatarDuracao(185)).toBe("3h05");
+  });
+
+  it("hora cheia sem minutos", () => {
+    expect(formatarDuracao(360)).toBe("6h");
+  });
+
+  it("menos de uma hora em minutos", () => {
+    expect(formatarDuracao(45)).toBe("45min");
+  });
+
+  it("devolve null para valor negativo", () => {
+    expect(formatarDuracao(-5)).toBeNull();
   });
 });

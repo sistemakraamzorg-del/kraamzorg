@@ -7,6 +7,8 @@
  * `src/lib/pdf/tipos.ts` (PRD 9.5).
  */
 
+import type { DefinicaoInstrumento } from "@/lib/instrumentos/schema";
+
 export type TipoEvolucao = "puerperal" | "neonatal";
 
 export type StatusEvolucao =
@@ -58,6 +60,10 @@ export interface VisitaDaBase {
   profissionalId: string;
   /** `registro_atendimento.dados`: um objeto por bloco do DOC 2, bloco do RN como lista. */
   dados: Record<string, unknown>;
+  /** `registro_atendimento.resumo_descritivo`, a última linha da planilha de papel. */
+  resumoDescritivo?: string | null;
+  /** Hora em que a enfermeira assinou o registro do dia (timestamptz). */
+  assinadoEm?: string | null;
 }
 
 export interface BebeDaBase {
@@ -99,12 +105,35 @@ export interface DocumentoExistente {
   enviadoEm: string | null;
 }
 
+/**
+ * Um dia do atendimento como a planilha de papel mostra na coluna D1 a D12:
+ * a data, o horário combinado e a entrada e a saída da casa (check-in e
+ * check-out do portal da enfermeira, `visita.checkin_em` e `checkout_em`).
+ * Vem de todas as visitas do acompanhamento, com ou sem registro.
+ */
+export interface DiaRotina {
+  visitaId: string;
+  diaNumero: number;
+  /** `visita.data` (date). */
+  data: string;
+  /** `visita.hora_prevista`, "09:30", ou nulo. */
+  horaPrevista: string | null;
+  /** Instante da chegada (timestamptz), ou nulo se a enfermeira não marcou. */
+  checkinEm: string | null;
+  /** Instante da saída (timestamptz), ou nulo. */
+  checkoutEm: string | null;
+  /** `estado_visita`. */
+  estado: string;
+}
+
 export interface BaseEvolucao {
   acompanhamento: {
     id: string;
     familiaId: string;
     estado: string;
     diasContratados: number;
+    /** Horas por dia do plano (`acompanhamento.horas_por_visita`: 3, 4 ou 6). */
+    horasPorVisita: number | null;
     inicio: string | null;
     fim: string | null;
     concluidoEm: string | null;
@@ -121,6 +150,10 @@ export interface BaseEvolucao {
   /** Função da profissional (`enfermeira_obstetrica`) para o texto da assinatura (`parametro.profissional_funcoes`). */
   funcoes: Record<string, string>;
   visitas: VisitaDaBase[];
+  /** Todas as visitas do acompanhamento, por dia, para o dia a dia (data, entrada e saída). */
+  rotina: DiaRotina[];
+  /** DOC 2 vigente, para rotular as linhas do dia a dia com as palavras do instrumento aprovado. */
+  definicaoChecklist: DefinicaoInstrumento | null;
   relatorios: DocumentoExistente[];
   /** Textos padrão `evo_*` de `mensagem_modelo` (destinatário médico). */
   textos: Record<string, string>;

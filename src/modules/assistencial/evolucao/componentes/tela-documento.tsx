@@ -6,6 +6,7 @@ import { formatarData } from "@/lib/formatacao";
 import { camposVisiveis } from "../campos";
 import type { TelaDocumento } from "../dados";
 import { slugDoDocumento } from "../documento";
+import { DiaADia } from "./dia-a-dia";
 import { EditorEvolucao } from "./editor-evolucao";
 import { MontarEvolucao } from "./montar-evolucao";
 
@@ -110,6 +111,8 @@ export function TelaDocumentoEvolucao({
             <MontarEvolucao acompanhamentoId={acompanhamentoId} slug={slug} />
           </div>
         )}
+
+        <DiaADia base={tela.base} />
       </div>
     </>
   );

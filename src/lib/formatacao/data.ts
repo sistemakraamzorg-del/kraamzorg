@@ -106,3 +106,33 @@ export function formatarDiaSemanaEData(valor: string | Date): string | null {
   const mes = parte(partes, "month");
   return indice >= 0 ? `${DIAS_SEMANA[indice]}, ${dia}/${mes}` : null;
 }
+
+/**
+ * "09:34" de um instante, no fuso de Brasília (entrada e saída da visita).
+ * Devolve `null` para instante inválido, pelo mesmo motivo de `formatarData`.
+ */
+export function formatarHora(valor: string | Date): string | null {
+  const data = paraDate(valor);
+  if (Number.isNaN(data.getTime())) {
+    return null;
+  }
+  const partes = partesEmBrasilia(data, true);
+  return `${parte(partes, "hour")}:${parte(partes, "minute")}`;
+}
+
+/**
+ * Duração em minutos no jeito brasileiro curto: "3h05", "6h", "45min".
+ * Devolve `null` para valor negativo ou que não é número.
+ */
+export function formatarDuracao(minutos: number): string | null {
+  if (!Number.isFinite(minutos) || minutos < 0) {
+    return null;
+  }
+  const total = Math.round(minutos);
+  const horas = Math.floor(total / 60);
+  const resto = total % 60;
+  if (horas === 0) return `${resto}min`;
+  return resto === 0
+    ? `${horas}h`
+    : `${horas}h${String(resto).padStart(2, "0")}`;
+}

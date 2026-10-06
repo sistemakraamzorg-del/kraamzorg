@@ -14,6 +14,7 @@ import {
  */
 
 const AURORA = "00000000-0000-4000-8610-000000000001";
+const ESTRELA = "00000000-0000-4000-8610-000000000004";
 const PUERPERAL_ENFERMEIRA = `/minhas-evolucoes/${AURORA}/puerperal`;
 const PUERPERAL_COORDENACAO = `/evolucoes/${AURORA}/puerperal`;
 
@@ -64,6 +65,59 @@ test.describe("evolução aos médicos", () => {
       })
       .first();
     await expect(cedro).toContainText("Falta o contato do médico");
+    await semRolagemLateral(page);
+    await semViolacaoGrave(page);
+  });
+
+  test("o dia a dia mostra data, entrada e saída de cada dia e o checklist como a planilha", async ({
+    page,
+  }) => {
+    await entrarComo(page, "Coordenação");
+    await page.goto(`/evolucoes/${ESTRELA}/puerperal`);
+    const secao = page.getByRole("region", {
+      name: "Dia a dia do atendimento",
+    });
+    await expect(secao).toBeVisible();
+    await expect(secao).toContainText("12 dias com registro de 12 contratados");
+    const agenda = secao.getByRole("table", {
+      name: "Data, entrada e saída de cada dia",
+    });
+    await expect(
+      agenda.getByRole("columnheader", { name: "D12" }),
+    ).toBeVisible();
+    for (const linha of [
+      "Data",
+      "Horário combinado",
+      "Entrada na casa",
+      "Saída da casa",
+      "Tempo na casa",
+    ]) {
+      await expect(
+        agenda.getByRole("rowheader", { name: linha }),
+      ).toBeVisible();
+    }
+    await expect(
+      agenda.getByRole("row", { name: /Tempo na casa/ }),
+    ).toContainText("de 6h");
+
+    await secao.getByText("Ver o checklist de cada dia").click();
+    const checklist = secao.getByRole("table", {
+      name: "Checklist de cada dia, campo por campo",
+    });
+    await expect(checklist).toBeVisible();
+    for (const bloco of [
+      "1. Chegada e preparo",
+      "2.1 Sinais vitais",
+      "3.2 Cuidados com o RN",
+      "9. Comunicação",
+    ]) {
+      await expect(
+        checklist.getByRole("columnheader", { name: bloco }),
+      ).toBeVisible();
+    }
+    await expect(
+      checklist.getByRole("rowheader", { name: "Acompanhante presente?" }),
+    ).toBeVisible();
     await semRolagemLateral(page);
     await semViolacaoGrave(page);
   });
