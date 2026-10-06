@@ -101,13 +101,15 @@ export type Preparo =
   /** Cadastra os horários da Edilaine (`parametro.horarios_edilaine`). */
   | { preparo: "horariosDaEdilaine" }
   /**
-   * [v4.3] Configura a agenda de teste (`parametro.agenda_*`): faixas em todos os
-   * dias, bloco de 30 minutos, antecedência de 24 horas e a janela de envio
-   * aberta, para o caso não depender do dia nem da hora em que roda. O
-   * calendário de teste (sem evento nenhum) é criado pelo executor.
+   * [v4.3] Configura a agenda de teste (`parametro.agenda_*`): faixas de segunda a
+   * sábado, bloco de 30 minutos, antecedência de 24 horas, a hora do lembrete da
+   * véspera depois do último horário da agenda (senão o caso que roda à tarde marca
+   * para o dia seguinte e a véspera já passou) e a janela de envio aberta
+   * (`janelaDeEnvioAberta`), para o caso não depender do dia nem da hora em que
+   * roda. O calendário de teste (sem evento nenhum) é criado pelo executor.
    */
   | { preparo: "agendaDeTeste" }
-  /** Abre a janela de envio do follow-up (agente_janela_envio) para o teste não depender da hora do dia. */
+  /** Abre a janela de envio da Isadora (`agente_janela_envio`) o dia inteiro, para o teste não depender da hora do dia. Ver `abrirJanelasDeEnvio`. */
   | { preparo: "janelaDeEnvioAberta" }
   /**
    * Exige que estes textos de mensagem_modelo estejam aprovados: `agente.mensagem_sistema`
