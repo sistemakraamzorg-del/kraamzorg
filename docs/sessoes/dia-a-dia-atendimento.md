@@ -40,6 +40,7 @@ A planilha enviada é o DOC 2 em branco ("DOC 2 - CHECKLIST DIÁRIO – KRAAMZOR
 
 - PRD 22.4, O-17 (novo): [confirmar: Leonardo] se existe plano de 4 horas, porque o PRD prevê 3, 4 ou 6 horas por visita e a Camila falou em 3 ou 6; [confirmar: Edilaine] se a diferença entre o tempo na casa e o plano vira aviso, com o limite em `parametro`.
 - Aplicar a 0046 no Supabase depois da revisão humana do SQL (CLAUDE.md), na ordem, depois da 0045.
+- PRD 22.4, O-18 (novo): retornos da Isadora no número comum não saem fora da janela de 24 horas; e o lembrete da véspera não nasce para reunião marcada à tarde para o dia seguinte.
 
 ## Testes
 
@@ -52,3 +53,12 @@ pnpm typecheck && pnpm lint && pnpm format:check
 ```
 
 Roteiro manual: `pnpm dev:demo`, entrar como Coordenação (código 123456), Evoluções, Família Teste Estrela, Evolução puerperal, rolar até "Dia a dia do atendimento" e abrir "Ver o checklist de cada dia". Repetir com a largura de 390 px.
+
+## Testes da Isadora que dependiam da hora (achado na mesma sessão)
+
+Seis cenários do roteiro local (`tests/agente/local/roteiro-local.test.ts`) falhavam às 16h20 de São Paulo, também no commit anterior a esta sessão. Duas causas:
+
+1. **C18, V18 e V19 (lembrete da véspera), fragilidade do teste.** `privado.agenda_lembrete_em` não cria o lembrete quando a véspera, na hora de `agenda_lembrete_hora` (10:00), já passou. Rodando depois das 10h, o caso marca a reunião para a tarde do dia seguinte e a véspera é hoje às 10h. O preparo `agendaDeTeste` passou a usar a hora do lembrete no fim da agenda de teste (18:00), e o caso não depende mais da hora em que roda. Provado sob `faketime` às 00:10, 09:00, 12:30, 16:20, 19:50 e 23:40, e em sexta, sábado e domingo.
+2. **C16, C27 e V30 (cadência e retomada), defeito do sistema.** O fluxo 3 consulta a janela de 24 horas da API oficial antes de todo retorno, em qualquer canal, e fora dela só tenta modelo aprovado pela Meta. A cadência sai sempre com 24 horas ou mais de silêncio, então no número comum (UAZAPI) ela não sai, ao contrário do que o PRD 4.1 diz. Não foi escondido no teste: os três casos declaram a lacuna (`LACUNA_JANELA_UAZAPI` em `tests/agente/lib/casos-agenda.ts`) e o PRD ganhou o O-18. Quando o fluxo 3 passar a olhar o canal, o teste local acusa a lacuna resolvida.
+
+Resultado: `pnpm vitest run tests/agente` 87 de 87; `node --test n8n/build.test.mjs` 408 de 408.

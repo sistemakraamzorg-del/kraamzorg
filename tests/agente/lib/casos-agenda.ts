@@ -66,6 +66,16 @@ import {
 } from "./regras";
 import type { Caso, Preparo, Regra, Turno } from "./tipos";
 
+/**
+ * Lacuna conhecida do sistema (PRD 22.4, O-18): o fluxo 3 consulta a janela
+ * de 24 horas da API oficial (`agente.janela_followup`) antes de todo retorno,
+ * em qualquer canal. Fora dela só tenta modelo aprovado pela Meta, e na UAZAPI
+ * o PRD 4.1 manda texto livre. Quando o fluxo passar a olhar o canal, estes
+ * casos voltam a passar e o teste local acusa a lacuna resolvida.
+ */
+const LACUNA_JANELA_UAZAPI =
+  "Fluxo 3: fora da janela de 24 horas o retorno só sai como modelo aprovado pela Meta, em qualquer canal; na UAZAPI o PRD 4.1 manda o texto livre. A cadência e a retomada saem com 24 horas ou mais de silêncio, então não saem (O-18).";
+
 // ---------------------------------------------------------------------------
 // Peças que se repetem
 // ---------------------------------------------------------------------------
@@ -298,6 +308,13 @@ export const APENDICE_DA_AGENDA: Caso[] = [
   },
   {
     id: "C16",
+    lacunasConhecidas: [
+      { regra: "R-responde-t3", motivo: LACUNA_JANELA_UAZAPI },
+      { regra: "A-consulta-t3", motivo: LACUNA_JANELA_UAZAPI },
+      { regra: "A-opcoes-novas-t3", motivo: LACUNA_JANELA_UAZAPI },
+      { regra: "A-opcoes-t3", motivo: LACUNA_JANELA_UAZAPI },
+      { regra: "C16-explica-a-troca", motivo: LACUNA_JANELA_UAZAPI },
+    ],
     grupo: "apendice",
     rotulo: "16",
     titulo:
@@ -462,6 +479,18 @@ export const APENDICE_DA_AGENDA: Caso[] = [
   },
   {
     id: "C27",
+    lacunasConhecidas: [
+      { regra: "R-responde-t4", motivo: LACUNA_JANELA_UAZAPI },
+      { regra: "A-cadencia-1-t4", motivo: LACUNA_JANELA_UAZAPI },
+      { regra: "R-uma-mensagem-de-retorno-t4", motivo: LACUNA_JANELA_UAZAPI },
+      { regra: "R-responde-t6", motivo: LACUNA_JANELA_UAZAPI },
+      { regra: "A-cadencia-2-t6", motivo: LACUNA_JANELA_UAZAPI },
+      { regra: "R-uma-mensagem-de-retorno-t6", motivo: LACUNA_JANELA_UAZAPI },
+      { regra: "R-responde-t8", motivo: LACUNA_JANELA_UAZAPI },
+      { regra: "A-cadencia-3-t8", motivo: LACUNA_JANELA_UAZAPI },
+      { regra: "R-uma-mensagem-de-retorno-t8", motivo: LACUNA_JANELA_UAZAPI },
+      { regra: "A-cadencia-motivos-diferentes", motivo: LACUNA_JANELA_UAZAPI },
+    ],
     grupo: "apendice",
     rotulo: "27",
     titulo:
@@ -892,6 +921,10 @@ export const EXTRAS_V43: Caso[] = [
   }),
   extra({
     id: "V30",
+    lacunasConhecidas: [
+      { regra: "R-responde-t6", motivo: LACUNA_JANELA_UAZAPI },
+      { regra: "A-cadencia-1-t6", motivo: LACUNA_JANELA_UAZAPI },
+    ],
     rotulo: "cadência com a reunião cancelada",
     titulo: "Reunião cancelada: a Isadora apaga o evento e a cadência volta",
     preparo: [
