@@ -79,9 +79,9 @@ export function BarraLateral({
           src={simboloSrc}
           alt=""
           width={36}
-          height={31}
+          height={27}
           priority
-          style={{ height: "auto" }}
+          className="h-auto w-9 shrink-0"
         />
         <span className="font-titulo text-marca font-medium">{nomeMarca}</span>
       </div>
