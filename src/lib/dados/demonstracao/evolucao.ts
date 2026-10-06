@@ -15,6 +15,7 @@ import type {
   ResultadoSalvarEvolucao,
   TipoEvolucao,
 } from "../tipos-evolucao";
+import { DEFINICAO_DOC2 } from "./assistencial-fixtures";
 import {
   criarLojaEvolucao,
   type LojaEvolucao,
@@ -175,6 +176,7 @@ export function criarEvolucaoDemonstracao(
         familiaId: a.familiaId,
         estado: "em_execucao",
         diasContratados: a.diasContratados,
+        horasPorVisita: a.horasPorVisita,
         inicio: datas[0] ?? null,
         fim: datas[datas.length - 1] ?? null,
         concluidoEm: datas[datas.length - 1] ?? null,
@@ -227,7 +229,22 @@ export function criarEvolucaoDemonstracao(
         data: v.data,
         profissionalId: a.profissionalId,
         dados: v.dados!,
+        resumoDescritivo: v.resumoDescritivo,
+        assinadoEm: v.assinadoEm,
       })),
+      rotina: l.visitas
+        .filter((v) => v.acompanhamentoId === a.id)
+        .sort((x, y) => x.diaNumero - y.diaNumero)
+        .map((v) => ({
+          visitaId: v.id,
+          diaNumero: v.diaNumero,
+          data: v.data,
+          horaPrevista: v.horaPrevista,
+          checkinEm: v.checkinEm,
+          checkoutEm: v.checkoutEm,
+          estado: v.estado,
+        })),
+      definicaoChecklist: DEFINICAO_DOC2,
       relatorios: l.relatorios
         .filter((r) => r.acompanhamentoId === a.id)
         .map((r) => ({

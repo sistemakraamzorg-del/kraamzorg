@@ -1,10 +1,12 @@
 import "server-only";
 import type { Json } from "@/lib/db/types";
+import { lerDefinicao, type DefinicaoInstrumento } from "@/lib/instrumentos/schema";
 import type {
   AcompanhamentoEvolucao,
   BaseEvolucao,
   ConteudoSalvo,
   DadosEnvioEvolucao,
+  DiaRotina,
   DocumentoDaLista,
   DocumentoExistente,
   EvolucaoDetalhe,
@@ -82,6 +84,24 @@ export function listaEvolucoesDoBanco(valor: Json): ListaEvolucoes {
   };
 }
 
+/** "09:30:00" (time do banco) vira "09:30"; texto que não é hora fica como veio. */
+function horaSemSegundos(v: Json | undefined): string | null {
+  const t = texto(v);
+  if (t === null) return null;
+  const m = /^(\d{2}:\d{2}):\d{2}(?:\.\d+)?$/.exec(t);
+  return m?.[1] ?? t;
+}
+
+/** Definição do DOC 2 vigente. Definição inválida vira nula: nunca derruba a tela. */
+function definicaoDoChecklist(v: Json | undefined): DefinicaoInstrumento | null {
+  if (v === null || v === undefined) return null;
+  try {
+    return lerDefinicao(v);
+  } catch {
+    return null;
+  }
+}
+
 export function baseDoBanco(valor: Json): BaseEvolucao {
   const r = objeto(valor);
   const a = objeto(r.acompanhamento);
@@ -93,6 +113,7 @@ export function baseDoBanco(valor: Json): BaseEvolucao {
       familiaId: String(a.familia_id),
       estado: String(a.estado ?? ""),
       diasContratados: numero(a.dias_contratados),
+      horasPorVisita: numeroOuNulo(a.horas_por_visita),
       inicio: texto(a.inicio),
       fim: texto(a.fim),
       concluidoEm: texto(a.concluido_em),
@@ -149,8 +170,23 @@ export function baseDoBanco(valor: Json): BaseEvolucao {
         data: texto(x.data) ?? "",
         profissionalId: String(x.profissional_id),
         dados: objeto(x.dados) as Record<string, unknown>,
+        resumoDescritivo: texto(x.resumo_descritivo),
+        assinadoEm: texto(x.assinado_em),
       };
     }),
+    rotina: lista(r.rotina).map((v): DiaRotina => {
+      const x = objeto(v);
+      return {
+        visitaId: String(x.visita_id),
+        diaNumero: numero(x.dia_numero),
+        data: texto(x.data) ?? "",
+        horaPrevista: horaSemSegundos(x.hora_prevista),
+        checkinEm: texto(x.checkin_em),
+        checkoutEm: texto(x.checkout_em),
+        estado: texto(x.estado) ?? "",
+      };
+    }),
+    definicaoChecklist: definicaoDoChecklist(r.definicao_checklist),
     relatorios: lista(r.relatorios).map((d): DocumentoExistente => {
       const x = objeto(d);
       return {
