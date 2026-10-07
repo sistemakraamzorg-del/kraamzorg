@@ -8,7 +8,7 @@ vi.mock("server-only", () => ({}));
 import { baseDoBanco } from "./evolucao";
 
 /**
- * Dia a dia do atendimento na tela de evolução (migration 0046, provada no
+ * Dia a dia do atendimento na tela de evolução (migration 0047, provada no
  * pgTAP 046): o que assistencial.ler_base_evolucao devolve de novo vira os
  * tipos da tela, sem derrubar a tela quando algo falta ou vem fora de forma.
  */
@@ -158,7 +158,7 @@ describe("base da evolução: o dia a dia do atendimento", () => {
     expect(b.visitas).toEqual([]);
   });
 
-  it("resposta de antes da 0046 (sem as chaves novas) ainda vira uma base válida", () => {
+  it("resposta de antes da 0047 (sem as chaves novas) ainda vira uma base válida", () => {
     const antiga = base() as Record<string, Json>;
     delete antiga.rotina;
     delete antiga.definicao_checklist;

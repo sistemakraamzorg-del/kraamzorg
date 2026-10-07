@@ -11,7 +11,7 @@ Data: 06/10/2026. Pedido da Camila depois de testar o sistema publicado: a logo 
    - tabela com uma coluna por dia (D1 a D6 ou D12): data e dia da semana, horário combinado, entrada na casa, saída da casa e tempo na casa ("6h05 de 6h"). A linha "Situação da visita" aparece só quando algum dia não aconteceu como previsto (agendada, cancelada, não realizada);
    - "Ver o checklist de cada dia, campo por campo": todos os blocos e campos do DOC 2 vigente, com os rótulos do próprio instrumento, o valor de cada dia, o bloco do recém-nascido repetido por bebê nos gemelares, a hora da assinatura e o resumo descritivo. Campo condicional sem valor em dia nenhum (motivo do contato médico, bloco do último dia) fica de fora, como no papel.
    - A tabela rola de lado dentro da própria caixa, com a primeira coluna presa; a página não rola de lado no celular.
-3. **Banco.** Migration `0046_rotina_evolucao.sql` (escrita, não aplicada em ambiente nenhum): troca `assistencial.ler_base_evolucao` com o corpo da 0024 inteiro e acrescenta `acompanhamento.horas_por_visita`, a lista `rotina` (todas as visitas, com ou sem registro: data, horário combinado, check-in, check-out e estado), `definicao_checklist` (DOC 2 vigente) e, em cada visita com registro, `resumo_descritivo` e `assinado_em`. Mesma checagem de acesso, mesma gravação de leitura antes de devolver, sem grant novo. Ensaiada como papel sem superuser, como no Supabase gerenciado.
+3. **Banco.** Migration `0047_rotina_evolucao.sql` (escrita, não aplicada em ambiente nenhum): troca `assistencial.ler_base_evolucao` com o corpo da 0024 inteiro e acrescenta `acompanhamento.horas_por_visita`, a lista `rotina` (todas as visitas, com ou sem registro: data, horário combinado, check-in, check-out e estado), `definicao_checklist` (DOC 2 vigente) e, em cada visita com registro, `resumo_descritivo` e `assinado_em`. Mesma checagem de acesso, mesma gravação de leitura antes de devolver, sem grant novo. Ensaiada como papel sem superuser, como no Supabase gerenciado.
 4. **Demonstração.** As evoluções fictícias passaram a preencher todos os campos do DOC 2 aprovado (antes só os obrigatórios, e por isso a tela parecia ter campos faltando), com entrada e saída de cada dia. A Família Teste Estrela virou um plano de 12 dias de 6 horas; Aurora e Cedro, 6 dias de 3 horas; Brisa (gêmeos), 6 dias de 6 horas.
 5. `formatarHora` ("09:34", fuso de Brasília) e `formatarDuracao` ("3h05", "6h", "45min") em `src/lib/formatacao`.
 
@@ -39,7 +39,7 @@ A planilha enviada é o DOC 2 em branco ("DOC 2 - CHECKLIST DIÁRIO – KRAAMZOR
 ## Pendências novas
 
 - PRD 22.4, O-17 (novo): [confirmar: Leonardo] se existe plano de 4 horas, porque o PRD prevê 3, 4 ou 6 horas por visita e a Camila falou em 3 ou 6; [confirmar: Edilaine] se a diferença entre o tempo na casa e o plano vira aviso, com o limite em `parametro`.
-- Aplicar a 0046 no Supabase depois da revisão humana do SQL (CLAUDE.md), na ordem, depois da 0045.
+- Aplicar a 0047 no Supabase depois da revisão humana do SQL (CLAUDE.md), na ordem, depois da 0046 (tarefas, do DashCore).
 - PRD 22.4, O-18 (novo): retornos da Isadora no número comum não saem fora da janela de 24 horas; e o lembrete da véspera não nasce para reunião marcada à tarde para o dia seguinte.
 
 ## Testes

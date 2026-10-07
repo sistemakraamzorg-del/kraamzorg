@@ -1,7 +1,7 @@
 -- =============================================================================
--- supabase/tests/046_rotina_evolucao.sql
+-- supabase/tests/047_rotina_evolucao.sql
 --
--- Migration 0046_rotina_evolucao (P41 · PRD 9.2, "uma coluna por dia, de D1 a
+-- Migration 0047_rotina_evolucao (P41 · PRD 9.2, "uma coluna por dia, de D1 a
 -- D6 ou D12"): assistencial.ler_base_evolucao passa a devolver o dia a dia do
 -- atendimento como a planilha de papel do DOC 2.
 --   1. acompanhamento.horas_por_visita (as horas por dia do plano).

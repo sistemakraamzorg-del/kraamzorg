@@ -1,5 +1,5 @@
 -- =============================================================================
--- 0046_rotina_evolucao.sql
+-- 0047_rotina_evolucao.sql
 --
 -- Evolução (P41) · PRD 9.2 ("uma coluna por dia, de D1 a D6 ou D12")
 --
@@ -163,4 +163,4 @@ begin
     'rotulos_orientacoes', v_rotulos);
 end;
 $$;
-comment on function assistencial.ler_base_evolucao(uuid) is 'Leitura auditada da base da evolução de um acompanhamento (P41, 0046): período, horas por visita do plano, paciente, bebês, médicos (e-mail só mascarado), profissional, registros do checklist por visita (com resumo descritivo e hora da assinatura), a rotina (todas as visitas, com ou sem registro: data, horário combinado, check-in, check-out e estado), a definição do DOC 2 vigente, textos padrão evo_* e os documentos já criados. Grava ''leitura'' antes de devolver. Coordenação e diretoria em todos, enfermeira nas famílias atribuídas. Sem grant.';
+comment on function assistencial.ler_base_evolucao(uuid) is 'Leitura auditada da base da evolução de um acompanhamento (P41, 0047): período, horas por visita do plano, paciente, bebês, médicos (e-mail só mascarado), profissional, registros do checklist por visita (com resumo descritivo e hora da assinatura), a rotina (todas as visitas, com ou sem registro: data, horário combinado, check-in, check-out e estado), a definição do DOC 2 vigente, textos padrão evo_* e os documentos já criados. Grava ''leitura'' antes de devolver. Coordenação e diretoria em todos, enfermeira nas famílias atribuídas. Sem grant.';
