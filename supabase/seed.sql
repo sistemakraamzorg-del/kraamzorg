@@ -1593,12 +1593,92 @@ join seed_visita sv on sv.chave = v.acomp_chave || ':' || v.dia;
 insert into registro_atendimento (visita_id, profissional_id, instrumento_versao, dados, resumo_descritivo,
                                   assinado_em, assinatura)
 select sv.id, vi.profissional_id, 'v1-2026-09',
-       jsonb_build_object('bloco_2', jsonb_build_object('temperatura', 36.5, 'dor_escala', 1, 'observacao', 'Sem intercorrências.')),
+       -- Mesmo formato que a enfermeira grava pelo portal (DOC 2): um objeto por bloco, com o
+       -- id do bloco como chave ("1", "2.1", "3.1"...), e os blocos do recém-nascido ("3",
+       -- "3.1", "3.2") como lista, um item por bebê. É o que a evolução lê para pré-preencher.
+       jsonb_build_object(
+         '1', jsonb_build_object(
+                'data', to_char(vi.data, 'YYYY-MM-DD'), 'horario', to_char(vi.hora_prevista + interval '4 minutes', 'HH24:MI'),
+                'acompanhante_presente', jsonb_build_object('resposta', true,
+                                           'texto', case when vi.dia_numero % 2 = 0 then 'Avó materna' else 'Parceiro' end),
+                'pontualidade_confirmada', true, 'higienizacao_das_maos', true,
+                'apresentacao_acolhimento_familia', true)
+              || case when vi.dia_numero > 1 then jsonb_build_object('relato_desde_ultima_visita', true) else '{}'::jsonb end,
+         '2', jsonb_build_object(
+                'bem_estar_geral_preservado', true,
+                'queixa_de_dor', case when vi.dia_numero <= 2 then jsonb_build_object('resposta', true, 'texto', 'Local da cirurgia ou períneo')
+                                      else jsonb_build_object('resposta', false) end,
+                'dor_intensidade', greatest(0, 5 - vi.dia_numero), 'sangramento_loquios_esperado', true),
+         '2.1', jsonb_build_object(
+                'pressao_arterial', jsonb_build_object('partes', jsonb_build_object('sistolica', 108 + vi.dia_numero * 2, 'diastolica', 70 + vi.dia_numero)),
+                'temperatura', case when vi.dia_numero = 2 then 38.4 else 36.4 + (vi.dia_numero % 3) * 0.2 end, 'frequencia_cardiaca', 72 + vi.dia_numero),
+         '2.4', jsonb_build_object(
+                'higiene_intima_orientada', true, 'sono_repouso_adequados', vi.dia_numero <> 2,
+                'alimentacao_hidratacao_adequadas', true, 'eliminacoes_evacuacao_presentes', vi.dia_numero > 1),
+         '2.5', jsonb_build_object('turgidas_ou_secretantes', true, 'flacidas', false, 'ingurgitadas', vi.dia_numero = 2),
+         '2.6', jsonb_build_object('dor_mamilos_amamentar', vi.dia_numero <= 3, 'evn', greatest(0, 4 - vi.dia_numero),
+                                   'intervencoes_para_dor', 'Compressa morna e pega corrigida'),
+         '2.7', jsonb_build_object('lesao_mamilar', case when vi.dia_numero in (2, 3) then 'esquerda' else 'nao' end,
+                                   'nts', case when vi.dia_numero in (2, 3) then 2 else 0 end, 'interrupcao_adequada_succao', true),
+         '2.8', jsonb_build_object('latch', jsonb_build_object('valor', least(10, 6 + vi.dia_numero),
+                                                               'complemento', case when 6 + vi.dia_numero <= 7 then 'regular' else 'otimo' end),
+                                   'teste_da_linguinha', 'normal'),
+         '2.9', jsonb_build_object('fbm_aplicada', case when vi.dia_numero in (2, 3) then jsonb_build_array('analgesia') else jsonb_build_array('nao_aplicada') end),
+         '2.10', jsonb_build_object('bicos_artificiais', false, 'forros_e_conchas', false, 'bomba_de_extracao', false),
+         '2.11', jsonb_build_object('succoes_por_dia', 'mais_de_8'),
+         '2.12', jsonb_build_object('producao_de_leite', 'normal'),
+         '2.13', jsonb_build_object('sente_se_apoiada', least(10, 6 + vi.dia_numero), 'quem_mais_apoia', 'Parceiro')
+       )
+       || jsonb_build_object(
+         '3', f.b3, '3.1', f.b31, '3.2', f.b32,
+         '4', jsonb_build_object('massagem_extracao_leite', true, 'correcao_pega_posicao', vi.dia_numero <= 3,
+                                 'livre_demanda_reforcada', true, 'colica_disquesia', vi.dia_numero >= 3,
+                                 'posturas_de_conforto', vi.dia_numero >= 2, 'sinais_de_fome', vi.dia_numero = 1,
+                                 'manobra_de_desengasgo', vi.dia_numero = 2),
+         '5', jsonb_build_object('sono_seguro_orientado', vi.dia_numero = 1, 'sinais_janelas_sono_explicados', vi.dia_numero = 2,
+                                 'organizacao_rotina_familiar', vi.dia_numero >= 3),
+         '6', jsonb_build_object('orientacoes_ao_parceiro', vi.dia_numero <= 2, 'duvidas_esclarecidas', true),
+         '7', jsonb_build_object('escuta_ativa_emocoes_validadas', true,
+                                 'sinais_sofrimento_emocional', jsonb_build_object('resposta', false)),
+         '8', jsonb_build_object('ambiente_organizado', true, 'alinhamento_dia_seguinte', vi.dia_numero < ac.dias_contratados),
+         '9', jsonb_build_object('contato_medico_necessario', false))
+       || case when coalesce(f.cesarea, false)
+               then jsonb_build_object('2.2', jsonb_build_object('cesarea_sem_sinais_infeccao', true,
+                      'episiotomia_laceracao_sem_alteracoes', true, 'orientacoes_cuidado_reforcadas', true))
+               else '{}'::jsonb end
+       || case when vi.dia_numero <= 3
+               then jsonb_build_object('2.3', jsonb_build_object('medicacoes_em_uso', 'Paracetamol 750 mg, se dor'))
+               else '{}'::jsonb end
+       || case when vi.dia_numero = ac.dias_contratados
+               then jsonb_build_object('ultimo_dia', jsonb_build_object(
+                      'contato_obstetra', 'Dra. Teste Obstetra, contato por e-mail',
+                      'contato_pediatra', 'Dr. Teste Pediatra, contato por e-mail',
+                      'resumo_encerramento', 'Família segura na rotina e com os sinais de alerta revisados.'))
+               else '{}'::jsonb end,
        'Visita do dia ' || vi.dia_numero || ' do acompanhamento sintético de teste, sem intercorrências relevantes.',
        vi.checkout_em,
        encode(extensions.digest('registro-teste:' || sv.chave || ':' || vi.checkout_em::text, 'sha256'), 'hex')
 from seed_visita sv
 join visita vi on vi.id = sv.id
+join acompanhamento ac on ac.id = vi.acompanhamento_id
+cross join lateral (
+  select bool_or(b.tipo_parto = 'cesarea') as cesarea,
+         coalesce(jsonb_agg(jsonb_build_object(
+           'bebe_id', b.id, 'cor_da_pele_icterica', case when vi.dia_numero <= 2 then 'zona_i' else 'ausente' end,
+           'respiracao_sem_sinais_esforco', true, 'choro_habitual', true,
+           'atividade_responsividade_preservadas', true) order by b.ordem), '[]'::jsonb) as b3,
+         coalesce(jsonb_agg(jsonb_build_object(
+           'bebe_id', b.id, 'temperatura', 36.6 + (vi.dia_numero % 2) * 0.2, 'frequencia_cardiaca', 132,
+           'frequencia_respiratoria', 42,
+           'peso', coalesce(b.peso_alta_g, b.peso_nascimento_g, 3000) + vi.dia_numero * 35) order by b.ordem), '[]'::jsonb) as b31,
+         coalesce(jsonb_agg(jsonb_build_object(
+           'bebe_id', b.id, 'troca_fraldas_avaliacao_diurese', jsonb_build_object('resposta', true, 'texto', 'Diurese presente'),
+           'banho_orientado_realizado', vi.dia_numero % 3 = 1,
+           'coto_umbilical_avaliado', jsonb_build_object('resposta', true,
+              'texto', case when vi.dia_numero >= 5 then 'em mumificação, seco' else 'úmido, sem sinais flogísticos' end),
+           'vestimenta_adequada_clima', true) order by b.ordem), '[]'::jsonb) as b32
+  from bebe b where b.familia_id = ac.familia_id
+) f
 where sv.chave like 'jade:%' and vi.checkout_em is not null;
 
 -- Um registro do dia 2 de Jade com alerta clínico imediato: febre confirmada
