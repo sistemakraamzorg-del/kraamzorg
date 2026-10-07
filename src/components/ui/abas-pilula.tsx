@@ -33,6 +33,8 @@ export interface AbasPilulaProps {
    */
   larga?: boolean | "celular";
   className?: string;
+  /** Marca do tour guiado (`data-tour`). */
+  idTour?: string;
 }
 
 export function AbasPilula({
@@ -42,11 +44,13 @@ export function AbasPilula({
   aoEscolher,
   larga = false,
   className,
+  idTour,
 }: AbasPilulaProps) {
   return (
     <div
       role="tablist"
       aria-label={rotulo}
+      data-tour={idTour}
       className={cn(
         "inline-flex max-w-full gap-1.5 overflow-x-auto",
         larga === true && "flex w-full",

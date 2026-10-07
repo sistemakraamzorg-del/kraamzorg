@@ -49,7 +49,10 @@ export default async function PaginaHoje() {
         lateral={<IndicadorPortal />}
       />
       <div className="pt-4">
-        <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-3">
+        <div
+          data-tour="/hoje:numeros"
+          className="grid grid-cols-1 gap-3.5 sm:grid-cols-3"
+        >
           <Link href="#visitas-de-hoje" className={LINK_KPI}>
             <Kpi
               rotulo={resumo.visitas.rotulo}
@@ -72,7 +75,7 @@ export default async function PaginaHoje() {
         </div>
       </div>
       <HojeCliente inicial={hoje} familias={familias} hoje={hoje.dia} />
-      <ListaBlocos className="pt-6">
+      <ListaBlocos className="pt-6" data-tour="/hoje:evolucoes">
         <ItemBloco
           href="/minhas-evolucoes"
           icone={<ClipboardPen />}

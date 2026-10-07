@@ -166,6 +166,62 @@ function alvoDoPasso(passo: Passo): {
   return { el: null, emMais: false };
 }
 
+/** Onde termina o cabeçalho preso no alto da tela (título da tela), ou 0. */
+function limiteDeCima(): number {
+  let limite = 0;
+  for (const cabecalho of document.querySelectorAll<HTMLElement>("header")) {
+    const posicao = window.getComputedStyle(cabecalho).position;
+    if (posicao !== "sticky" && posicao !== "fixed") continue;
+    const r = cabecalho.getBoundingClientRect();
+    if (r.height > 0 && r.top <= 1 && r.bottom < window.innerHeight / 2)
+      limite = Math.max(limite, r.bottom);
+  }
+  return limite;
+}
+
+/** O alvo rola com a página inteira (e não dentro de uma lista com rolagem própria). */
+function rolaComAPagina(el: HTMLElement): boolean {
+  for (let pai = el.parentElement; pai; pai = pai.parentElement) {
+    if (pai === document.body || pai === document.documentElement) break;
+    const estilo = window.getComputedStyle(pai);
+    if (
+      /(auto|scroll)/.test(estilo.overflowY) &&
+      pai.scrollHeight > pai.clientHeight + 1
+    )
+      return false;
+  }
+  return true;
+}
+
+/**
+ * Leva o alvo da página para a vista, sem ficar por baixo do cabeçalho
+ * preso no alto nem da navegação do pé: no centro da faixa livre, ou no
+ * alto dela (para o cartão caber embaixo).
+ */
+function rolarAte(el: HTMLElement, onde: "centro" | "alto"): void {
+  const comportamento: ScrollBehavior = prefereMenosMovimento()
+    ? "auto"
+    : "smooth";
+  if (!rolaComAPagina(el)) {
+    el.scrollIntoView?.({
+      block: onde === "centro" ? "center" : "start",
+      inline: "nearest",
+      behavior: comportamento,
+    });
+    return;
+  }
+  const r = el.getBoundingClientRect();
+  const cima = limiteDeCima() + MARGEM / 2;
+  const baixo = limiteDeBaixo();
+  const destino =
+    onde === "alto" || r.height >= baixo - cima
+      ? cima
+      : cima + (baixo - cima - r.height) / 2;
+  const delta = r.top - destino;
+  if (Math.abs(delta) > 1)
+    window.scrollBy({ top: delta, behavior: comportamento });
+}
+
 /** Onde começa a navegação fixa no pé da tela (celular), ou o fim da tela. */
 function limiteDeBaixo(): number {
   let limite = window.innerHeight;
@@ -285,8 +341,32 @@ function posicionar(
       top: centroY,
       left: alvo.left - DISTANCIA - cartao.width,
     };
-  // Não cabe inteiro em lado nenhum (celular): o cartão fica do lado com
-  // mais espaço, mais baixo, e rola por dentro. O destaque segue à vista.
+  // Não cabe inteiro ao lado (celular, alvo grande): o cartão fica inteiro,
+  // embaixo ou no alto, onde deixar mais do alvo à vista.
+  if (cartao.height <= baixo - alto) {
+    const fimDoAlvo = alvo.top + alvo.height;
+    const vistoComCartaoEmBaixo = Math.max(
+      0,
+      Math.min(fimDoAlvo, baixo - cartao.height - DISTANCIA) -
+        Math.max(alvo.top, tela.y),
+    );
+    const vistoComCartaoNoAlto = Math.max(
+      0,
+      Math.min(fimDoAlvo, tela.y + tela.height) -
+        Math.max(alvo.top, alto + cartao.height + DISTANCIA),
+    );
+    return {
+      modo: "ancorado",
+      top:
+        vistoComCartaoEmBaixo >= vistoComCartaoNoAlto
+          ? baixo - cartao.height
+          : alto,
+      left: centroX,
+      apertado: true,
+    };
+  }
+  // O cartão nem cabe na tela (tela muito baixa): fica do lado com mais
+  // espaço, mais baixo, e rola por dentro.
   const espaco = Math.max(espacoAbaixo, espacoAcima);
   if (espaco >= ALTURA_MINIMA_CARTAO) {
     return {
@@ -392,15 +472,17 @@ export function CartaoTour({
         const antes = el.getBoundingClientRect();
         const naNavegacao = !!el.closest("nav");
         // A navegação em pílula do celular cobre o pé da tela.
-        const fora =
-          antes.top < 0 ||
-          antes.bottom > (naNavegacao ? window.innerHeight : limiteDeBaixo());
-        if (fora || naNavegacao) {
+        if (naNavegacao) {
           el.scrollIntoView?.({
-            block: naNavegacao ? "nearest" : "center",
+            block: "nearest",
             inline: "nearest",
             behavior: prefereMenosMovimento() ? "auto" : "smooth",
           });
+        } else if (
+          antes.top < limiteDeCima() ||
+          antes.bottom > limiteDeBaixo()
+        ) {
+          rolarAte(el, "centro");
         }
       }
       const r = el.getBoundingClientRect();
@@ -431,11 +513,7 @@ export function CartaoTour({
         !rolagensRef.current.has(chave)
       ) {
         rolagensRef.current.add(chave);
-        el.scrollIntoView?.({
-          block: "start",
-          inline: "nearest",
-          behavior: prefereMenosMovimento() ? "auto" : "smooth",
-        });
+        rolarAte(el, "alto");
       }
       // Alvo preso fora da parte visível (navegação fixa numa tela que
       // rola de lado): o cartão fica no centro, sem destaque.
@@ -559,7 +637,7 @@ export function CartaoTour({
         onKeyDown={aoTeclar}
         data-tour-cartao={passo.id}
         className={cn(
-          "rounded-3 border-linha bg-superficie shadow-2 fixed z-[var(--z-aviso)] flex max-h-[calc(100dvh-32px)] w-[calc(100vw-32px)] max-w-[400px] flex-col overflow-y-auto border p-5 outline-none lg:w-[372px] lg:p-6",
+          "rounded-3 border-linha bg-superficie shadow-2 fixed z-[var(--z-aviso)] flex max-h-[calc(100dvh-32px)] w-[calc(100vw-32px)] max-w-[400px] flex-col overflow-y-auto border p-4 outline-none lg:w-[372px] lg:p-6",
           // Antes da primeira medida: no centro, pelo CSS.
           !posicao && "top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2",
           // Até a primeira medida do passo, o cartão espera invisível no
@@ -722,7 +800,7 @@ export function CartaoTour({
           </Link>
         ) : null}
 
-        <div className="border-linha mt-5 flex flex-wrap items-center justify-end gap-2 border-t pt-4">
+        <div className="border-linha mt-4 flex flex-wrap items-center justify-end gap-2 border-t pt-3 lg:mt-5 lg:pt-4">
           {ultimo ? (
             <button
               type="button"

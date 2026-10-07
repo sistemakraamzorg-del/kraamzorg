@@ -79,7 +79,9 @@ export default async function PaginaEquipe({
       tamanho="compacto"
       iconeEsquerda={<Plus aria-hidden="true" />}
     >
-      <Link href="/equipe/nova">Nova profissional</Link>
+      <Link href="/equipe/nova" data-tour="/equipe:nova">
+        Nova profissional
+      </Link>
     </Botao>
   );
 
@@ -189,6 +191,7 @@ export default async function PaginaEquipe({
 
         <nav
           aria-label="Filtros da equipe"
+          data-tour="/equipe:filtros"
           className="flex flex-wrap items-center gap-[9px]"
         >
           {regioes.length > 0 ? (
@@ -252,7 +255,7 @@ export default async function PaginaEquipe({
             }
           />
         ) : (
-          <Card>
+          <Card data-tour="/equipe:tabela">
             <CardHead
               titulo="Equipe assistencial"
               direita={`${profissionais.length} ${profissionais.length === 1 ? "profissional" : "profissionais"}`}

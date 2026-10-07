@@ -103,7 +103,10 @@ export function ListaFamilias({
             </div>
 
             {total && !pausa ? (
-              <div className="flex flex-col gap-2">
+              <div
+                className="flex flex-col gap-2"
+                data-tour="/minhas-familias:regua"
+              >
                 <ReguaDias
                   dias={reguaDaFamilia(
                     f,
@@ -137,6 +140,7 @@ export function ListaFamilias({
             ) : null}
 
             <p
+              data-tour="/minhas-familias:proxima"
               className={cn(
                 "rounded-2 text-corpo text-texto flex items-center gap-3 px-3 py-2",
                 pausa
@@ -163,7 +167,11 @@ export function ListaFamilias({
           pausa ? "bg-superficie border-linha border" : "bg-areia-clara",
         );
         return (
-          <li key={f.familiaId} data-familia={f.familiaId}>
+          <li
+            key={f.familiaId}
+            data-familia={f.familiaId}
+            data-tour="/minhas-familias:familia"
+          >
             {comLink ? (
               <Link
                 href={`/minhas-familias/${f.familiaId}`}

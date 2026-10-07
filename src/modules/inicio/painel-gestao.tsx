@@ -35,7 +35,7 @@ export function FaixaDoDia({
   return (
     <>
       <CabecalhoTela titulo="Início" />
-      <Nota className="mt-4 mb-4 lg:mt-[22px]">
+      <Nota className="mt-4 mb-4 lg:mt-[22px]" data-tour="/inicio:frase">
         <b>{saudacao}.</b> {frase}
       </Nota>
     </>
@@ -113,7 +113,10 @@ function MiniGrafico({
 
 export function GradeIndicadores({ itens }: { itens: Indicador[] }) {
   return (
-    <ul className="tablet:grid-cols-2 mb-[14px] grid grid-cols-1 gap-[14px] lg:grid-cols-4">
+    <ul
+      data-tour="/inicio:numeros"
+      className="tablet:grid-cols-2 mb-[14px] grid grid-cols-1 gap-[14px] lg:grid-cols-4"
+    >
       {itens.map((i) => (
         <li key={i.rotulo}>
           <Link
@@ -152,6 +155,7 @@ export function GradeGraficos({
 }) {
   return (
     <div
+      data-tour="/inicio:graficos"
       className={cn(
         "mb-[14px] grid grid-cols-1 gap-[14px]",
         colunas === 3 ? "lg:grid-cols-3" : "lg:grid-cols-2",
@@ -278,14 +282,17 @@ export function Divisao({
 export function CartaoLista({
   titulo,
   direita,
+  idTour,
   children,
 }: {
   titulo: string;
   direita?: React.ReactNode;
+  /** Marca do tour guiado (`data-tour`). */
+  idTour?: string;
   children: React.ReactNode;
 }) {
   return (
-    <Card>
+    <Card data-tour={idTour}>
       <CardHead titulo={titulo} direita={direita} />
       {children}
     </Card>

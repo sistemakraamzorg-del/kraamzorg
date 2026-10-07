@@ -271,6 +271,9 @@ function passoDoChecklist(grupo: string): Passo {
     dica: PASSO_CHECKLIST.dica,
     grupo,
     alvoDoMenu: ROTAS.hoje.caminho,
+    // O destaque vai para os botões do cartão da visita do dia (Cheguei,
+    // Preencher registro, Saí da casa).
+    alvoNaTela: `${ROTAS.hoje.caminho}:botoes`,
     ordenado: true,
   };
 }

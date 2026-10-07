@@ -713,6 +713,7 @@ function CorpoDoDia({
           <>
             <CartaoLista
               titulo="Alertas prioritários"
+              idTour="/inicio:alertas"
               direita={dia.alertas ? `${totalAlertas} abertos` : undefined}
             >
               {dia.alertas === null ? (
@@ -811,7 +812,7 @@ function CorpoDoDia({
               </div>
             </CartaoLista>
 
-            <Card>
+            <Card data-tour="/inicio:agenda">
               <CardHead
                 titulo="Agenda de hoje"
                 direita={
@@ -848,7 +849,7 @@ function CorpoDoDia({
         }
         lateral={
           <>
-            <CartaoLista titulo="Precisa de decisão">
+            <CartaoLista titulo="Precisa de decisão" idTour="/inicio:decisoes">
               <div className="flex flex-col gap-[11px] p-4 pt-3">
                 {conflitos > 0 ? (
                   <DecisaoItem

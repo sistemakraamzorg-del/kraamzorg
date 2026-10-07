@@ -221,7 +221,7 @@ export function ListaCobrancasTela({
         {fraseResumo(lista.resumo)}
       </p>
 
-      <Grade colunas={2}>
+      <Grade colunas={2} data-tour="/cobrancas:totais">
         <Kpi
           rotulo="A receber"
           valor={formatarMoeda(lista.resumo.aReceberCentavos)}
@@ -247,6 +247,7 @@ export function ListaCobrancasTela({
 
       <ChipsNav
         rotulo="Filtrar cobranças"
+        idTour="/cobrancas:filtros"
         itens={FILTROS.map((f) => ({
           rotulo: f.rotulo,
           href: f.valor ? `/cobrancas?situacao=${f.valor}` : "/cobrancas",
@@ -265,6 +266,7 @@ export function ListaCobrancasTela({
       ) : (
         <BlocoTabela
           titulo="Cobranças"
+          idTour="/cobrancas:tabela"
           direita={plural(lista.cobrancas.length, "cobrança", "cobranças")}
         >
           <TabelaLista

@@ -55,7 +55,10 @@ export default async function PaginaFinanceiro({
         }
       />
       <div className="flex flex-col gap-3.5 pt-6">
-        <div className="flex flex-wrap items-center gap-3">
+        <div
+          data-tour="/financeiro:abas"
+          className="flex flex-wrap items-center gap-3"
+        >
           <NavegacaoFinanceiro atual="/financeiro" mes={mes} />
           <SeletorMes mes={mes} hoje={hoje} caminho="/financeiro" />
         </div>

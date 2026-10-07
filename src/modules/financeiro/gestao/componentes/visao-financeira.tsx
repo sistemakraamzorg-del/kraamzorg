@@ -143,7 +143,7 @@ export function VisaoFinanceiraTela({ v }: { v: VisaoFinanceira }) {
 
   return (
     <div className="flex flex-col gap-3.5">
-      <Grade colunas={4}>
+      <Grade colunas={4} data-tour="/financeiro:numeros">
         <KpiLinha
           rotulo="Receita do mês"
           valor={formatarMoeda(dre.receitaCentavos)}
@@ -357,6 +357,7 @@ export function VisaoFinanceiraTela({ v }: { v: VisaoFinanceira }) {
       <div className="grid grid-cols-1 items-start gap-3.5 min-[900px]:grid-cols-[1fr_340px]">
         <BlocoTabela
           id="fin-atraso"
+          idTour="/financeiro:atrasos"
           titulo="Contas a receber"
           direita="em atraso"
           rodape={

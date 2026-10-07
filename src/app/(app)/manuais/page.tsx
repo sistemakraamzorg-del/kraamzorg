@@ -110,7 +110,10 @@ export default async function PaginaManuais() {
           />
         ) : (
           <>
-            <div className="grid grid-cols-1 gap-3.5 lg:grid-cols-2">
+            <div
+              data-tour="/manuais:leitura"
+              className="grid grid-cols-1 gap-3.5 lg:grid-cols-2"
+            >
               <Card>
                 <CardBody>
                   <div className="mb-3 flex items-baseline gap-[9px]">
@@ -175,7 +178,10 @@ export default async function PaginaManuais() {
             </div>
 
             <TituloSecao className="mt-[11px]">Manuais da equipe</TituloSecao>
-            <ul className="grid grid-cols-1 items-start gap-3.5 lg:grid-cols-3">
+            <ul
+              data-tour="/manuais:lista"
+              className="grid grid-cols-1 items-start gap-3.5 lg:grid-cols-3"
+            >
               {manuais.map((m) => (
                 <li key={m.id} data-manual={m.titulo}>
                   <Card className="h-full">

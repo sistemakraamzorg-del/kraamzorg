@@ -50,7 +50,9 @@ export default async function PaginaPainel({
         }
       />
       <div className="flex flex-col gap-3.5 pt-6">
-        <SeletorMes mes={mes} hoje={hoje} caminho="/painel" />
+        <div data-tour="/painel:mes">
+          <SeletorMes mes={mes} hoje={hoje} caminho="/painel" />
+        </div>
         {!tela ? (
           <FaixaAlerta variante="erro" titulo="O painel não abriu agora">
             Confira a conexão e recarregue a página. Nada foi alterado.

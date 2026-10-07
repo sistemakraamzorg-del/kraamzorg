@@ -65,7 +65,11 @@ function Secao({
   children: ReactNode;
 }) {
   return (
-    <section aria-labelledby={id} className="flex flex-col gap-3">
+    <section
+      aria-labelledby={id}
+      className="flex flex-col gap-3"
+      data-tour={`/perfil:${id.replace(/^p-/, "")}`}
+    >
       <TituloSecao id={id} icone={icone} tom={tom} titulo={titulo} />
       <div className={cn("rounded-3 flex flex-col gap-2 p-3", FUNDO[tom])}>
         {children}
@@ -279,7 +283,11 @@ export default async function PaginaPerfil() {
           </Secao>
         ) : null}
 
-        <section aria-labelledby="p-mais" className="flex flex-col gap-3">
+        <section
+          aria-labelledby="p-mais"
+          className="flex flex-col gap-3"
+          data-tour="/perfil:atalhos"
+        >
           <TituloSecao
             id="p-mais"
             icone={<House />}

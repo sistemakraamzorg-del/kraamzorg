@@ -87,7 +87,7 @@ function PedeAcao({
   vazio: string;
 }) {
   return (
-    <div className="mb-[14px]">
+    <div className="mb-[14px]" data-tour="/inicio:acao">
       <CartaoLista
         titulo="O que pede ação agora"
         direita={pedidos.length > 0 ? `${pedidos.length} abertos` : undefined}
@@ -272,6 +272,7 @@ export async function InicioComercial({
         <section
           aria-labelledby="inicio-transferencias"
           className="scroll-mt-4"
+          data-tour="/inicio:transferencias"
         >
           <div className="mb-3 flex items-center gap-3">
             <TileIcone tom="marinho" forma="quadrado">
@@ -301,7 +302,11 @@ export async function InicioComercial({
             </FaixaAlerta>
           )}
         </section>
-        <section aria-labelledby="inicio-tarefas" className="scroll-mt-4">
+        <section
+          aria-labelledby="inicio-tarefas"
+          className="scroll-mt-4"
+          data-tour="/inicio:tarefas"
+        >
           {tela ? (
             <ListaTarefas
               grupos={gruposHoje}

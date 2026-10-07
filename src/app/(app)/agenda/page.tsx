@@ -133,6 +133,7 @@ export default async function PaginaAgenda({
 
         <nav
           aria-label="Período e enfermeira"
+          data-tour="/agenda:filtros"
           className="flex flex-wrap items-center gap-[9px]"
         >
           <AbasPilula
@@ -207,14 +208,16 @@ export default async function PaginaAgenda({
           </FaixaAlerta>
         ) : (
           <>
-            <GradeSemana
-              dias={Array.from({ length: visao === "dia" ? 1 : 7 }, (_, i) =>
-                somarDias(desde, i),
-              )}
-              visitas={tela.agenda.visitas}
-              sessoes={tela.sessoesDeVenda}
-              hoje={hoje}
-            />
+            <div data-tour="/agenda:grade" className="min-w-0">
+              <GradeSemana
+                dias={Array.from({ length: visao === "dia" ? 1 : 7 }, (_, i) =>
+                  somarDias(desde, i),
+                )}
+                visitas={tela.agenda.visitas}
+                sessoes={tela.sessoesDeVenda}
+                hoje={hoje}
+              />
+            </div>
 
             <div className="grid grid-cols-1 gap-3.5 md:grid-cols-3">
               <Kpi
@@ -263,12 +266,14 @@ export default async function PaginaAgenda({
             ) : (
               <>
                 <TituloSecao>Visitas do período</TituloSecao>
-                <ListaAgenda
-                  visitas={tela.agenda.visitas}
-                  sessoes={tela.sessoesDeVenda}
-                  hoje={hoje}
-                  limiteVisitasDia={tela.agenda.limiteVisitasDia}
-                />
+                <div data-tour="/agenda:lista" className="min-w-0">
+                  <ListaAgenda
+                    visitas={tela.agenda.visitas}
+                    sessoes={tela.sessoesDeVenda}
+                    hoje={hoje}
+                    limiteVisitasDia={tela.agenda.limiteVisitasDia}
+                  />
+                </div>
               </>
             )}
           </>

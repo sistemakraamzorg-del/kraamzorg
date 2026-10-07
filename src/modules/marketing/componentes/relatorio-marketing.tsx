@@ -164,6 +164,7 @@ export function RelatorioMarketingTela({
         method="get"
         className="flex flex-wrap items-end gap-3"
         aria-label="Período do relatório"
+        data-tour="/marketing:periodo"
       >
         <label className="text-tinta-70 flex flex-col gap-1 text-[11.5px] font-semibold">
           De
@@ -224,7 +225,7 @@ export function RelatorioMarketingTela({
         </p>
       ) : null}
 
-      <Grade colunas={2}>
+      <Grade colunas={2} data-tour="/marketing:origens">
         <CartaoGrafico titulo="Leads por origem" nota="no período">
           {leadsPorOrigem.length === 0 ? (
             <SemDado>
@@ -278,6 +279,7 @@ export function RelatorioMarketingTela({
 
       <BlocoTabela
         titulo="Desempenho por origem"
+        idTour="/marketing:tabela"
         direita="Da entrada do lead até o contrato"
       >
         {relatorio.porOrigem.length === 0 ? (

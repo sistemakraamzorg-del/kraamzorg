@@ -263,7 +263,7 @@ export function PainelTela({ dados }: { dados: DadosPainel }) {
         </FaixaAlerta>
       ) : null}
 
-      <Grade colunas={4}>
+      <Grade colunas={4} data-tour="/painel:numeros">
         <KpiLinha
           rotulo="Leads no mês"
           valor={String(c.leads)}
@@ -461,7 +461,7 @@ export function PainelTela({ dados }: { dados: DadosPainel }) {
         <Nota>{textoDoCongelamento(p.congelamento)}</Nota>
       ) : null}
 
-      <Card>
+      <Card data-tour="/painel:perguntas">
         <CardHead titulo="As cinco perguntas do painel executivo" />
         <div className="overflow-x-auto">
           <table className={tabelaMock.tabela}>

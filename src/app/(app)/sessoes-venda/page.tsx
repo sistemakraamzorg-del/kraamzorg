@@ -73,7 +73,10 @@ export default async function PaginaSessoesVenda() {
       {/* A frase da agenda num bloco de tempo (DESIGN.md, 2.5: lavanda é a
           agenda), com o calendário num tile: é a primeira coisa que a
           pessoa lê ao abrir a tela. */}
-      <div className="rounded-3 bg-lavanda-media mt-3 flex items-start gap-4 p-5 lg:p-6">
+      <div
+        data-tour="/sessoes-venda:resumo"
+        className="rounded-3 bg-lavanda-media mt-3 flex items-start gap-4 p-5 lg:p-6"
+      >
         <TileIcone tom="branco" forma="quadrado" tamanho="g">
           <CalendarDays />
         </TileIcone>
@@ -91,6 +94,7 @@ export default async function PaginaSessoesVenda() {
         <div className="flex min-w-0 flex-col gap-10">
           {agenda.pedemRegistro.length > 0 ? (
             <SecaoBloco
+              data-tour="/sessoes-venda:registro"
               idTitulo="pedem-registro"
               titulo="Esperam o registro de como foi"
               icone={<ClipboardPen />}
@@ -108,6 +112,7 @@ export default async function PaginaSessoesVenda() {
           ) : null}
 
           <SecaoBloco
+            data-tour="/sessoes-venda:proximas"
             idTitulo="proximas"
             titulo="Próximas conversas"
             icone={<CalendarDays />}
@@ -179,6 +184,7 @@ export default async function PaginaSessoesVenda() {
         {pedidos.length > 0 ? (
           <aside className="-order-1 lg:order-none">
             <SecaoBloco
+              data-tour="/sessoes-venda:pedidos"
               idTitulo="pedidos"
               titulo="Pedidos de conversa"
               icone={<MessageCircle />}

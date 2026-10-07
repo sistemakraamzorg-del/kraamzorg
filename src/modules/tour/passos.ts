@@ -84,6 +84,32 @@ export const PASSOS: Record<CaminhoRota, Verbete> = {
         ondeFica:
           "No alto, o que pede ação; no meio, os números e o funil dos contatos novos; embaixo, as transferências e as tarefas de hoje.",
         dica: "O número vermelho no item Início do menu conta as transferências que pedem atenção.",
+        detalhes: [
+          {
+            nome: "acao",
+            titulo: "O que pede ação agora",
+            texto:
+              "A lista do que precisa de você, em ordem de urgência. Toque numa linha para ir direto ao assunto.",
+          },
+          {
+            nome: "numeros",
+            titulo: "Os números do dia",
+            texto:
+              "Transferências esperando, tarefas de hoje, conversas marcadas e contatos quentes. Cada número abre a tela dele.",
+          },
+          {
+            nome: "transferencias",
+            titulo: "Transferências",
+            texto:
+              "As conversas que a Isadora passou para a equipe, com o motivo e o prazo. Toque em Assumir conversa para responder a família.",
+          },
+          {
+            nome: "tarefas",
+            titulo: "Tarefas de hoje",
+            texto:
+              "O que vence hoje. Resolva e toque em Concluir; Ver família abre a ficha.",
+          },
+        ],
       },
       coordenacao: {
         serve:
@@ -96,6 +122,32 @@ export const PASSOS: Record<CaminhoRota, Verbete> = {
         ondeFica:
           "Os números ficam no alto; os alertas e a agenda de hoje, no meio; as decisões e as famílias perto do fim do cuidado, mais embaixo.",
         dica: "Ficha sem assinatura é uma visita que terminou e ainda não teve o registro entregue.",
+        detalhes: [
+          {
+            nome: "numeros",
+            titulo: "Os números do dia",
+            texto:
+              "Visitas de hoje, fichas sem assinatura, famílias esperando o nascimento e ofertas sem resposta. Cada número abre a tela dele.",
+          },
+          {
+            nome: "alertas",
+            titulo: "Alertas prioritários",
+            texto:
+              "Alertas de saúde, fichas por assinar e bebês que nasceram, em ordem de urgência. Os atalhos de baixo levam às telas que resolvem cada um.",
+          },
+          {
+            nome: "agenda",
+            titulo: "Agenda de hoje",
+            texto:
+              "Cada visita do dia, com a enfermeira, a região e o dia do cuidado. Ver a agenda do dia abre a agenda completa.",
+          },
+          {
+            nome: "decisoes",
+            titulo: "Precisa de decisão",
+            texto:
+              "Conflitos de escala, semanas perto do limite e famílias sem enfermeira titular, cada um com o botão que resolve.",
+          },
+        ],
       },
       financeiro: {
         serve:
@@ -107,6 +159,26 @@ export const PASSOS: Record<CaminhoRota, Verbete> = {
         ],
         ondeFica:
           "No alto, o que pede ação e os quatro números do mês; embaixo, o gráfico de recebido e despesa e o atraso por faixa de dias.",
+        detalhes: [
+          {
+            nome: "acao",
+            titulo: "O que pede ação agora",
+            texto:
+              "As cobranças vencidas, com o total em atraso. Toque para abrir a lista e comece pelas mais antigas.",
+          },
+          {
+            nome: "numeros",
+            titulo: "Os números do mês",
+            texto:
+              "Recebido, despesas, o que falta receber e o que já venceu. Cada número abre a tela que explica.",
+          },
+          {
+            nome: "graficos",
+            titulo: "Os gráficos",
+            texto:
+              "O recebido e a despesa de cada mês e o atraso separado por faixa de dias.",
+          },
+        ],
       },
       marketing: {
         serve:
@@ -119,6 +191,20 @@ export const PASSOS: Record<CaminhoRota, Verbete> = {
         ondeFica:
           "Os números ficam no alto; o gráfico por canal e o caminho do contato até o contrato, logo abaixo.",
         dica: "Na tela, contato novo aparece como lead.",
+        detalhes: [
+          {
+            nome: "numeros",
+            titulo: "Os números do mês",
+            texto:
+              "Contatos novos, qualificados e famílias ganhas no mês, comparados com o mês anterior.",
+          },
+          {
+            nome: "graficos",
+            titulo: "Os gráficos",
+            texto:
+              "De qual canal veio cada contato e onde as famílias ficam pelo caminho até o contrato.",
+          },
+        ],
       },
       diretoria: {
         serve:
@@ -130,6 +216,32 @@ export const PASSOS: Record<CaminhoRota, Verbete> = {
         ],
         ondeFica:
           "Os números do mês ficam no alto; o funil, a capacidade e os alertas, no meio; a agenda de hoje e as decisões, embaixo.",
+        detalhes: [
+          {
+            nome: "frase",
+            titulo: "A frase do mês",
+            texto:
+              "Contratos assinados e faturamento do mês, comparados com a meta, numa frase só.",
+          },
+          {
+            nome: "numeros",
+            titulo: "Os números do mês",
+            texto:
+              "Famílias em atendimento, visitas de hoje, famílias esperando o nascimento e o que entrou no mês. Cada número abre a tela dele.",
+          },
+          {
+            nome: "alertas",
+            titulo: "Alertas prioritários",
+            texto:
+              "Alertas de saúde, fichas por assinar e bebês que nasceram, em ordem de urgência. Os atalhos de baixo levam às telas que resolvem cada um.",
+          },
+          {
+            nome: "agenda",
+            titulo: "Agenda de hoje",
+            texto:
+              "Cada visita do dia, com a enfermeira, a região e o dia do cuidado. Ver a agenda do dia abre a agenda completa.",
+          },
+        ],
       },
     },
   },
@@ -146,6 +258,32 @@ export const PASSOS: Record<CaminhoRota, Verbete> = {
     ondeFica:
       "As abas dos quatro quadros ficam no alto, a busca e os filtros logo abaixo e as colunas das etapas em seguida. No menu do computador, a tela se chama CRM · pipelines.",
     dica: "Quente, morno e frio dizem o quanto a família está perto de decidir.",
+    detalhes: [
+      {
+        nome: "quadros",
+        titulo: "Os quatro quadros",
+        texto:
+          "Entrada e qualificação, Venda e pré-atendimento, Atendimento e Pós-venda. Toque num deles para trocar de quadro.",
+      },
+      {
+        nome: "filtros",
+        titulo: "Busca e filtros",
+        texto:
+          "Busque pelo nome ou pelo telefone e filtre por região e temperatura. Filtrar aplica; Limpar volta ao começo.",
+      },
+      {
+        nome: "colunas",
+        titulo: "As colunas das etapas",
+        texto:
+          "Cada coluna é uma etapa e cada cartão, uma família. Arraste o cartão para outra coluna ou use o botão Mover para.",
+      },
+      {
+        nome: "cadastrar",
+        titulo: "Cadastrar lead",
+        texto:
+          "Cadastra à mão um contato novo, com a origem. Ele entra na etapa Novo do quadro de entrada.",
+      },
+    ],
   },
 
   "/familias": {
@@ -160,6 +298,31 @@ export const PASSOS: Record<CaminhoRota, Verbete> = {
     ondeFica:
       "Os números ficam no alto, a busca e os filtros logo abaixo e cada família é uma linha da lista, com o botão Abrir no fim.",
     dica: "Na ficha, o botão Freio pausa na hora todas as mensagens automáticas para aquela família.",
+    detalhes: [
+      {
+        nome: "numeros",
+        titulo: "Os números",
+        texto:
+          "Quantas famílias estão cadastradas, gestando, em atendimento e com freio.",
+      },
+      {
+        nome: "busca",
+        titulo: "Busca",
+        texto:
+          "Ache a família pelo nome, pelo bairro, pela cidade ou pelo telefone.",
+      },
+      {
+        nome: "filtros",
+        titulo: "Filtros e ordem",
+        texto:
+          "Mostre só uma fase, como Gestando ou Com freio, e escolha a ordem da lista.",
+      },
+      {
+        nome: "linha",
+        titulo: "Cada família, uma linha",
+        texto: "Toque na linha para abrir a ficha da família.",
+      },
+    ],
     porPapel: {
       financeiro: {
         serve:
@@ -194,6 +357,25 @@ export const PASSOS: Record<CaminhoRota, Verbete> = {
     ondeFica:
       "A busca e os filtros ficam no alto da lista; a conversa escolhida abre ao lado, com a transferência no topo quando houver.",
     dica: "O número ao lado de Conversas, no menu, conta as conversas que esperam alguém da equipe.",
+    detalhes: [
+      {
+        nome: "busca",
+        titulo: "Busca",
+        texto: "Ache a conversa pelo nome ou pelo telefone.",
+      },
+      {
+        nome: "filtros",
+        titulo: "Filtros",
+        texto:
+          "Esperando alguém mostra quem precisa de resposta da equipe. Os outros separam as conversas da Isadora, da equipe, as pausadas e as com freio.",
+      },
+      {
+        nome: "lista",
+        titulo: "A lista de conversas",
+        texto:
+          "Cada linha mostra a última mensagem e quem conduz. Toque para abrir a conversa e responder no campo de baixo.",
+      },
+    ],
   },
 
   "/transferencias": {
@@ -297,6 +479,25 @@ export const PASSOS: Record<CaminhoRota, Verbete> = {
     ondeFica:
       "Nova profissional fica no alto, ao lado do título; os filtros e a Escala da semana, abaixo dos números; a tabela da equipe, no meio.",
     dica: "Documentos vencendo aparecem nos números do alto, antes de vencerem.",
+    detalhes: [
+      {
+        nome: "nova",
+        titulo: "Nova profissional",
+        texto: "Cadastra uma enfermeira ou outra profissional na equipe.",
+      },
+      {
+        nome: "filtros",
+        titulo: "Filtros e escala",
+        texto:
+          "Filtre pela cidade, mostre quem está inativa e abra a Escala da semana.",
+      },
+      {
+        nome: "tabela",
+        titulo: "A equipe",
+        texto:
+          "Cada profissional é uma linha, com função, cidade, vínculo, carga da semana, documentos e situação. No celular, role a tabela para o lado.",
+      },
+    ],
   },
 
   "/sessoes": {
@@ -325,6 +526,31 @@ export const PASSOS: Record<CaminhoRota, Verbete> = {
     ondeFica:
       "No alto, as conversas que esperam o registro de como foi; depois, as próximas e as anteriores; embaixo, os pedidos, com Marcar a conversa.",
     dica: "Conversa que passou do horário fica no topo até alguém registrar como foi.",
+    detalhes: [
+      {
+        nome: "resumo",
+        titulo: "O resumo da agenda",
+        texto:
+          "Numa frase: se há conversa hoje, qual é a próxima e quantas esperam o registro de como foi.",
+      },
+      {
+        nome: "registro",
+        titulo: "Esperam o registro",
+        texto:
+          "Conversas que já passaram do horário. Abra cada uma e registre como foi.",
+      },
+      {
+        nome: "proximas",
+        titulo: "Próximas conversas",
+        texto: "As conversas marcadas, por dia, com a família e quem conduz.",
+      },
+      {
+        nome: "pedidos",
+        titulo: "Pedidos de conversa",
+        texto:
+          "Pedidos que chegaram pela Isadora, com os horários que a família sugeriu. Toque em Marcar a conversa.",
+      },
+    ],
     porPapel: {
       coordenacao: {
         serve:
@@ -350,6 +576,26 @@ export const PASSOS: Record<CaminhoRota, Verbete> = {
     ondeFica:
       "Cada família é uma linha, com uma faixa nas semanas em que o parto pode acontecer e a situação à direita. A ocupação por cidade vem logo abaixo.",
     dica: "A data provável do parto é só uma estimativa: ela organiza a tela, mas não dispara nada sozinha.",
+    detalhes: [
+      {
+        nome: "urgentes",
+        titulo: "Quem precisa de você agora",
+        texto:
+          "Famílias sem enfermeira titular na janela do parto, ou com a data provável já passada sem resposta.",
+      },
+      {
+        nome: "cronograma",
+        titulo: "O radar de nascimentos",
+        texto:
+          "Cada família é uma linha, e a faixa mostra as semanas em que o parto pode acontecer. Toque na família para escolher titular e reserva.",
+      },
+      {
+        nome: "capacidade",
+        titulo: "Capacidade projetada",
+        texto:
+          "Quanto de cada cidade fica ocupado em cada semana. A cor muda quando a semana passa do limite.",
+      },
+    ],
   },
 
   "/prenatal": {
@@ -364,6 +610,32 @@ export const PASSOS: Record<CaminhoRota, Verbete> = {
     ondeFica:
       "Os números ficam no alto; a lista vem por grupo: Urgentes, Para marcar, Marcadas e em andamento, e Concluídas.",
     dica: "Cada resposta da entrevista fica salva assim que você sai do campo.",
+    detalhes: [
+      {
+        nome: "numeros",
+        titulo: "Os números",
+        texto:
+          "Quantas consultas faltam marcar, quantas estão marcadas e quantas entrevistas já foram concluídas.",
+      },
+      {
+        nome: "urgentes",
+        titulo: "Urgentes",
+        texto:
+          "Famílias que contrataram perto do parto. Marque estas primeiro.",
+      },
+      {
+        nome: "para-agendar",
+        titulo: "Para marcar",
+        texto:
+          "Toque em Marcar a consulta em cada família para escolher o dia e a hora.",
+      },
+      {
+        nome: "agendadas",
+        titulo: "Marcadas e em andamento",
+        texto:
+          "As consultas marcadas e as entrevistas começadas. Retome de onde parou pelo botão da família.",
+      },
+    ],
   },
 
   "/agenda": {
@@ -378,6 +650,26 @@ export const PASSOS: Record<CaminhoRota, Verbete> = {
     ondeFica:
       "Dia, Semana e o filtro da enfermeira ficam no alto; a grade da semana vem logo abaixo e a lista de visitas do período, mais embaixo.",
     dica: "Conflito é visita além do limite do dia, em horário sobreposto ou num dia bloqueado.",
+    detalhes: [
+      {
+        nome: "filtros",
+        titulo: "Dia, semana e enfermeira",
+        texto:
+          "Escolha ver um dia ou a semana, filtre pela enfermeira e use as setas para mudar o período.",
+      },
+      {
+        nome: "grade",
+        titulo: "A grade",
+        texto:
+          "Cada visita aparece no dia e no horário, com a família, o dia do cuidado e a enfermeira.",
+      },
+      {
+        nome: "lista",
+        titulo: "Visitas do período",
+        texto:
+          "A lista por dia, com os conflitos marcados. Toque em Reagendar numa visita que ainda não começou.",
+      },
+    ],
   },
 
   "/cobrancas": {
@@ -392,6 +684,24 @@ export const PASSOS: Record<CaminhoRota, Verbete> = {
     ondeFica:
       "Os totais e os gráficos ficam no alto; os filtros e a tabela das cobranças, embaixo.",
     dica: "Quando o pagamento é confirmado, a cobrança se atualiza sozinha.",
+    detalhes: [
+      {
+        nome: "totais",
+        titulo: "Os totais",
+        texto: "Quanto falta receber e quanto já foi recebido.",
+      },
+      {
+        nome: "filtros",
+        titulo: "Filtros",
+        texto: "Mostre todas, só as em aberto, as vencidas ou as pagas.",
+      },
+      {
+        nome: "tabela",
+        titulo: "As cobranças",
+        texto:
+          "Cada cobrança com a situação, o valor, o vencimento e o botão para abrir ou ver o recibo.",
+      },
+    ],
   },
 
   "/notas": {
@@ -406,6 +716,24 @@ export const PASSOS: Record<CaminhoRota, Verbete> = {
     ondeFica:
       "Os números ficam no alto; os filtros e a tabela das notas, logo abaixo.",
     dica: "Por enquanto a nota é emitida à mão, no site do emissor, e o número é registrado aqui.",
+    detalhes: [
+      {
+        nome: "numeros",
+        titulo: "Os números",
+        texto: "Notas para emitir, com erro, em processamento e emitidas.",
+      },
+      {
+        nome: "filtros",
+        titulo: "Filtros",
+        texto: "Mostre só as notas de uma situação, como A emitir ou Com erro.",
+      },
+      {
+        nome: "tabela",
+        titulo: "As notas fiscais",
+        texto:
+          "Cada nota com quem paga, a parcela, o valor, a data do pagamento e o número, quando já tem.",
+      },
+    ],
   },
 
   "/evolucoes": {
@@ -462,6 +790,25 @@ export const PASSOS: Record<CaminhoRota, Verbete> = {
     ondeFica:
       "As abas e o mês ficam no alto; os números e os gráficos, abaixo; os atrasos, o pagamento da equipe e o resultado do mês, mais embaixo.",
     dica: "Os valores contam o que foi pago no mês, não o que foi vendido.",
+    detalhes: [
+      {
+        nome: "abas",
+        titulo: "Abas e mês",
+        texto:
+          "Troque entre Visão do mês, Despesas, Pagamento da equipe e Extrato do banco, e escolha o mês.",
+      },
+      {
+        nome: "numeros",
+        titulo: "Os números do mês",
+        texto: "Receita, o que falta receber, o custo do cuidado e a margem.",
+      },
+      {
+        nome: "atrasos",
+        titulo: "Contas a receber",
+        texto:
+          "As cobranças em atraso, da mais antiga para a mais nova, com o botão para abrir cada uma.",
+      },
+    ],
   },
 
   "/capacidade": {
@@ -489,6 +836,25 @@ export const PASSOS: Record<CaminhoRota, Verbete> = {
     ],
     ondeFica:
       "O mês fica no alto; os números e o funil, logo abaixo; as metas e as cinco perguntas, no meio; os detalhes do mês, no fim. No menu do computador, a tela se chama Indicadores.",
+    detalhes: [
+      {
+        nome: "mes",
+        titulo: "O mês",
+        texto: "Escolha o mês que o painel mostra.",
+      },
+      {
+        nome: "numeros",
+        titulo: "Os números do mês",
+        texto:
+          "Contatos novos, conversão até o contrato, custo para conquistar cada cliente e tempo de venda, comparados com o mês anterior.",
+      },
+      {
+        nome: "perguntas",
+        titulo: "As cinco perguntas",
+        texto:
+          "Venda, marketing, operação, satisfação das famílias e dinheiro, com a situação de cada uma agora.",
+      },
+    ],
   },
 
   "/marketing": {
@@ -503,6 +869,32 @@ export const PASSOS: Record<CaminhoRota, Verbete> = {
     ondeFica:
       "As abas e o período ficam no alto; os gráficos por origem, logo abaixo; a tabela de desempenho por origem, no meio.",
     dica: "Com poucos contatos no período, espere mais uma semana antes de mudar um canal.",
+    detalhes: [
+      {
+        nome: "abas",
+        titulo: "Visão geral e canais",
+        texto:
+          "A visão geral mostra os resultados. Canais e custos guarda os links de cada canal e o gasto de cada um.",
+      },
+      {
+        nome: "periodo",
+        titulo: "O período",
+        texto:
+          "Escolha a data de início e a de fim, ou um dos atalhos, como Este mês.",
+      },
+      {
+        nome: "origens",
+        titulo: "Contatos e receita por origem",
+        texto:
+          "De onde vieram os contatos e quanto cada origem trouxe de receita.",
+      },
+      {
+        nome: "tabela",
+        titulo: "Desempenho por origem",
+        texto:
+          "Para cada origem: contatos, qualificados, contratos, conversão, investimento, custo por cliente e receita.",
+      },
+    ],
     porPapel: {
       financeiro: {
         serve:
@@ -581,6 +973,20 @@ export const PASSOS: Record<CaminhoRota, Verbete> = {
     ],
     ondeFica:
       "A sua leitura fica no alto; a lista Manuais da equipe, logo abaixo, mostra se falta confirmar cada um.",
+    detalhes: [
+      {
+        nome: "leitura",
+        titulo: "Sua leitura",
+        texto:
+          "Quantos manuais da sua função você já confirmou na versão de hoje.",
+      },
+      {
+        nome: "lista",
+        titulo: "Manuais da equipe",
+        texto:
+          "Cada manual mostra a versão e se falta confirmar a leitura. Toque no título para ler.",
+      },
+    ],
     porPapel: {
       coordenacao: {
         serve:
@@ -650,6 +1056,31 @@ export const PASSOS: Record<CaminhoRota, Verbete> = {
     ondeFica:
       "Os números ficam no alto; a ficha pendente, logo abaixo; os cartões das visitas de hoje, no meio; amanhã e as evoluções, no fim.",
     dica: "Abra o Hoje uma vez com sinal, para o aparelho guardar o dia.",
+    detalhes: [
+      {
+        nome: "numeros",
+        titulo: "Os números do dia",
+        texto: "Visitas de hoje, fichas pendentes e visitas de amanhã.",
+      },
+      {
+        nome: "pendente",
+        titulo: "Ficha pendente",
+        texto:
+          "Uma visita que terminou sem o registro. Toque para terminar e assinar.",
+      },
+      {
+        nome: "visita",
+        titulo: "A visita do dia",
+        texto:
+          "O cartão tem o horário, o endereço (que abre o mapa), o telefone e, no pé, os botões Cheguei e Saí da casa.",
+      },
+      {
+        nome: "evolucoes",
+        titulo: "Evoluções para os médicos",
+        texto:
+          "Abre as evoluções que você escreve no fim do cuidado de cada família.",
+      },
+    ],
   },
 
   "/minhas-familias": {
@@ -664,6 +1095,25 @@ export const PASSOS: Record<CaminhoRota, Verbete> = {
     ondeFica:
       "Cada família é um cartão com a régua dos dias, do primeiro (D1) ao último; o dia de hoje vem marcado.",
     dica: "Só aparecem as famílias designadas a você.",
+    detalhes: [
+      {
+        nome: "familia",
+        titulo: "Cada família",
+        texto:
+          "Toque no cartão para ver o acompanhamento: os dias anteriores, os médicos e o plano de cuidado.",
+      },
+      {
+        nome: "regua",
+        titulo: "A régua de dias",
+        texto:
+          "Um quadrinho para cada dia do cuidado. O de hoje vem marcado, e embaixo aparece quantas visitas já foram feitas.",
+      },
+      {
+        nome: "proxima",
+        titulo: "A próxima visita",
+        texto: "O dia, a hora e o número da próxima visita.",
+      },
+    ],
   },
 
   "/alertas": {
@@ -678,6 +1128,26 @@ export const PASSOS: Record<CaminhoRota, Verbete> = {
     ondeFica:
       "As abas Abertos e Fechados ficam no alto; cada alerta é um cartão com a conduta e os botões de ligar e de registrar.",
     dica: "Se for urgente, ligue na hora, sem esperar o aplicativo.",
+    detalhes: [
+      {
+        nome: "abas",
+        titulo: "Abertos e fechados",
+        texto:
+          "Os alertas abertos pedem ação; os fechados ficam para consulta.",
+      },
+      {
+        nome: "numeros",
+        titulo: "Os números",
+        texto:
+          "Quantos alertas estão abertos, quantos são imediatos e quantos já têm o registro completo.",
+      },
+      {
+        nome: "lista",
+        titulo: "Cada alerta",
+        texto:
+          "O sinal, o valor registrado e a conduta aprovada, com os botões Ligar para a supervisão e Registrar acionamento.",
+      },
+    ],
   },
 
   "/alertas-clinicos": {
@@ -706,6 +1176,26 @@ export const PASSOS: Record<CaminhoRota, Verbete> = {
     ondeFica:
       "A sua situação fica no alto; a semana e os documentos, no meio; os atalhos, o botão do tour e o de sair, no fim.",
     dica: "É aqui que você refaz este tour quando quiser.",
+    detalhes: [
+      {
+        nome: "semana",
+        titulo: "Sua semana",
+        texto:
+          "Os próximos sete dias, com as visitas de cada um. O dia de hoje vem destacado.",
+      },
+      {
+        nome: "documentos",
+        titulo: "Seus documentos",
+        texto:
+          "A validade da carteira do conselho e dos outros documentos. A coordenação avisa antes de vencer.",
+      },
+      {
+        nome: "atalhos",
+        titulo: "Para o seu dia a dia",
+        texto:
+          "Atalhos para ofertas, treinamentos, manuais, como instalar o aplicativo e este tour.",
+      },
+    ],
   },
 
   "/minhas-evolucoes": {

@@ -66,6 +66,7 @@ export async function PaginaDeAlertas({
       <CabecalhoTela titulo={t.titulo} subtitulo={t.subtitulo} />
       <AbasPilula
         rotulo={textosAlertas.abas.rotulo}
+        idTour={`${caminho}:abas`}
         ativa={situacao}
         className="self-start"
         abas={(["abertos", "fechados"] as const).map((s) => ({
@@ -75,7 +76,10 @@ export async function PaginaDeAlertas({
         }))}
       />
       {alertas.length > 0 ? (
-        <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-3">
+        <div
+          data-tour={`${caminho}:numeros`}
+          className="grid grid-cols-1 gap-3.5 sm:grid-cols-3"
+        >
           <Kpi
             rotulo={
               situacao === "abertos" ? "Alertas abertos" : "Alertas fechados"
@@ -107,7 +111,9 @@ export async function PaginaDeAlertas({
       {alertas.length === 0 ? (
         <VazioDosAlertas situacao={situacao} />
       ) : (
-        <ListaDeAlertas alertas={alertas} telefone={telefone} papel={papel} />
+        <div data-tour={`${caminho}:lista`}>
+          <ListaDeAlertas alertas={alertas} telefone={telefone} papel={papel} />
+        </div>
       )}
     </div>
   );

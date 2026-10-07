@@ -20,15 +20,19 @@ export function FiltroPilula({
   rotulo,
   itens,
   className,
+  idTour,
 }: {
   /** Nome acessível da navegação ("Filtrar notas"). */
   rotulo: string;
   itens: ItemFiltroPilula[];
   className?: string;
+  /** Marca do tour guiado (`data-tour`). */
+  idTour?: string;
 }) {
   return (
     <nav
       aria-label={rotulo}
+      data-tour={idTour}
       className={cn(
         "rounded-pilula bg-areia flex w-fit max-w-full [scrollbar-width:none] gap-1 overflow-x-auto p-1",
         className,

@@ -148,6 +148,7 @@ export function CartaoVisita({
       )}
       aria-labelledby={`visita-${v.visitaId}`}
       data-visita={v.visitaId}
+      data-tour="/hoje:visita"
       data-estado-visita={v.estado}
     >
       <div
@@ -258,6 +259,7 @@ export function CartaoVisita({
             rotuloCarregando="Gravando a chegada"
             iconeEsquerda={<MapPinCheck aria-hidden="true" />}
             onClick={aoChegar}
+            data-tour="/hoje:botoes"
           >
             Cheguei
           </Botao>
@@ -275,6 +277,7 @@ export function CartaoVisita({
             rotuloCarregando="Gravando a saída"
             iconeEsquerda={<LogOut aria-hidden="true" />}
             onClick={aoSair}
+            data-tour="/hoje:botoes"
           >
             Saí da casa
           </Botao>

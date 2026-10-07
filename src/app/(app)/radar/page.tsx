@@ -106,7 +106,7 @@ export default async function PaginaRadar({
         ) : null}
 
         {urgentes > 0 ? (
-          <Nota tom="alerta">
+          <Nota tom="alerta" data-tour="/radar:urgentes">
             <b>
               {urgentes === 1
                 ? "1 família precisa de você agora."
@@ -129,14 +129,18 @@ export default async function PaginaRadar({
             texto="As famílias entram aqui quando o pagamento é confirmado e a data provável do parto cai no horizonte configurado. Cada uma vira uma barra na janela do parto, e a coluna da semana muda de cor quando há sobrevenda ou família sem titular."
           />
         ) : (
-          <CronogramaRadar radar={visivel} />
+          <div data-tour="/radar:cronograma" className="min-w-0">
+            <CronogramaRadar radar={visivel} />
+          </div>
         )}
 
         <div className="grid grid-cols-1 items-start gap-3.5 lg:grid-cols-[minmax(0,1fr)_340px]">
-          <CapacidadeProjetada
-            ocupacao={visivel.ocupacao}
-            limitePct={visivel.limiteAlertaPct}
-          />
+          <div data-tour="/radar:capacidade" className="min-w-0">
+            <CapacidadeProjetada
+              ocupacao={visivel.ocupacao}
+              limitePct={visivel.limiteAlertaPct}
+            />
+          </div>
           <div>
             <CascataDoRadar />
             <DeteccaoProativa radar={visivel} />

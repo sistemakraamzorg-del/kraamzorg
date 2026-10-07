@@ -90,6 +90,7 @@ export default async function PaginaMarketing({
           <>
             <AbasPilula
               rotulo="Partes do marketing"
+              idTour="/marketing:abas"
               ativa={aba}
               larga="celular"
               abas={[

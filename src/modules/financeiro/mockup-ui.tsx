@@ -119,6 +119,7 @@ export function BlocoTabela({
   children,
   rodape,
   className,
+  idTour,
 }: {
   id?: string;
   titulo: React.ReactNode;
@@ -126,9 +127,11 @@ export function BlocoTabela({
   children: React.ReactNode;
   rodape?: React.ReactNode;
   className?: string;
+  /** Marca do tour guiado (`data-tour`). */
+  idTour?: string;
 }) {
   return (
-    <Card id={id} className={cn("scroll-mt-24", className)}>
+    <Card id={id} data-tour={idTour} className={cn("scroll-mt-24", className)}>
       <CardHead titulo={titulo} direita={direita} />
       {children}
       {rodape ? (
@@ -199,12 +202,19 @@ export function SeloPonto({ children, ...props }: Omit<SeloProps, "icone">) {
 export function ChipsNav({
   rotulo,
   itens,
+  idTour,
 }: {
   rotulo: string;
   itens: { rotulo: string; href: string; ativo: boolean; contagem?: number }[];
+  /** Marca do tour guiado (`data-tour`). */
+  idTour?: string;
 }) {
   return (
-    <nav aria-label={rotulo} className="flex flex-wrap gap-1.5">
+    <nav
+      aria-label={rotulo}
+      data-tour={idTour}
+      className="flex flex-wrap gap-1.5"
+    >
       {itens.map((i) => (
         <Link
           key={i.rotulo}

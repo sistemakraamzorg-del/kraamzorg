@@ -196,6 +196,7 @@ export function HojeCliente({
         <section
           aria-labelledby="fichas-pendentes"
           className="flex flex-col gap-3"
+          data-tour="/hoje:pendente"
         >
           <h2 id="fichas-pendentes" className="font-titulo text-2 text-texto">
             {pendencias.length === 1 ? "Ficha pendente" : "Fichas pendentes"}

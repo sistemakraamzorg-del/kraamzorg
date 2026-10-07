@@ -140,7 +140,11 @@ export default async function PaginaPipeline({
             >
               <Link href="/pipeline/duplicatas">Duplicatas</Link>
             </Botao>
-            {podeCadastrar && aba === 1 ? <FormularioLead /> : null}
+            {podeCadastrar && aba === 1 ? (
+              <div data-tour="/pipeline:cadastrar">
+                <FormularioLead />
+              </div>
+            ) : null}
           </>
         }
       />
@@ -148,6 +152,7 @@ export default async function PaginaPipeline({
       {/* Abas em pílula (DESIGN.md, 2.9): as duas etapas do funil. */}
       <AbasPilula
         rotulo="Pipelines"
+        idTour="/pipeline:quadros"
         ativa={String(aba)}
         larga="celular"
         className="mt-1"
@@ -175,7 +180,7 @@ export default async function PaginaPipeline({
         ]}
       />
 
-      <div className="pt-2">
+      <div className="pt-2" data-tour="/pipeline:filtros">
         {aba <= 2 ? (
           <FiltrosPipeline
             pipeline={pipeline}
@@ -231,11 +236,13 @@ export default async function PaginaPipeline({
           )
         ) : (
           <>
-            <QuadroPipeline
-              pipeline={pipeline}
-              cartoes={cartoes}
-              papeis={sessao.papeis}
-            />
+            <div data-tour="/pipeline:colunas">
+              <QuadroPipeline
+                pipeline={pipeline}
+                cartoes={cartoes}
+                papeis={sessao.papeis}
+              />
+            </div>
             <GraficosPipeline cartoes={cartoes} pipeline={pipeline} />
             {pipeline === 1 ? (
               <>

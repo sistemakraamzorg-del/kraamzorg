@@ -162,7 +162,7 @@ export function ListaConversas({
         <h1 className="font-titulo text-display text-texto font-normal">
           Conversas
         </h1>
-        <div className="relative">
+        <div className="relative" data-tour="/conversas:busca">
           <label htmlFor="busca-conversas" className="sr-only">
             Buscar conversa por nome ou telefone
           </label>
@@ -190,6 +190,7 @@ export function ListaConversas({
           ref={pilulas}
           role="group"
           aria-label="Mostrar conversas"
+          data-tour="/conversas:filtros"
           className="relative -mx-4 flex [scrollbar-width:thin] gap-2 overflow-x-auto px-4 pb-1"
         >
           {FILTROS_LISTA.map((item) => {
@@ -217,7 +218,10 @@ export function ListaConversas({
         </div>
       </div>
 
-      <div className="bg-superficie rounded-3 flex flex-col p-1.5 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:rounded-none lg:bg-transparent lg:px-2 lg:pt-0 lg:pb-2">
+      <div
+        data-tour="/conversas:lista"
+        className="bg-superficie rounded-3 flex flex-col p-1.5 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:rounded-none lg:bg-transparent lg:px-2 lg:pt-0 lg:pb-2"
+      >
         {fixadas.length > 0 ? (
           <ul
             aria-label="Prioridade máxima esperando alguém"

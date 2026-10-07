@@ -48,7 +48,10 @@ export function ListaNotasTela({
   const aEmitir = lista.resumo.pendentes + lista.resumo.comErro;
   return (
     <div className="flex flex-col gap-3.5">
-      <div className="tablet:grid-cols-4 grid grid-cols-2 gap-3.5">
+      <div
+        data-tour="/notas:numeros"
+        className="tablet:grid-cols-4 grid grid-cols-2 gap-3.5"
+      >
         <Kpi
           rotulo={aEmitir === 1 ? "Nota para emitir" : "Notas para emitir"}
           valor={aEmitir}
@@ -94,6 +97,7 @@ export function ListaNotasTela({
 
       <FiltroPilula
         rotulo="Filtrar notas"
+        idTour="/notas:filtros"
         itens={FILTROS_NOTA.map((f) => ({
           rotulo: f.rotulo,
           href: f.valor ? `/notas?situacao=${f.valor}` : "/notas",
@@ -109,7 +113,10 @@ export function ListaNotasTela({
           texto="Quando uma cobrança é paga, a nota fiscal dela aparece aqui para emitir. Depois de emitida, o número e os arquivos ficam guardados."
         />
       ) : (
-        <Card className="min-w-0 overflow-hidden max-[719px]:border-0 max-[719px]:bg-transparent max-[719px]:shadow-none">
+        <Card
+          data-tour="/notas:tabela"
+          className="min-w-0 overflow-hidden max-[719px]:border-0 max-[719px]:bg-transparent max-[719px]:shadow-none"
+        >
           <CardHead
             titulo="Notas fiscais"
             direita={`${lista.notas.length} ${lista.notas.length === 1 ? "nota" : "notas"}`}

@@ -158,7 +158,10 @@ function LinhaFamilia({
     ? null
     : SELO_FASE[familia.fase as keyof typeof SELO_FASE];
   return (
-    <li className="border-fio-3 border-b last:border-b-0">
+    <li
+      className="border-fio-3 border-b last:border-b-0"
+      data-tour="/familias:linha"
+    >
       <Link
         href={`/familias/${familia.id}`}
         className={cn(
@@ -369,7 +372,10 @@ export function ListaFamilias({
 
   return (
     <div className="flex flex-col gap-[14px]">
-      <div className="grid grid-cols-2 gap-[14px] lg:grid-cols-4">
+      <div
+        data-tour="/familias:numeros"
+        className="grid grid-cols-2 gap-[14px] lg:grid-cols-4"
+      >
         <Kpi rotulo="Famílias cadastradas" valor={total} />
         <Kpi rotulo="Gestando" valor={totais.gestando} />
         <Kpi rotulo="Em atendimento" valor={totais.atendimento} />
@@ -381,6 +387,7 @@ export function ListaFamilias({
         role="search"
         method="get"
         action="/familias"
+        data-tour="/familias:busca"
         className="tablet:flex-row tablet:items-end flex flex-col gap-3"
       >
         <CampoTexto
@@ -406,7 +413,10 @@ export function ListaFamilias({
         ) : null}
       </form>
 
-      <div className="flex flex-wrap items-center gap-x-[9px] gap-y-2">
+      <div
+        data-tour="/familias:filtros"
+        className="flex flex-wrap items-center gap-x-[9px] gap-y-2"
+      >
         <div
           role="group"
           aria-label="Filtrar pela fase da família"

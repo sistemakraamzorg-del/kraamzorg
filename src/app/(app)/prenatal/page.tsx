@@ -93,7 +93,11 @@ function Secao({
 }) {
   if (consultas.length === 0) return null;
   return (
-    <Card id={id} className={`min-w-0 scroll-mt-24 ${className ?? ""}`}>
+    <Card
+      id={id}
+      data-tour={`/prenatal:${id}`}
+      className={`min-w-0 scroll-mt-24 ${className ?? ""}`}
+    >
       <section aria-labelledby={`t-${id}`}>
         <CardHead
           titulo={<span id={`t-${id}`}>{titulo}</span>}
@@ -248,7 +252,10 @@ export default async function PaginaPrenatal() {
           />
         ) : (
           <div className="tablet:grid-cols-2 grid grid-cols-1 gap-3.5 xl:grid-cols-6">
-            <div className="grid grid-cols-1 gap-3.5 xl:col-span-6 xl:grid-cols-3">
+            <div
+              data-tour="/prenatal:numeros"
+              className="grid grid-cols-1 gap-3.5 xl:col-span-6 xl:grid-cols-3"
+            >
               <KpiLink
                 href={
                   grupos.urgentes.length > 0
