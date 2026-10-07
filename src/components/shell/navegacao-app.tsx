@@ -10,6 +10,7 @@ import {
   type GrupoLateral,
   type ItemNavegacao,
 } from "@/lib/navegacao";
+import { BotaoFazerTour } from "@/modules/tour/botao-fazer-tour";
 import { IconeNavegacao } from "./icones-navegacao";
 
 /**
@@ -72,6 +73,7 @@ export function NavegacaoLateral({
           contadorAlerta:
             Boolean(item.contador) && item.contadorAlerta !== false,
           rotuloContador: item.rotuloContador,
+          idTour: item.caminho,
         })),
       }))}
       rodape={
@@ -92,6 +94,7 @@ export function NavegacaoLateral({
               </p>
             </div>
           </div>
+          <BotaoFazerTour variante="lateral" className="self-start" />
           <form action="/sair" method="post">
             <button
               type="submit"
@@ -132,6 +135,7 @@ export function NavegacaoInferior({
         contador: item.contador,
         contadorAlerta: item.contadorAlerta,
         rotuloContador: item.rotuloContador,
+        idTour: item.caminho,
       }))}
     />
   );

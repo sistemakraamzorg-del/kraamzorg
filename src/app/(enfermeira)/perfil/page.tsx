@@ -31,6 +31,7 @@ import { AvisosNoAparelho } from "@/modules/operacao/instalacao/avisos-no-aparel
 import { BotaoSairPortal } from "@/modules/operacao/portal/componentes/botao-sair-portal";
 import { IndicadorPortal } from "@/modules/operacao/portal/componentes/indicador-portal";
 import { diaEmFrase } from "@/modules/operacao/portal/textos";
+import { BotaoFazerTour } from "@/modules/tour/botao-fazer-tour";
 
 export const metadata: Metadata = { title: "Perfil · Kraamzorg OS" };
 
@@ -314,6 +315,7 @@ export default async function PaginaPerfil() {
               titulo="Ver como instalar"
               apoio="Instalado, o aplicativo abre o Hoje mesmo sem sinal e guarda o que você registrar."
             />
+            <BotaoFazerTour variante="bloco" />
           </ListaBlocos>
         </section>
 

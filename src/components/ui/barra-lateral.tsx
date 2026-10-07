@@ -29,6 +29,8 @@ export interface ItemBarraLateral {
   contadorAlerta?: boolean;
   /** Rótulo completo do contador para o leitor de tela (ex: "2 alertas"). Sem isto, "Alertas" e "2" viram um nome acessível só "Alertas2". */
   rotuloContador?: string;
+  /** Marca do tour guiado (`data-tour`): o caminho da rota, para o destaque do passo. */
+  idTour?: string;
 }
 
 export interface GrupoBarraLateral {
@@ -113,6 +115,7 @@ export function BarraLateral({
                       href={item.href}
                       title={item.rotulo}
                       aria-current={item.ativo ? "page" : undefined}
+                      data-tour={item.idTour}
                       className={cn(
                         "ease-estado flex w-full items-center gap-[9px] rounded-[7px] px-[9px] py-1.5 text-left text-[12.5px] no-underline transition-[background-color,color] duration-140",
                         "[&>svg]:size-[15px] [&>svg]:shrink-0",

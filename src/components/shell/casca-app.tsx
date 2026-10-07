@@ -15,6 +15,7 @@ import { classesChip } from "@/components/mockup";
 import { contagemParaNavegacao } from "@/modules/agente/conversas/lista";
 import { listarFilaTela } from "@/modules/agente/transferencias/dados";
 import { contarTransferenciasCriticas } from "@/modules/agente/formatacao";
+import { ProvedorTour } from "@/modules/tour/provedor-tour";
 import {
   NavegacaoInferior,
   NavegacaoLateral,
@@ -120,6 +121,9 @@ function AcoesTopo({ papeis }: { papeis: SessaoUsuario["papeis"] }) {
  *
  * A casca não sabe de que módulo é a tela: cada rota preenche só o próprio
  * conteúdo (src/app/(app)/<rota>/page.tsx).
+ *
+ * O tour guiado (src/modules/tour) mora aqui e na casca da enfermeira: o
+ * provedor fica por cima da navegação, para o tour seguir de tela em tela.
  */
 export async function CascaApp({
   sessao,
@@ -136,7 +140,7 @@ export async function CascaApp({
   const abas = comContadores(abasDe(sessao.papeis), contadores);
 
   return (
-    <>
+    <ProvedorTour papeis={sessao.papeis} usuarioId={sessao.usuarioId}>
       <a
         href="#conteudo"
         className="rounded-pilula bg-acao text-acao-texto fixed top-[-100px] left-4 z-[var(--z-aviso)] px-4 py-3 focus:top-2"
@@ -159,7 +163,7 @@ export async function CascaApp({
         </main>
       </div>
       <NavegacaoInferior abas={abas} />
-    </>
+    </ProvedorTour>
   );
 }
 
@@ -167,7 +171,8 @@ export async function CascaApp({
  * Casca do portal da enfermeira (PRD 20.4; telas.md, grupo enfermeira):
  * abas inferiores em qualquer largura, sem barra lateral, conteúdo
  * centralizado em até 720 px. O P38 preenche as telas; o P11 e o P12
- * acrescentam o que é offline.
+ * acrescentam o que é offline. O tour guiado também mora aqui (o da
+ * enfermeira e a parte final do tour de quem tem os dois portais).
  */
 export function CascaEnfermeira({
   sessao,
@@ -177,7 +182,7 @@ export function CascaEnfermeira({
   children: ReactNode;
 }) {
   return (
-    <>
+    <ProvedorTour papeis={sessao.papeis} usuarioId={sessao.usuarioId}>
       <a
         href="#conteudo"
         className="rounded-pilula bg-acao text-acao-texto fixed top-[-100px] left-4 z-[var(--z-aviso)] px-4 py-3 focus:top-2"
@@ -192,6 +197,6 @@ export function CascaEnfermeira({
         {children}
       </main>
       <NavegacaoInferior abas={abasDe(sessao.papeis)} sempre />
-    </>
+    </ProvedorTour>
   );
 }

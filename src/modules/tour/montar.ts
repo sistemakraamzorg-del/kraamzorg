@@ -58,6 +58,9 @@ export interface Passo {
   ordenado?: boolean;
 }
 
+/** `data-tour` do botão "Fazer o tour": o encerramento mostra onde ele fica. */
+export const ALVO_BOTAO_TOUR = "fazer-tour";
+
 /** Segundos estimados por tipo de passo, para o "cerca de N minutos". */
 const SEGUNDOS: Record<TipoPasso, number> = {
   abertura: 10,
@@ -314,14 +317,15 @@ export function montarTour(papeis: readonly Papel[]): Passo[] {
       id: "encerramento",
       tipo: "encerramento",
       rota: null,
-      caminho: null,
+      // A enfermeira termina no Perfil, onde fica o botão para rever o tour.
+      caminho: soPortal ? ROTAS.perfil.caminho : null,
       titulo: encerramento.titulo,
       serve: encerramento.serve,
       fazer: encerramento.fazer,
       ondeFica: encerramento.ondeFica,
       dica: encerramento.dica,
       grupo: GRUPOS_TOUR.encerramento,
-      alvoDoMenu: null,
+      alvoDoMenu: ALVO_BOTAO_TOUR,
     },
   ];
 }

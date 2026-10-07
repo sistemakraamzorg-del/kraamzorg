@@ -759,7 +759,7 @@ export const PASSO_CHECKLIST: Verbete = {
     "No fim, assine o registro do dia",
     "Ao sair, toque em Saí da casa",
   ],
-  ondeFica: "Depois de assinar, você vê o resumo e a grade com todos os dias.",
+  ondeFica: "Assinado, aparecem o resumo do dia e a grade com todos os dias.",
   dica: "Os botões ficam no pé do cartão da visita. Assinado, o registro não muda; para corrigir, faça um adendo.",
 };
 
@@ -842,6 +842,8 @@ export const TEXTOS_TOUR = {
   progresso: "Progresso do tour",
   paraQueServe: "Para que serve",
   oQueFazer: "O que fazer aqui",
+  comoFunciona: "Como funciona",
+  naOrdem: "Na visita, nesta ordem",
   ondeFica: "Onde fica",
   dica: "Dica",
   verMais: "Ver mais",

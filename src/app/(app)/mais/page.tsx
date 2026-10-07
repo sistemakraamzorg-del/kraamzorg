@@ -6,13 +6,15 @@ import { IconeNavegacao } from "@/components/shell/icones-navegacao";
 import { descreverPapeis } from "@/lib/auth/papeis";
 import { exigirSessao } from "@/lib/auth/sessao";
 import { gruposDoMais } from "@/lib/navegacao";
+import { BotaoFazerTour } from "@/modules/tour/botao-fazer-tour";
 
 export const metadata: Metadata = { title: "Mais · Kraamzorg OS" };
 
 /**
  * Aba "Mais" do celular (PRD 20.4; protótipo comercial.html): tudo o que a
  * barra lateral do papel tem e não coube nas abas, nos mesmos grupos, e o
- * botão de sair. No computador a barra lateral já mostra tudo.
+ * botão de sair. No computador a barra lateral já mostra tudo. O botão do
+ * tour guiado fica aqui também, antes do sair.
  */
 export default async function PaginaMais() {
   const sessao = await exigirSessao();
@@ -60,6 +62,8 @@ export default async function PaginaMais() {
             </ul>
           </section>
         ))}
+
+        <BotaoFazerTour variante="lista" />
 
         <form action="/sair" method="post">
           <button

@@ -35,6 +35,8 @@ export interface ItemAbaInferior {
   contadorAlerta?: boolean;
   /** Rótulo completo do contador para o leitor de tela (ex: "2 alertas"). Sem isto, "Alertas" e "2" viram um nome acessível só "Alertas2". */
   rotuloContador?: string;
+  /** Marca do tour guiado (`data-tour`): o caminho da rota, para o destaque do passo. */
+  idTour?: string;
 }
 
 export interface AbasInferioresProps {
@@ -76,6 +78,7 @@ export function AbasInferiores({
           key={item.href}
           href={item.href}
           aria-current={item.ativo ? "page" : undefined}
+          data-tour={item.idTour}
           className={cn(
             "rounded-pilula text-mini ease-estado relative flex min-h-[56px] min-w-0 flex-col items-center justify-center gap-0.5 px-0 font-medium tracking-[-0.01em] no-underline transition-[background-color,color] duration-140",
             item.ativo
