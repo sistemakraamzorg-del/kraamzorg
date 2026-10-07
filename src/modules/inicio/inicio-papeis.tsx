@@ -90,7 +90,11 @@ function PedeAcao({
     <div className="mb-[14px]" data-tour="/inicio:acao">
       <CartaoLista
         titulo="O que pede ação agora"
-        direita={pedidos.length > 0 ? `${pedidos.length} abertos` : undefined}
+        direita={
+          pedidos.length > 0
+            ? `${pedidos.length} ${pedidos.length === 1 ? "aberto" : "abertos"}`
+            : undefined
+        }
       >
         {falhas.length > 0 ? (
           <Nota tom="alerta" className="m-4">
@@ -592,7 +596,7 @@ function GraficoRecebidoDespesa({ dre }: { dre: Dre | null }) {
     <PainelGrafico
       titulo="Recebido e despesa por mês"
       nota="em milhares de reais, regime de caixa"
-      leitura="Dourado é o que entrou; verde é o que saiu. Quando o dourado supera o verde, o mês fechou no azul."
+      leitura="Dourado é o que entrou; marinho é o que saiu. Quando o dourado passa o marinho, o mês fechou positivo."
       vazio={
         dre === null
           ? VAZIO("O resultado do mês")
@@ -604,7 +608,8 @@ function GraficoRecebidoDespesa({ dre }: { dre: Dre | null }) {
       <Colunas
         rotulo="Recebido e despesa por mês, em milhares de reais"
         tom="dourado"
-        tom2="aviso"
+        tom2="marinho"
+        legenda={["Recebido", "Despesa"]}
         itens={pontos.map((p) => ({
           rotulo: nomeMes(p.mes).slice(0, 3),
           valor: Math.round(p.receitaCentavos / 10000) / 10,
@@ -633,6 +638,7 @@ function GraficoVencidas({ inad }: { inad: Inadimplencia | null }) {
       <BarrasHorizontais
         rotulo="Valor vencido por faixa de atraso"
         larguraRotulo="7rem"
+        formato="moeda"
         itens={(inad?.faixas ?? []).map((f) => ({
           rotulo: rotuloFaixa(f.deDias, f.ateDias),
           valor: f.centavos,
@@ -724,7 +730,7 @@ export async function InicioMarketing({ sessao }: { sessao: SessaoUsuario }) {
         saudacao={saudacao(sessao.nome)}
         frase={
           t
-            ? `${plural(t.leads, "lead chegou", "leads chegaram")} neste mês. Os números são agregados, sem dado de família.`
+            ? `${t.leads === 0 ? "Nenhum lead chegou" : plural(t.leads, "lead chegou", "leads chegaram")} neste mês. Os números são totais, sem dados de nenhuma família.`
             : undefined
         }
       />

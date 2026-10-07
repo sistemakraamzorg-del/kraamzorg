@@ -513,8 +513,8 @@ export function PainelNota({
             Só na demonstração
           </h2>
           <p className="text-apoio text-texto-2">
-            O provedor é de mentira. Ligue a emissão automática e combine uma
-            falha para ver o motivo e o reenvio.
+            Aqui o provedor da nota é simulado. Ligue a emissão automática e
+            combine uma falha para ver como aparecem o motivo e o reenvio.
           </p>
           <div className="flex flex-wrap gap-2">
             <Botao

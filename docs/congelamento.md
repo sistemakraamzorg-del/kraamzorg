@@ -4,7 +4,7 @@ P52 (PROMPTS.md): a partir de 13/11/2026 o desenvolvimento congela. Só entra co
 
 ## De onde vêm a data e a tag
 
-Os dois valores moram em `parametro.congelamento_desenvolvimento`, com a data e a tag da versão candidata. O painel executivo (`/painel`) lê esse parâmetro e mostra a contagem: "O desenvolvimento congela em 13/11/2026, com a tag v1.0.0-rc.1: faltam N dias." Para mudar a data ou a tag, edite o parâmetro pela tela de configurações; o código não guarda nenhum dos dois.
+Os dois valores moram em `parametro.congelamento_desenvolvimento`, com a data e a tag da versão candidata. O painel executivo (`/painel`) lê esse parâmetro e mostra a contagem em linguagem de uso, sem a tag: "A versão final do sistema fecha em 13/11/2026: faltam N dias para pedir mudanças. Depois disso, só entram correções." (revisão de linguagem, 07/10/2026; a tag continua no parâmetro e nesta página). Para mudar a data ou a tag, edite o parâmetro pela tela de configurações; o código não guarda nenhum dos dois.
 
 ## Como congelar
 

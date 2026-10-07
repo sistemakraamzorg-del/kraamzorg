@@ -271,9 +271,9 @@ export function RelatorioMarketingTela({
 
       {argumento ? (
         <Nota>
-          <b>Os dois gráficos acima são o argumento inteiro do módulo.</b>{" "}
-          {argumento} Sem atribuição até o contrato, essa diferença fica
-          invisível e a verba continua indo para o canal errado.
+          <b>Compare os dois gráficos acima.</b> {argumento} Quem olha só os
+          leads não vê essa diferença; é a receita que mostra para qual canal
+          vale mandar a verba.
         </Nota>
       ) : null}
 
@@ -369,13 +369,13 @@ function TabelaOrigens({ relatorio }: { relatorio: RelatorioMarketing }) {
       colunas={[
         { chave: "nome", rotulo: "Origem", principal: true },
         { chave: "leads", rotulo: "Leads", numerica: true },
-        { chave: "qualificados", rotulo: "Qualif.", numerica: true },
+        { chave: "qualificados", rotulo: "Qualificados", numerica: true },
         { chave: "ganhos", rotulo: "Contratos", numerica: true },
         { chave: "conversao", rotulo: "Conversão", numerica: true },
         ...(valores
           ? [
               { chave: "custo", rotulo: "Investimento", numerica: true },
-              { chave: "cac", rotulo: "CAC", numerica: true },
+              { chave: "cac", rotulo: "Custo por cliente", numerica: true },
               { chave: "receita", rotulo: "Receita", numerica: true },
             ]
           : []),

@@ -301,7 +301,7 @@ export function PainelTela({ dados }: { dados: DadosPainel }) {
           )}
         />
         <KpiLinha
-          rotulo="CAC médio"
+          rotulo="Custo por cliente (CAC)"
           valor={cac === null ? semDado : formatarMoeda(cac)}
           grafico={
             <MiniLinhaMock
@@ -309,7 +309,7 @@ export function PainelTela({ dados }: { dados: DadosPainel }) {
                 cac !== null && cacAnterior !== null ? [cacAnterior, cac] : []
               }
               tom="alerta"
-              rotulo="CAC do mês anterior e deste mês"
+              rotulo="Custo por cliente do mês anterior e deste mês"
             />
           }
           delta={
@@ -431,7 +431,10 @@ export function PainelTela({ dados }: { dados: DadosPainel }) {
                     ? "sucesso"
                     : "aviso",
                 medidor: {
-                  nome: `${meta.rotulo}: ${t.atualTexto ?? semDado} de ${t.metaTexto}`,
+                  nome:
+                    t.atualTexto === null
+                      ? `${meta.rotulo}: ainda sem número, meta de ${t.metaTexto}`
+                      : `${meta.rotulo}: ${t.atualTexto} de ${t.metaTexto}`,
                   agora:
                     meta.fracao === null ? null : Math.round(meta.fracao * 100),
                 },
@@ -446,7 +449,9 @@ export function PainelTela({ dados }: { dados: DadosPainel }) {
                   <span className="text-tinta font-semibold">
                     {meta.rotulo}:
                   </span>{" "}
-                  {t.atualTexto ?? semDado} de {t.metaTexto}.
+                  {t.atualTexto === null
+                    ? `meta de ${t.metaTexto}.`
+                    : `${t.atualTexto} de ${t.metaTexto}.`}
                   {avisoDaMeta(meta, e.amostraMinima)
                     ? ` ${avisoDaMeta(meta, e.amostraMinima)}`
                     : ""}

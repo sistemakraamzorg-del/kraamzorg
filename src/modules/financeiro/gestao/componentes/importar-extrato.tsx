@@ -47,9 +47,9 @@ export function ImportarExtrato() {
           id="extrato-arquivo-ajuda"
           className="text-mini text-texto-2 max-w-[62ch]"
         >
-          O arquivo é lido no servidor e não fica guardado: ficam só as linhas e
-          a assinatura dele, para o mesmo arquivo não entrar duas vezes. O
-          extrato serve para conferir. Ele nunca dá baixa em cobrança.
+          O arquivo não fica guardado: o sistema guarda só as linhas do extrato
+          e uma marca para o mesmo arquivo não entrar duas vezes. O extrato
+          serve para conferir. Ele nunca dá baixa em cobrança.
         </p>
         {erroArquivo ? (
           <p role="alert" className="text-apoio text-alerta font-medium">

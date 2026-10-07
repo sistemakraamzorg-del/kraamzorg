@@ -58,7 +58,7 @@ function CartaoCanal({
       <div className="flex flex-col gap-3">
         <div className="rounded-2 bg-areia-clara flex flex-col gap-1 p-3">
           <span className="text-apoio text-texto font-semibold">
-            Página de captação (com verificação e UTM)
+            Página de captação (com verificação e marcação da origem)
           </span>
           <code className="text-apoio text-texto break-all">{pagina}</code>
           <BotaoCopiar

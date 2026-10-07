@@ -60,17 +60,19 @@ export function textoDoCongelamento(c: {
   tag: string;
   diasRestantes: number;
 }): string {
+  // A tag da versão (v1.0.0-rc.1) fica no parâmetro e na documentação; na
+  // tela, só a data e o que ela quer dizer para quem usa.
   const data = formatarData(c.data) ?? c.data;
   if (c.diasRestantes > 1) {
-    return `O desenvolvimento congela em ${data}, na versão ${c.tag}: faltam ${c.diasRestantes} dias.`;
+    return `A versão final do sistema fecha em ${data}: faltam ${c.diasRestantes} dias para pedir mudanças. Depois disso, só entram correções.`;
   }
   if (c.diasRestantes === 1) {
-    return `O desenvolvimento congela amanhã, ${data}, na versão ${c.tag}.`;
+    return `A versão final do sistema fecha amanhã, ${data}. Depois disso, só entram correções.`;
   }
   if (c.diasRestantes === 0) {
-    return `O desenvolvimento congela hoje, ${data}, na versão ${c.tag}.`;
+    return `A versão final do sistema fecha hoje, ${data}. A partir de agora, só entram correções.`;
   }
-  return `O desenvolvimento está congelado desde ${data}, na versão ${c.tag}.`;
+  return `A versão final do sistema fechou em ${data}. Agora só entram correções.`;
 }
 
 /** Comparação com o mês anterior, em frase curta. Vazio sem mês anterior. */

@@ -39,14 +39,16 @@ const COR: Record<TomMock, string> = {
 /** "moeda" espera centavos; "percentual" espera 0 a 100. */
 export type FormatoMock = "numero" | "moeda" | "percentual";
 
-/** Texto curto do eixo: 74,9k, 12k, 36%. */
+/** Texto curto do eixo: 74,9 mil, 12 mil, 36%. */
 function eixo(f: FormatoMock, v: number): string {
   if (f === "percentual") return `${Math.round(v)}%`;
   if (f === "moeda") {
     const reais = v / 100;
     if (Math.abs(reais) < 1000) return String(Math.round(reais));
-    const k = (reais / 1000).toFixed(Math.abs(reais) >= 10000 ? 0 : 1);
-    return `${k.replace(".", ",")}k`;
+    const k = new Intl.NumberFormat("pt-BR", {
+      maximumFractionDigits: Math.abs(reais) >= 10000 ? 0 : 1,
+    }).format(reais / 1000);
+    return `${k} mil`;
   }
   return String(Math.round(v * 10) / 10).replace(".", ",");
 }
@@ -55,7 +57,7 @@ function eixo(f: FormatoMock, v: number): string {
 function dica(f: FormatoMock, v: number): string {
   if (f === "moeda") return formatarMoeda(v);
   if (f === "percentual") return formatarPct(v);
-  return String(v);
+  return new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1 }).format(v);
 }
 
 /** Máximo "redondo" do eixo (`nice()` do mockup). */
@@ -146,7 +148,11 @@ function Grade({
               strokeWidth={0.6}
             />
             <text className={TEXTO_EIXO} x={L - 5} y={y + 3} textAnchor="end">
-              {eixo(formato, (mx * g) / 4)}
+              {/* Contagem não tem fração: com poucas famílias, a marca
+                  0,3 ou 0,8 confunde; a linha fica, o número some. */}
+              {formato === "numero" && !Number.isInteger((mx * g) / 4)
+                ? ""
+                : eixo(formato, (mx * g) / 4)}
             </text>
           </g>
         );
