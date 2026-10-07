@@ -131,11 +131,11 @@ export function DeteccaoProativa({ radar }: { radar: Radar }) {
   );
   return (
     <Card>
-      <CardHead titulo="Detecção proativa" />
+      <CardHead titulo="O que o radar vigia" />
       <CardBody className="px-4 py-3">
         <div className="text-[11.5px] leading-[1.9]">
           {linha(
-            "Janela da data provável",
+            "Período provável do parto",
             `${radar.janela.antes} dias antes a ${radar.janela.depois} depois`,
           )}
           {linha(

@@ -298,7 +298,7 @@ export function PainelOcorrencia({
                       rotulo: r.nome,
                     }))}
                     defaultValue={ocorrencia.responsavelId ?? ""}
-                    descricao="Ao escolher uma pessoa, ela recebe um aviso no app."
+                    descricao="Ao escolher uma pessoa, ela recebe um aviso no sistema."
                     opcional
                   />
                   <CampoSelecao

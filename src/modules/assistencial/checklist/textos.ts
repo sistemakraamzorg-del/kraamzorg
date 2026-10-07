@@ -18,20 +18,20 @@ export const textos = {
     titulo: "Regras do registro",
     itens: [
       [
-        "Só acrescenta.",
-        "Depois de assinado, não se edita. Correção vira adendo com autor e motivo.",
+        "Assinado não muda.",
+        "Depois de assinar, o registro não se edita. Uma correção vira um adendo, com o seu nome e o motivo.",
       ],
       [
-        "Leitura auditada.",
-        "Abrir um registro também gera log, não apenas alterar.",
+        "Toda abertura fica no histórico.",
+        "Abrir um registro também fica guardado, com o nome de quem abriu, e não só alterar.",
       ],
       [
-        "Offline primeiro.",
-        "A visita é domiciliar. O rascunho vive no aparelho até sincronizar.",
+        "Funciona sem sinal.",
+        "O que você preenche fica salvo no aparelho e sobe sozinho quando a conexão voltar.",
       ],
       [
-        "Assinatura nominal.",
-        "Toda ficha fica vinculada à profissional que a produziu.",
+        "Com o seu nome.",
+        "Cada ficha fica ligada à enfermeira que a preencheu.",
       ],
     ],
   },
@@ -66,7 +66,7 @@ export const textos = {
     "A coordenação clínica precisa aprovar a versão do checklist antes de usá-lo nas visitas. Avise a coordenação.",
   visitaNaoIniciadaTitulo: "A visita ainda não foi iniciada",
   visitaNaoIniciadaTexto:
-    "Inicie a visita em Hoje para abrir o checklist. Os dados de data e horário vêm do check-in.",
+    "Inicie a visita em Hoje para abrir o checklist. A data e o horário vêm do botão Cheguei.",
 
   sincronizacao: {
     local: "Salvo no aparelho",
@@ -206,7 +206,7 @@ export const textos = {
     registrar: "Registrar sinal",
     jaRegistrado: "Este sinal já está registrado nesta visita.",
     registrado:
-      "Sinal registrado. A coordenação foi avisada assim que houver sinal.",
+      "Sinal registrado. A coordenação é avisada assim que o celular tiver conexão.",
     escolha: "Escolha um sinal da lista.",
   },
 
@@ -241,11 +241,11 @@ export const textos = {
     assinando: "Assinando",
     assinadoAs: (hora: string) => `Assinado às ${hora}.`,
     sobeQuandoHouverSinal: "Sobe quando houver sinal.",
-    servidorRecebeu: "O servidor recebeu o registro.",
+    servidorRecebeu: "O registro chegou ao sistema.",
     falhou:
       "Não foi possível assinar agora. O que você respondeu continua salvo no aparelho. Tente de novo.",
     recusado:
-      "O servidor não aceitou o registro. Nada foi gravado e o que você respondeu continua no aparelho.",
+      "O sistema não aceitou o registro. Nada foi gravado e o que você respondeu continua no aparelho. Avise a coordenação.",
     proximaVisita: "Voltar para Hoje",
   },
 
@@ -302,9 +302,9 @@ export const textos = {
   },
 
   fila: {
-    titulo: "Fila do aparelho",
+    titulo: "O que espera para subir",
     vazia:
-      "Nada espera para subir. Tudo o que você fez neste aparelho já chegou ao servidor.",
+      "Nada espera para subir. Tudo o que você fez neste aparelho já chegou ao sistema.",
     comItens: (n: number) =>
       n === 1
         ? "1 item espera no aparelho e sobe sozinho quando a conexão voltar, na ordem em que foi salvo."

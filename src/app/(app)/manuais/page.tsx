@@ -352,9 +352,10 @@ export default async function PaginaManuais() {
             </div>
 
             <Nota>
-              <b>Versão e aceite andam juntos.</b> Publicar uma nova versão de
-              um protocolo derruba o aceite da anterior e recoloca a pessoa como
-              pendente. Assim, &ldquo;todo mundo leu&rdquo; sempre tem lastro.
+              <b>Cada versão pede uma nova confirmação de leitura.</b> Quando um
+              protocolo ganha uma versão nova, quem já tinha lido volta para a
+              lista de pendentes. Assim, &ldquo;todo mundo leu&rdquo; vale
+              sempre para o texto atual.
             </Nota>
           </>
         ) : null}

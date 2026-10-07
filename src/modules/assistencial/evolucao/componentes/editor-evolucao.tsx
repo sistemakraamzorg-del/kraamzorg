@@ -174,7 +174,7 @@ export function EditorEvolucao({
       {pontos.length > 0 ? (
         <FaixaAlerta
           variante="prioritario"
-          titulo="Falta corrigir antes de seguir"
+          titulo="Ainda falta antes de seguir"
           meta="Enquanto houver pontos aqui, o documento não vai para a revisão nem para a aprovação."
         >
           <ul className="list-disc pl-5">

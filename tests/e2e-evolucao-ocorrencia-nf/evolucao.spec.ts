@@ -174,12 +174,8 @@ test.describe("evolução aos médicos", () => {
     await page
       .getByRole("button", { name: "Montar o rascunho com o checklist" })
       .click();
-    await expect(
-      page.getByText("Falta corrigir antes de seguir"),
-    ).toBeVisible();
-    await expect(
-      page.getByText("Falta preencher: grau da lesão mamilar."),
-    ).toBeVisible();
+    await expect(page.getByText("Ainda falta antes de seguir")).toBeVisible();
+    await expect(page.getByText("Grau da lesão mamilar.")).toBeVisible();
     // o botão de revisão fica travado enquanto houver ponto a corrigir
     await expect(
       page.getByRole("button", {

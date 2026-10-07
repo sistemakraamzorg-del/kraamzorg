@@ -288,7 +288,7 @@ function Legenda({
     >
       <li className="flex items-center gap-1.5">
         <span className="rounded-pilula border-dourado/35 from-dourado/10 via-dourado/40 to-dourado/10 inline-block h-2 w-[22px] border bg-linear-to-r" />
-        {`janela probabilística (DPP menos ${janela.antes} a mais ${janela.depois} dias)`}
+        {`período provável do parto (de ${janela.antes} dias antes a ${janela.depois} dias depois da DPP)`}
       </li>
       <li className="flex items-center gap-1.5">
         <span className="bg-sucesso inline-block h-2 w-[22px] rounded-[3px]" />

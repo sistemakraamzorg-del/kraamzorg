@@ -251,7 +251,7 @@ export default async function PaginaAgenda({
               <Kpi
                 rotulo="Deslocamento médio"
                 valor={<span className="text-[18px]">Sem dado</span>}
-                delta="o app ainda não mede o deslocamento"
+                delta="ainda não disponível no sistema"
               />
             </div>
 

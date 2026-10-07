@@ -119,7 +119,7 @@ export function ListaFamilias({
                   <span className="text-texto font-mono font-medium">
                     {feitas} de {total}
                   </span>{" "}
-                  {feitas === 1 ? "visita feita" : "visitas feitas"}
+                  {total === 1 ? "visita feita" : "visitas feitas"}
                 </p>
               </div>
             ) : null}

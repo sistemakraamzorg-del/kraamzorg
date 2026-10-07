@@ -197,8 +197,8 @@ describe("montar o rascunho a partir do checklist", () => {
     ).toBe(true);
     expect(pue.errosValidacao).toEqual(
       expect.arrayContaining([
-        "Falta preencher: grau da lesão mamilar.",
-        "Falta preencher: conclusão sobre a amamentação.",
+        "Grau da lesão mamilar.",
+        "Conclusão sobre a amamentação.",
       ]),
     );
     // frase sem "?." solto no fim

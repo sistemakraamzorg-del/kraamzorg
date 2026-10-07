@@ -115,7 +115,7 @@ export function TelaDocumentoEvolucao({
             {faltas.length > 0 ? (
               <FaixaAlerta
                 variante="info"
-                titulo="O que ainda vai faltar depois de montar"
+                titulo="Depois de montar, ainda vai faltar"
               >
                 <ul className="list-disc pl-5">
                   {faltas.map((falta) => (

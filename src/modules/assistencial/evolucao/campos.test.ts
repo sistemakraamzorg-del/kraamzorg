@@ -122,7 +122,9 @@ describe("campos visíveis e o que falta", () => {
     const faltas = faltasDaEntrada("puerperal", {});
     expect(faltas.length).toBeGreaterThan(5);
     expect(faltas.join(" ")).not.toMatch(/\?\./);
-    expect(faltas).toContain("Falta a paciente no cadastro da família.");
+    expect(faltas).toContain("O nome da paciente no cadastro da família.");
+    // item curto, sem "Falta preencher:" repetido em toda linha
+    expect(faltas.join(" ")).not.toMatch(/Falta preencher/);
   });
 });
 

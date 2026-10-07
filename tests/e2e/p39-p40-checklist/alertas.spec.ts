@@ -51,7 +51,7 @@ test.describe("Alertas clínicos", () => {
     const alerta = page.getByRole("article", { name: /^RN-08, / });
     await expect(alerta).toBeVisible();
     await expect(
-      alerta.getByText("Você acompanha este alerta em leitura."),
+      alerta.getByText(/Você acompanha este alerta sem editar\./),
     ).toBeVisible();
     await expect(alerta.getByRole("button")).toHaveCount(0);
   });
@@ -83,7 +83,7 @@ test.describe("Alertas clínicos", () => {
 
     const alerta = page.getByRole("article", { name: /^RN-08, / });
     await expect(alerta).toBeVisible();
-    await expect(alerta).toContainText("Para fechar falta:");
+    await expect(alerta).toContainText("Para fechar, ainda falta registrar:");
     const fechar = alerta.getByRole("button", { name: "Fechar o alerta" });
     await expect(fechar).toBeDisabled();
 
@@ -96,7 +96,7 @@ test.describe("Alertas clínicos", () => {
 
     // Faltam a orientação médica e a conduta: continua sem fechar.
     await expect(page.getByRole("article", { name: /^RN-08, / })).toContainText(
-      "Para fechar falta: orientação médica recebida",
+      "Para fechar, ainda falta registrar: orientação médica recebida",
     );
     await expect(
       page

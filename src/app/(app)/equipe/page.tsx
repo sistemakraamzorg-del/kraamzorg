@@ -185,7 +185,7 @@ export default async function PaginaEquipe({
           <Kpi
             rotulo="Avaliação média"
             valor={<span className="text-[18px]">Sem dado</span>}
-            delta="o app ainda não coleta a avaliação"
+            delta="ainda não disponível no sistema"
           />
         </div>
 
@@ -342,8 +342,8 @@ export default async function PaginaEquipe({
                 apoio="por profissional"
               />
               <p className="text-tinta-50 text-[12.5px]">
-                O app ainda não calcula a entrega no prazo. Quando passar a
-                calcular, o gráfico aparece aqui.
+                Este gráfico ainda não está disponível. Ele aparece aqui quando
+                o sistema passar a contar as fichas entregues no prazo.
               </p>
             </CardBody>
           </Card>
@@ -354,8 +354,8 @@ export default async function PaginaEquipe({
                 apoio="trilha obrigatória"
               />
               <p className="text-tinta-50 text-[12.5px]">
-                Os treinamentos ainda não são registrados no app. A trilha
-                aparece aqui quando houver registro.
+                Este gráfico ainda não está disponível. Enquanto isso, veja quem
+                leu cada manual em Manuais &amp; treinamentos.
               </p>
             </CardBody>
           </Card>

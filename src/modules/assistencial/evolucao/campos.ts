@@ -39,6 +39,11 @@ export interface CampoEditavel {
   /** Só aparece quando a entrada NÃO tem este caminho (dado que o cadastro devia trazer). */
   quandoFalta?: boolean;
   unidade?: string;
+  /**
+   * Como o campo aparece na lista "Ainda falta" quando o rótulo é uma pergunta
+   * ("Diurese presente?" vira "Se há diurese"). Sem ele, a lista usa o rótulo.
+   */
+  rotuloFalta?: string;
 }
 
 export type Dados = Record<string, unknown>;
@@ -205,6 +210,8 @@ export const CAMPOS_PUERPERAL: CampoEditavel[] = [
   {
     caminho: "estabilidadeHemodinamica",
     rotulo: "Todos os sinais vitais ficaram na referência o período inteiro?",
+    rotuloFalta:
+      "Se os sinais vitais ficaram na referência o período inteiro (sim ou não)",
     tipo: "simnao",
     grupo: "julgamento",
     obrigatorio: true,
@@ -381,6 +388,7 @@ export const CAMPOS_NEONATAL: CampoEditavel[] = [
   {
     caminho: "genitaliaEliminacoes.diurese",
     rotulo: "Diurese presente?",
+    rotuloFalta: "Se há diurese (sim ou não)",
     tipo: "simnao",
     grupo: "completar",
     obrigatorio: true,
@@ -388,6 +396,7 @@ export const CAMPOS_NEONATAL: CampoEditavel[] = [
   {
     caminho: "genitaliaEliminacoes.evacuacoes",
     rotulo: "Evacuações presentes?",
+    rotuloFalta: "Se há evacuações (sim ou não)",
     tipo: "simnao",
     grupo: "completar",
     obrigatorio: true,
@@ -632,6 +641,11 @@ export function aplicarFormulario(
 
 // --- O que precisa existir antes de o gerador validar ---------------------------------
 
+/**
+ * Cada falta é um item curto da lista "Ainda falta" da tela (o título diz que
+ * falta; o item diz o quê e, quando ajuda, onde resolver). Nada de "Falta
+ * preencher:" repetido em toda linha.
+ */
 interface Requerido {
   caminho: string;
   falta: string;
@@ -641,16 +655,16 @@ const REQUERIDOS_COMUNS: Requerido[] = [
   {
     caminho: "periodo.inicio",
     falta:
-      "Nenhuma visita com registro assinado: o período do acompanhamento ainda não existe.",
+      "Uma visita com o registro assinado. Sem ela, o período do acompanhamento ainda não existe.",
   },
   {
     caminho: "periodo.fim",
-    falta: "Falta o fim do período do acompanhamento.",
+    falta: "O fim do período do acompanhamento.",
   },
   {
     caminho: "profissional.nome",
     falta:
-      "Falta a profissional responsável. Confira a designação do acompanhamento.",
+      "A profissional responsável. Confira quem foi designada para o acompanhamento.",
   },
 ];
 
@@ -658,15 +672,16 @@ const REQUERIDOS_PUERPERAL: Requerido[] = [
   ...REQUERIDOS_COMUNS,
   {
     caminho: "paciente.nome",
-    falta: "Falta a paciente no cadastro da família.",
+    falta: "O nome da paciente no cadastro da família.",
   },
   {
     caminho: "historico.dataNascimentoBebe",
-    falta: "Falta a data de nascimento do bebê no cadastro.",
+    falta: "A data de nascimento do bebê no cadastro da família.",
   },
   {
     caminho: "dor.escalaInicial",
-    falta: "O checklist não registrou a escala de dor (EVN) em nenhuma visita.",
+    falta:
+      "A escala de dor (EVN, de 0 a 10) em pelo menos uma visita do checklist.",
   },
 ];
 
@@ -674,13 +689,21 @@ const REQUERIDOS_NEONATAL: Requerido[] = [
   ...REQUERIDOS_COMUNS,
   {
     caminho: "filiacao",
-    falta: "Falta a filiação: cadastre a mãe na ficha da família.",
+    falta: "A filiação do bebê. Cadastre a mãe na ficha da família.",
   },
   {
     caminho: "pesagens",
-    falta: "Nenhuma pesagem no período. Registre o peso do bebê no checklist.",
+    falta: "Uma pesagem no período. Registre o peso do bebê no checklist.",
   },
 ];
+
+/** O item da lista para um campo da tela: o rótulo, ou a pergunta reescrita. */
+function itemFalta(campo: CampoEditavel): string {
+  if (campo.rotuloFalta) return `${campo.rotuloFalta}.`;
+  const rotulo = campo.rotulo.trim();
+  if (rotulo.endsWith("?")) return `Resposta para "${rotulo}"`;
+  return `${rotulo.replace(/[.]+$/, "")}.`;
+}
 
 export function faltasDaEntrada(
   tipo: "puerperal" | "neonatal",
@@ -701,11 +724,7 @@ export function faltasDaEntrada(
   for (const campo of camposDoTipo(tipo)) {
     if (!campo.obrigatorio) continue;
     if (campo.quando && !tem(dados, campo.quando)) continue;
-    if (!tem(dados, campo.caminho)) {
-      faltas.push(
-        `Falta preencher: ${campo.rotulo.toLowerCase().replace(/[?.]+$/, "")}.`,
-      );
-    }
+    if (!tem(dados, campo.caminho)) faltas.push(itemFalta(campo));
   }
   return faltas;
 }

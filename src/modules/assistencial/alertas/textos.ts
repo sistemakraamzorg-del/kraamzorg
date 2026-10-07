@@ -53,9 +53,10 @@ export const textosAlertas = {
     naoRegistrado: "Ainda não registrado",
   },
   faltamParaFechar: (nomes: string[]) =>
-    `Para fechar falta: ${nomes.join(", ")}.`,
+    `Para fechar, ainda falta registrar: ${nomes.join(", ")}.`,
   podeFechar: "Os quatro campos estão preenchidos. O alerta pode ser fechado.",
-  soLeitura: "Você acompanha este alerta em leitura.",
+  soLeitura:
+    "Você acompanha este alerta sem editar. Quem registra é a enfermeira ou a coordenação.",
   falhaAtualizar:
     "Não foi possível atualizar agora. Nada foi perdido. Atualize a tela e tente de novo.",
   salvo: "Registro salvo.",

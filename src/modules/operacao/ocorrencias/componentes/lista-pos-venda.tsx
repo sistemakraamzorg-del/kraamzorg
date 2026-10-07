@@ -601,9 +601,10 @@ export function ListaPosVendaTela({
               nota="média de 0 a 10"
             />
             <VazioGrafico>
-              A pesquisa de hoje guarda uma nota geral, de 0 a 10. A nota por
-              dimensão (enfermeira, segurança, amamentação, comunicação e
-              horário das visitas) entra quando o formulário nativo for ligado.
+              A pesquisa de hoje guarda uma nota geral, de 0 a 10. As notas por
+              assunto (enfermeira, segurança, amamentação, comunicação e horário
+              das visitas) aparecem quando a pesquisa passar a perguntar por
+              elas.
             </VazioGrafico>
           </CardBody>
         </Card>

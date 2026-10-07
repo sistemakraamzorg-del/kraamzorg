@@ -11,6 +11,7 @@ import {
   separarCampos,
   type LinhaRotina,
 } from "../rotina";
+import { ComSiglas } from "@/components/ui/siglas";
 
 /**
  * O dia a dia do atendimento, como a planilha de papel do DOC 2: uma coluna
@@ -265,7 +266,7 @@ function Grade({
                   scope="row"
                   className="border-linha bg-superficie text-texto-2 group-hover/linha:bg-creme sticky left-0 z-10 w-32 min-w-32 border-t px-3 py-2 text-left align-top font-normal sm:w-48 sm:min-w-48"
                 >
-                  {linha.rotulo}
+                  <ComSiglas texto={linha.rotulo} />
                 </th>
                 {linha.celulas.map((celula, i) => (
                   <td

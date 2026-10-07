@@ -122,7 +122,7 @@ export const TEXTOS_AVISOS = {
   semSuporte:
     "Este navegador não recebe avisos. No iPhone, instale o aplicativo na tela inicial primeiro e abra por lá.",
   semChave:
-    "Os avisos ainda não estão configurados neste ambiente. Avise a coordenação.",
+    "Os avisos no celular ainda não foram ligados. Avise a coordenação.",
   bloqueado:
     "Os avisos estão bloqueados neste navegador. Libere nas configurações do site e volte aqui.",
   falhou:

@@ -89,7 +89,7 @@ export async function PaginaDeAlertas({
           <Kpi
             rotulo="Imediatos"
             valor={alertas.filter((a) => a.severidade === "imediato").length}
-            delta="conduta aprovada, sem paráfrase"
+            delta="pedem a conduta na hora"
             tomDelta="alerta"
           />
           <Kpi

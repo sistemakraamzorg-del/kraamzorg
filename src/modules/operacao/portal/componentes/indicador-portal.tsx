@@ -51,7 +51,7 @@ export function IndicadorPortal() {
     const hora = sincronizadoEm
       ? horaEmBrasilia(new Date(sincronizadoEm))
       : null;
-    texto = hora ? `Sincronizado ${hora}` : "Tudo em dia";
+    texto = hora ? `Sincronizado ${hora}` : "Tudo enviado";
   }
 
   return (

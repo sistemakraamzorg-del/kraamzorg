@@ -40,7 +40,7 @@ export const textosFormulario = {
       : "Toque na ordem de preferência.",
   voltarAoValor: "Informar o contato",
   automatico: {
-    login: "Vem do login de quem preenche.",
+    login: "Vem do acesso de quem preenche.",
     assinatura: "Preenchido na assinatura do registro.",
     idade_gestacional_calculada:
       "Calculada da data provável do parto. Não é gravada.",

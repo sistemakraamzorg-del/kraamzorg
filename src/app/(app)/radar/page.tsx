@@ -85,10 +85,10 @@ export default async function PaginaRadar({
       />
       <div className="flex flex-col gap-[18px] pt-6">
         <Nota>
-          <b>A pergunta que este módulo responde:</b> quanto ainda podemos
-          vender para esta janela sem comprometer a entrega. Cada contrato
-          confirmado reserva dias de profissional sobre a janela da data
-          provável. Quando o nascimento é confirmado, a faixa vira datas firmes.
+          <b>Para que serve o radar:</b> ver quanto ainda dá para vender para
+          cada período sem faltar enfermeira. Cada contrato confirmado reserva
+          dias de profissional perto da data provável do parto. Quando o bebê
+          nasce, essa reserva vira datas certas.
         </Nota>
 
         {pracas.length > 1 ? (

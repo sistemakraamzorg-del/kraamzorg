@@ -103,7 +103,7 @@ export function FormOcorrencia({
         name="responsavelId"
         vazio="Definir depois"
         opcoes={responsaveis}
-        descricao="Ao escolher uma pessoa, ela recebe um aviso no app."
+        descricao="Ao escolher uma pessoa, ela recebe um aviso no sistema."
         opcional
       />
       {tipo === "detrator" ? (

@@ -193,17 +193,15 @@ export function VisaoCapacidade({ visao }: { visao: CapacidadeVisao }) {
                   dados={faixasDaDistribuicao(visao.distribuicao)}
                 />
                 <p className="text-mini text-texto-2 mt-3">
-                  Versão {visao.distribuicao.versao ?? "sem versão"}. Semanas e
-                  dias de gestação no nascimento; a data provável do parto é
-                  40s0d.
+                  Semanas e dias de gestação no nascimento; a data provável do
+                  parto é 40s0d.
                 </p>
               </div>
             </details>
           ) : null}
           <p className="text-tinta-50 text-[11.5px]">
-            A ferramenta do agente continua devolvendo só
-            &ldquo;disponível&rdquo; ou &ldquo;confirmar com a equipe&rdquo;,
-            nunca estes números. Semanas a partir de{" "}
+            A Isadora nunca vê estes números: para a família, ela só diz se há
+            vaga ou se precisa confirmar com a equipe. Semanas a partir de{" "}
             {dataCurta(visao.regioes[0]?.semanas[0]?.semana ?? "0000-00-00")}.
           </p>
         </CardBody>

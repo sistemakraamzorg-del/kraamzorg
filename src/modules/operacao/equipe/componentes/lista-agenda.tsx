@@ -372,8 +372,8 @@ function ItemSessao({ sessao: s }: { sessao: SessaoVenda }) {
         <p className="text-[13px] font-semibold">{s.nomeFamilia}</p>
         <p className="text-tinta-50 text-[11.5px]">
           {s.conduzidaPorNome
-            ? `Conduz ${s.conduzidaPorNome}`
-            : "Sem quem conduza definido"}
+            ? `Com ${s.conduzidaPorNome}`
+            : "Ainda sem quem conduza"}
         </p>
         <Link
           href={`/sessoes-venda/${s.id}`}

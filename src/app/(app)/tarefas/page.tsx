@@ -28,7 +28,7 @@ const COMO_FUNCIONA: { titulo: string; texto: string }[] = [
   {
     titulo: "Quem vê",
     texto:
-      "As tarefas que são suas e as do seu papel que ainda não têm responsável.",
+      "As tarefas que são suas e as da sua função que ainda não têm responsável.",
   },
   {
     titulo: "Em que ordem",
@@ -106,12 +106,12 @@ export default async function PaginaTarefas() {
               <Kpi
                 rotulo="Concluídas na semana"
                 valor="Sem dado"
-                delta="a tarefa ainda não guarda a data de conclusão"
+                delta="ainda não disponível no sistema"
               />
               <Kpi
                 rotulo="Criadas por automação"
                 valor="Sem dado"
-                delta="a tarefa ainda não guarda a origem"
+                delta="ainda não disponível no sistema"
               />
             </div>
 

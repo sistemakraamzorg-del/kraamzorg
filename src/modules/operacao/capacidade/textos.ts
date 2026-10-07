@@ -134,12 +134,16 @@ export function faixasDaDistribuicao(o: OrigemDistribuicao) {
 
 export function notaDaDistribuicao(o: OrigemDistribuicao): string {
   if (o.modelo === "uniforme") {
-    return "A previsão está no modelo simples da Fase 1: o início do atendimento é espalhado por igual na janela ao redor da data provável do parto.";
+    return "A previsão está no modelo simples: o início do atendimento é espalhado por igual nos dias ao redor da data provável do parto.";
   }
   if (o.fonte === "historico") {
     return `A previsão usa o histórico da própria Kraamzorg: ${o.historicoN} partos registrados com data provável e data de nascimento.`;
   }
-  return `A previsão usa uma distribuição de referência para o nascimento em relação à data provável do parto, porque a Kraamzorg ainda tem ${plural(o.historicoN, "parto registrado", "partos registrados")} e precisa de ${o.historicoMinimo ?? "mais"} para usar o próprio histórico. Os pesos da referência ainda vão ser validados pela Edilaine e pelo Leonardo.`;
+  const registrados =
+    o.historicoN === 0
+      ? "ainda não tem partos registrados"
+      : `ainda tem só ${plural(o.historicoN, "parto registrado", "partos registrados")}`;
+  return `A previsão usa uma tabela de referência de quando os bebês costumam nascer em relação à data provável do parto, porque a Kraamzorg ${registrados} e precisa de ${o.historicoMinimo ?? "mais"} para usar o próprio histórico. Os números dessa tabela ainda vão ser conferidos pela Edilaine e pelo Leonardo.`;
 }
 
 export function geradoEmTexto(iso: string): string {
