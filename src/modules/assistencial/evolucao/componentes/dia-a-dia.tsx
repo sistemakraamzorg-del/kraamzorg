@@ -1,9 +1,9 @@
 import { CalendarClock, ChevronDown } from "lucide-react";
-import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { TileIcone } from "@/components/ui/tile-icone";
 import { formatarData, formatarDuracao } from "@/lib/formatacao";
 import type { BaseEvolucao } from "@/lib/dados/tipos-evolucao";
 import { cn } from "@/lib/utils";
+import { CoberturaChecklist } from "./cobertura-checklist";
 import {
   montarRotina,
   type Celula,
@@ -87,16 +87,13 @@ export function DiaADia({
         enfermeira toca durante a visita. Dia sem toque fica em branco.
       </p>
 
-      {campos.totalComRegistro === 0 ? (
-        <FaixaAlerta
-          variante="info"
-          titulo="Nenhum campo do checklist foi registrado ainda"
-        >
-          A enfermeira preenche o checklist de cada dia na visita, pelo portal.
-          Quando ela assina o dia, as marcações aparecem aqui, uma coluna por
-          dia.
-        </FaixaAlerta>
-      ) : (
+      <CoberturaChecklist
+        dias={modelo.diasChecklist}
+        campos={campos}
+        grupos={modelo.grupos}
+      />
+
+      {campos.totalComRegistro > 0 ? (
         <details className="group/detalhe" open={checklistAberto}>
           <summary className="rounded-pilula bg-areia-clara text-apoio text-texto min-h-toque ease-estado hover:bg-areia inline-flex w-fit cursor-pointer list-none items-center gap-2 px-5 font-semibold transition-colors duration-140 [&::-webkit-details-marker]:hidden">
             <ChevronDown
@@ -125,27 +122,6 @@ export function DiaADia({
               dataNoCabecalho
             />
           </div>
-        </details>
-      )}
-
-      {campos.totalSemRegistro > 0 ? (
-        <details className="group/pendentes">
-          <summary className="text-apoio text-texto-2 min-h-toque hover:text-texto inline-flex cursor-pointer list-none items-center gap-2 font-medium [&::-webkit-details-marker]:hidden">
-            <ChevronDown
-              aria-hidden="true"
-              className="size-4 transition-transform duration-140 group-open/pendentes:rotate-180"
-              strokeWidth={2}
-            />
-            Campos sem registro em nenhum dia ({campos.totalSemRegistro})
-          </summary>
-          <ul className="text-apoio text-texto-2 mt-2 flex max-w-[78ch] flex-col gap-2">
-            {campos.semRegistro.map((g) => (
-              <li key={g.chave}>
-                <span className="text-texto font-medium">{g.titulo}:</span>{" "}
-                {g.rotulos.join(", ")}.
-              </li>
-            ))}
-          </ul>
         </details>
       ) : null}
     </section>

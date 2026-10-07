@@ -20,7 +20,7 @@ describe("DiaADia", () => {
       ),
     ).toBeTruthy();
     expect(
-      screen.getByText(/Campos sem registro em nenhum dia \(\d+\)/),
+      screen.getByText(/Ver o que falta, bloco a bloco \(\d+ campos?\)/),
     ).toBeTruthy();
     const grade = screen.getByRole("table", {
       name: "Marcações do checklist de cada dia",
@@ -45,14 +45,17 @@ describe("DiaADia", () => {
       />,
     );
     expect(
-      screen.getByText("Nenhum campo do checklist foi registrado ainda"),
+      screen.getByText("O checklist é preenchido pela enfermeira, na visita"),
     ).toBeTruthy();
     expect(
       screen.queryByRole("table", {
         name: "Marcações do checklist de cada dia",
       }),
     ).toBeNull();
-    expect(screen.getByText(/Campos sem registro em nenhum dia/)).toBeTruthy();
+    expect(
+      screen.getByText(/Abrir o portal da enfermeira e entrar em Hoje/),
+    ).toBeTruthy();
+    expect(screen.queryByText(/Ver o que falta, bloco a bloco/)).toBeNull();
   });
 
   it("no fim do checklist assinado a grade já vem aberta", () => {

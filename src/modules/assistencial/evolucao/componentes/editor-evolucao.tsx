@@ -43,6 +43,8 @@ interface Props {
   /** Caminho do PDF (com ?previa=1 quando ainda não foi enviado). */
   caminhoPdf: string;
   demonstracao: boolean;
+  /** Nenhum dia da família tem checklist registrado (a evolução nasce vazia). */
+  semChecklist?: boolean;
 }
 
 /**
@@ -86,6 +88,7 @@ export function EditorEvolucao({
   ehCoordenacao,
   caminhoPdf,
   demonstracao,
+  semChecklist = false,
 }: Props) {
   const [estadoSalvar, salvar, salvando] = useActionState(
     acaoSalvarEvolucao,
@@ -203,8 +206,16 @@ export function EditorEvolucao({
                 id="grupo-completar"
                 icone={<ClipboardPen />}
                 tom="areia"
-                titulo="O que o checklist não registra"
-                texto="Estes dados não vieram do checklist nem do cadastro. Preencha com o que você viu no período."
+                titulo={
+                  semChecklist
+                    ? "O que o checklist ainda não trouxe"
+                    : "O que o checklist não registra"
+                }
+                texto={
+                  semChecklist
+                    ? "Estes dados costumam vir do checklist da enfermeira, que ainda não foi registrado. O ideal é ela preencher as visitas antes. Se precisar seguir agora, preencha com o que você viu no período."
+                    : "Estes dados não vieram do checklist nem do cadastro. Preencha com o que você viu no período."
+                }
               />
               {completar.map((campo) => (
                 <CampoEvolucao

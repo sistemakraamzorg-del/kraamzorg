@@ -5,6 +5,7 @@ import { formatarData } from "@/lib/formatacao";
 import { camposVisiveis } from "../campos";
 import type { TelaDocumento } from "../dados";
 import { slugDoDocumento } from "../documento";
+import { montarRotina, separarCampos } from "../rotina";
 import { DiaADia } from "./dia-a-dia";
 import { EditorEvolucao } from "./editor-evolucao";
 import { MontarEvolucao } from "./montar-evolucao";
@@ -33,6 +34,9 @@ export function TelaDocumentoEvolucao({
   });
   const acompanhamentoId = tela.base.acompanhamento.id;
   const periodo = tela.base.acompanhamento;
+  // Nenhum campo do checklist registrado em dia nenhum: a evolução nasce vazia.
+  const semChecklist =
+    separarCampos(montarRotina(tela.base).grupos).totalComRegistro === 0;
 
   const voltar = (
     <Link
@@ -70,6 +74,24 @@ export function TelaDocumentoEvolucao({
           </div>
         </header>
 
+        {semChecklist ? (
+          <FaixaAlerta
+            variante="info"
+            titulo="Os checklists dessa família ainda não foram registrados"
+          >
+            A evolução é montada com o que a enfermeira registra no checklist de
+            cada visita. Sem isso, os campos clínicos abaixo ficam em branco
+            para digitar à mão.{" "}
+            <a
+              href="#checklist-dias-titulo"
+              className="text-texto font-semibold underline decoration-1 underline-offset-4"
+            >
+              Ver quais dias faltam e onde a enfermeira preenche
+            </a>
+            .
+          </FaixaAlerta>
+        ) : null}
+
         {detalhe ? (
           <EditorEvolucao
             detalhe={detalhe}
@@ -79,6 +101,7 @@ export function TelaDocumentoEvolucao({
             ehCoordenacao={ehCoordenacao}
             caminhoPdf={`${base}/${acompanhamentoId}/${slug}/pdf${detalhe.temPdf ? "" : "?previa=1"}`}
             demonstracao={demonstracao}
+            semChecklist={semChecklist}
           />
         ) : (
           <div className="rounded-3 border-linha bg-superficie shadow-1 flex flex-col gap-5 border p-4">

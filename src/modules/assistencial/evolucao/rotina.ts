@@ -43,8 +43,34 @@ export interface GrupoRotina {
   linhas: LinhaRotina[];
 }
 
+/** Como está o checklist de um dia (para a faixa "Checklist de cada dia"). */
+export type SituacaoChecklistDia =
+  /** Registro assinado com campos do checklist. */
+  | "feito"
+  /** Registro assinado, mas sem nenhum campo do DOC 2 (dado de antes do instrumento). */
+  | "sem_campos"
+  /** A visita já devia ter o checklist e ele não foi registrado. */
+  | "falta"
+  /** A visita ainda vai acontecer ou ainda nem foi marcada. */
+  | "adiante"
+  /** A visita não aconteceu (cancelada ou não realizada). */
+  | "nao_aconteceu";
+
+export interface DiaChecklist {
+  diaNumero: number;
+  /** "03/10", ou nulo quando o dia ainda não tem visita. */
+  data: string | null;
+  /** Visita do dia, para abrir o checklist; nulo se ainda não há visita. */
+  visitaId: string | null;
+  situacao: SituacaoChecklistDia;
+  /** Campos do checklist com valor neste dia. */
+  campos: number;
+}
+
 export interface ModeloRotina {
   colunas: ColunaDia[];
+  /** Uma entrada por dia: situação do checklist e quantos campos têm valor. */
+  diasChecklist: DiaChecklist[];
   agenda: LinhaRotina[];
   grupos: GrupoRotina[];
   diasComRegistro: number;
@@ -110,6 +136,21 @@ const ROTULOS_AGENDA = {
 
 /** Estados em que a visita aconteceu e não precisa de selo na tabela. */
 const ESTADOS_FEITOS = new Set(["concluida", "ficha_entregue", "encerrada"]);
+
+/** Visita que ainda vai acontecer: o checklist ainda não é devido. */
+const ESTADOS_ADIANTE = new Set([
+  "agendada",
+  "confirmada",
+  "a_caminho",
+  "reagendada",
+]);
+
+/** Visita que não aconteceu: não há checklist a cobrar. */
+const ESTADOS_NAO_ACONTECEU = new Set([
+  "cancelada",
+  "nao_realizada_familia",
+  "nao_realizada_profissional",
+]);
 
 const DIAS_DA_SEMANA = [
   "Domingo",
@@ -429,8 +470,35 @@ export function montarRotina(base: BaseEvolucao): ModeloRotina {
     }
   }
 
+  const camposPorDia = dias.map((_, i) =>
+    grupos.reduce(
+      (soma, g) => soma + g.linhas.filter((l) => l.celulas[i] !== null).length,
+      0,
+    ),
+  );
+  const diasChecklist: DiaChecklist[] = dias.map((n, i) => {
+    const visita = porDiaRotina.get(n);
+    const registro = porDiaVisita.get(n);
+    const campos = camposPorDia[i] ?? 0;
+    const estado = visita?.estado ?? null;
+    let situacao: SituacaoChecklistDia;
+    if (registro) situacao = campos > 0 ? "feito" : "sem_campos";
+    else if (estado && ESTADOS_NAO_ACONTECEU.has(estado))
+      situacao = "nao_aconteceu";
+    else if (!estado || ESTADOS_ADIANTE.has(estado)) situacao = "adiante";
+    else situacao = "falta";
+    return {
+      diaNumero: n,
+      data: colunas[i]?.data ?? null,
+      visitaId: visita?.visitaId ?? registro?.visitaId ?? null,
+      situacao,
+      campos,
+    };
+  });
+
   return {
     colunas,
+    diasChecklist,
     agenda,
     grupos,
     diasComRegistro: base.visitas.length,

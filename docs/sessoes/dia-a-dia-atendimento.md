@@ -62,3 +62,18 @@ Seis cenários do roteiro local (`tests/agente/local/roteiro-local.test.ts`) fal
 2. **C16, C27 e V30 (cadência e retomada), defeito do sistema.** O fluxo 3 consulta a janela de 24 horas da API oficial antes de todo retorno, em qualquer canal, e fora dela só tenta modelo aprovado pela Meta. A cadência sai sempre com 24 horas ou mais de silêncio, então no número comum (UAZAPI) ela não sai, ao contrário do que o PRD 4.1 diz. Não foi escondido no teste: os três casos declaram a lacuna (`LACUNA_JANELA_UAZAPI` em `tests/agente/lib/casos-agenda.ts`) e o PRD ganhou o O-18. Quando o fluxo 3 passar a olhar o canal, o teste local acusa a lacuna resolvida.
 
 Resultado: `pnpm vitest run tests/agente` 87 de 87; `node --test n8n/build.test.mjs` 408 de 408.
+
+## Segunda rodada: cobertura do checklist, aviso e dados de teste (07/10/2026)
+
+Pedido do cliente depois de testar com famílias de teste do Supabase: a evolução mostrava "Campos sem registro em nenhum dia (82)" e pedia para digitar à mão pressão, temperatura, frequências e esforço respiratório, que já existem no checklist. Causa: os seeds de teste gravavam o registro de cada dia como `{"bloco_2": {...}}`, formato que não é o do DOC 2, então o agregador da evolução lia tudo como vazio. O checklist real da enfermeira grava no formato certo e a evolução o lê normalmente.
+
+O que mudou:
+
+1. **Dados de teste no formato do DOC 2.** `supabase/seed.sql` (Jade) e `supabase/dados/demo_telas_seed.sql` passam a gravar os 165 registros com todos os blocos e campos, o recém-nascido por bebê (gemelares incluídos) e o bloco do último dia pelos dias contratados. Cada registro cumpre os obrigatórios do checklist (conferido com `pendenciasParaConcluir` sobre o banco carregado).
+2. **Reparo único para bancos de teste que já têm o formato antigo:** `supabase/dados/demo_corrigir_registros.sql`. Troca só `dados`, no lugar; desliga a trava de append-only dentro da transação e a religa antes do fim; só toca registro de "Família Teste" sem adendo; deixa a auditoria ligada. Testado contra um banco montado com os seeds antigos (162 regravados, 3 com adendo mantidos). **Precisa de revisão humana antes de rodar** (CLAUDE.md: apagar ou alterar dado). Só em ambiente de teste.
+3. **Aviso na evolução** quando nenhum dia tem checklist: "Os checklists dessa família ainda não foram registrados", com link para ver quais dias faltam. O bloco de campos digitados à mão passa a se chamar "O que o checklist ainda não trouxe" e diz que o ideal é a enfermeira preencher antes.
+4. **Painel "Checklist de cada dia"** no dia a dia: um cartão por dia (Feito, Falta preencher, Sem campos, Ainda não chegou, Não aconteceu) com o número de campos e link para abrir a visita.
+5. **Sem nenhum registro:** o painel mostra "O checklist é preenchido pela enfermeira, na visita", com os quatro passos (Hoje, Cheguei, preencher e assinar, Saí da casa). **Com registro:** barra de cobertura ("X de Y campos") e, recolhido, "Ver o que falta, bloco a bloco", com os campos que ninguém marcou em etiquetas. Substitui a lista de texto corrido.
+6. **Duas famílias de demonstração novas** no modo demonstração: "Família Teste Violeta" (registros sem nenhum campo do checklist) e "Família Teste Jasmim" (checklist parcial, com seis blocos em branco).
+
+Fora desta rodada: o tour guiado por função (`docs/sessoes/tour-guiado.md`) e a revisão de linguagem técnica nas telas.

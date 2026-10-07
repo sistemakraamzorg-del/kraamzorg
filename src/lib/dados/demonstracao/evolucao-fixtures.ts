@@ -151,6 +151,10 @@ interface CasoDemo {
   /** Plano: 6 ou 12 dias, 3 ou 6 horas por dia. */
   dias: number;
   horas: number;
+  /** Registros sem nenhum campo do DOC 2 (o que um dado de teste antigo deixava): a evolução nasce vazia. */
+  semChecklist?: boolean;
+  /** Blocos do checklist que ninguém marcou em dia nenhum (cobertura parcial). */
+  blocosEmBranco?: string[];
 }
 
 /** Variação de poucos minutos na chegada e na saída, para a tabela não parecer carimbada. */
@@ -310,6 +314,16 @@ function registroDoDia(
   return dados;
 }
 
+/** Tira do registro os blocos que o caso deixa em branco. */
+function semBlocos(
+  dados: Record<string, unknown>,
+  blocos: string[] = [],
+): Record<string, unknown> {
+  const copia = { ...dados };
+  for (const bloco of blocos) delete copia[bloco];
+  return copia;
+}
+
 export function criarLojaEvolucao(): LojaEvolucao {
   const hoje = dataBrasilia(0);
   const casos: CasoDemo[] = [
@@ -352,6 +366,28 @@ export function criarLojaEvolucao(): LojaEvolucao {
       comLesao: false,
       dias: 12,
       horas: 6,
+    },
+    {
+      n: 5,
+      familia: "Família Teste Violeta",
+      gemelar: false,
+      concluidoHa: 0,
+      comContatos: true,
+      comLesao: false,
+      dias: 6,
+      horas: 3,
+      semChecklist: true,
+    },
+    {
+      n: 6,
+      familia: "Família Teste Jasmim",
+      gemelar: false,
+      concluidoHa: 0,
+      comContatos: true,
+      comLesao: true,
+      dias: 6,
+      horas: 3,
+      blocosEmBranco: ["2.9", "2.10", "2.11", "2.12", "6", "7"],
     },
   ];
   const profissional = {
@@ -470,9 +506,15 @@ export function criarLojaEvolucao(): LojaEvolucao {
         checkinEm: instanteBrasilia(data, chegada),
         checkoutEm: instanteBrasilia(data, saida),
         estado: "ficha_entregue",
-        dados: registroDoDia(dia, data, chegada, bebeIds, caso, caso.n === 1),
-        resumoDescritivo:
-          dia === dias
+        dados: caso.semChecklist
+          ? {}
+          : semBlocos(
+              registroDoDia(dia, data, chegada, bebeIds, caso, caso.n === 1),
+              caso.blocosEmBranco,
+            ),
+        resumoDescritivo: caso.semChecklist
+          ? null
+          : dia === dias
             ? "Último dia: família segura na rotina, orientações de alta revisadas."
             : `Dia ${dia}: família bem, rotina combinada para o próximo encontro.`,
         assinadoEm: instanteBrasilia(data, somarMinutos(saida, 10)),
