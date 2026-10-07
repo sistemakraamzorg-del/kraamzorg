@@ -8,7 +8,7 @@ import {
   type IdRota,
 } from "@/lib/navegacao";
 import { minutosDoTour, montarTour, rotasDoTour } from "./montar";
-import { tituloDoTour } from "./passos";
+import { TELAS_EM_DETALHE, tituloDoTour } from "./passos";
 
 const ROTAS_DO_PAINEL = (Object.keys(ROTAS) as IdRota[]).filter(
   (id) => ROTAS[id].casca === "app",
@@ -88,18 +88,22 @@ describe("tour do admin", () => {
     );
     expect(new Set(rotas).size).toBe(rotas.length);
 
-    const doPortal = passos.filter((p) => p.grupo === "Portal da enfermeira");
-    expect(doPortal.length).toBeGreaterThan(0);
-    const primeiroDoPortal = passos.indexOf(doPortal[0]!);
-    // Depois do portal, só o encerramento.
-    expect(passos.slice(primeiroDoPortal + doPortal.length)).toHaveLength(1);
+    // Do primeiro passo do portal em diante, só telas do portal (com as
+    // chamadas delas e o checklist) e, no fim, o encerramento.
+    const primeiroDoPortal = passos.findIndex(
+      (p) => p.grupo === "Portal da enfermeira",
+    );
+    expect(primeiroDoPortal).toBeGreaterThan(0);
+    const doPortal = passos.slice(primeiroDoPortal, -1);
     expect(passos.at(-1)!.tipo).toBe("encerramento");
-    // Os passos do portal são as telas da casca da enfermeira e o checklist.
-    expect(
-      doPortal
-        .filter((p) => p.tipo === "tela" && p.rota)
-        .every((p) => ROTAS[p.rota!].casca === "enfermeira"),
-    ).toBe(true);
+    for (const p of doPortal) {
+      if (p.rota) expect(ROTAS[p.rota].casca, p.id).toBe("enfermeira");
+      else expect(p.id).toBe("checklist-visita");
+    }
+    // Antes do portal, só telas do painel.
+    for (const p of passos.slice(1, primeiroDoPortal)) {
+      expect(ROTAS[p.rota!].casca, p.id).toBe("app");
+    }
     expect(doPortal.some((p) => p.id === "checklist-visita")).toBe(true);
   });
 
@@ -174,5 +178,58 @@ describe("abertura e tempo", () => {
       const ids = montarTour(papeis).map((p) => p.id);
       expect(new Set(ids).size).toBe(ids.length);
     }
+  });
+});
+
+describe("mini-tour das telas principais", () => {
+  it.each(PAPEIS.map((p) => [p]))(
+    "%s: cada tela principal ganha de 2 a 4 chamadas, logo depois do passo da tela",
+    (papel: Papel) => {
+      const passos = montarTour([papel]);
+      for (const caminho of TELAS_EM_DETALHE[papel]) {
+        const i = passos.findIndex(
+          (p) => p.tipo === "tela" && p.rota && p.caminho === caminho,
+        );
+        expect(i, caminho).toBeGreaterThan(0);
+        let n = 0;
+        while (passos[i + 1 + n]?.tipo === "detalhe") n++;
+        expect(n, caminho).toBeGreaterThanOrEqual(2);
+        expect(n, caminho).toBeLessThanOrEqual(4);
+        for (const detalhe of passos.slice(i + 1, i + 1 + n)) {
+          expect(detalhe.caminho).toBe(caminho);
+          expect(detalhe.alvoNaTela).toMatch(
+            new RegExp(`^${caminho}:[a-z-]+$`),
+          );
+          expect(detalhe.grupo).toBe(passos[i]!.titulo);
+        }
+      }
+    },
+  );
+
+  it.each(PAPEIS.map((p) => [p]))(
+    "%s: as outras telas não têm chamadas",
+    (papel: Papel) => {
+      const principais = new Set<string>(TELAS_EM_DETALHE[papel]);
+      for (const passo of montarTour([papel])) {
+        if (passo.tipo === "detalhe")
+          expect(principais.has(passo.caminho!), passo.id).toBe(true);
+      }
+    },
+  );
+
+  it("o admin tem o mini-tour das 8 telas principais", () => {
+    const comChamada = new Set(
+      montarTour(["diretoria"])
+        .filter((p) => p.tipo === "detalhe")
+        .map((p) => p.caminho),
+    );
+    expect(comChamada.size).toBe(8);
+  });
+
+  it("o passo do checklist destaca os botões do cartão da visita", () => {
+    const checklist = montarTour(["enfermeira"]).find(
+      (p) => p.id === "checklist-visita",
+    );
+    expect(checklist?.alvoNaTela).toBe("/hoje:botoes");
   });
 });

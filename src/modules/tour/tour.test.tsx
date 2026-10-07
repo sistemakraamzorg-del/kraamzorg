@@ -76,13 +76,21 @@ describe("tour guiado", () => {
     // O passo 1 é o Início, a tela atual: não navega.
     expect(empurrar).not.toHaveBeenCalled();
 
-    await usuario.click(screen.getByRole("button", { name: /Próximo/ }));
-    expect(titulo()).toBe(passos[2]!.titulo);
-    expect(empurrar).toHaveBeenCalledWith(passos[2]!.caminho);
+    // As chamadas do Início ficam na mesma tela; o primeiro passo de outra
+    // tela navega para ela.
+    const outraTela = passos.findIndex(
+      (p, i) => i > 1 && p.caminho && p.caminho !== "/inicio",
+    );
+    for (let i = 2; i <= outraTela; i++) {
+      await usuario.click(screen.getByRole("button", { name: /Próximo/ }));
+      expect(titulo()).toBe(passos[i]!.titulo);
+      if (i < outraTela) expect(empurrar).not.toHaveBeenCalled();
+    }
+    expect(empurrar).toHaveBeenCalledWith(passos[outraTela]!.caminho);
     expect(dialogo()).toHaveFocus();
 
     await usuario.click(screen.getByRole("button", { name: /Voltar/ }));
-    expect(titulo()).toBe(passos[1]!.titulo);
+    expect(titulo()).toBe(passos[outraTela - 1]!.titulo);
   });
 
   it("as setas do teclado navegam e Esc fecha, devolvendo o foco a quem abriu", async () => {
@@ -257,8 +265,12 @@ describe("tour guiado", () => {
     caminho = "/hoje";
     montar(["enfermeira"]);
     await usuario.click(screen.getByRole("button", { name: /Fazer o tour/ }));
-    fireEvent.keyDown(dialogo(), { key: "ArrowRight" });
-    fireEvent.keyDown(dialogo(), { key: "ArrowRight" });
+    const checklist = montarTour(["enfermeira"]).findIndex(
+      (p) => p.id === "checklist-visita",
+    );
+    for (let i = 0; i < checklist; i++) {
+      fireEvent.keyDown(dialogo(), { key: "ArrowRight" });
+    }
     expect(titulo()).toBe("Checklist da visita");
     const lista = dialogo().querySelector("ol");
     expect(lista?.querySelectorAll("li")).toHaveLength(4);

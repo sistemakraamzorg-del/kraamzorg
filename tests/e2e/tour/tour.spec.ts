@@ -68,6 +68,16 @@ function telaEsperada(passo: Passo): RegExp {
   return new RegExp(`(${caminhos.map(escapar).join("|")})(/[^?]*)?(\\?.*)?$`);
 }
 
+/**
+ * Chamadas do mini-tour sem o elemento na tela de demonstração (lista
+ * vazia): o cartão fica no centro, sem destaque. Toda outra chamada precisa
+ * achar o seu `data-tour` na tela.
+ */
+const SEM_ALVO_NA_DEMONSTRACAO: Partial<Record<Papel, string[]>> = {
+  // O marketing não tem manual publicado nos dados de demonstração.
+  marketing: ["detalhe:manuais:leitura", "detalhe:manuais:lista"],
+};
+
 async function axeNoCartao(page: Page): Promise<void> {
   const resultado = await new AxeBuilder({ page }).include(CARTAO).analyze();
   const graves = resultado.violations.filter(
@@ -99,6 +109,17 @@ for (const perfil of PERFIS) {
         await expect(page).toHaveURL(telaEsperada(passo));
       }
       await semRolagemLateralNoTour(page, perfil.papel);
+      if (passo.alvoNaTela) {
+        const semAlvo = (SEM_ALVO_NA_DEMONSTRACAO[perfil.papel] ?? []).includes(
+          passo.id,
+        );
+        // O destaque acende em volta do elemento da tela (ou não, quando a
+        // lista está vazia).
+        await expect(
+          page.locator("[data-tour-destaque]"),
+          `destaque de ${passo.id}`,
+        ).toHaveCount(semAlvo ? 0 : 1);
+      }
       if (i === 0 || i === meio || i === passos.length - 1) {
         await axeNoCartao(page);
       }
