@@ -20,7 +20,7 @@ function mensagemErro(erro: unknown): string {
       return "Essa tarefa não existe mais. Atualize a tela.";
     }
     if (erro.codigo === "funcao_pendente") {
-      return "O registro do envio ainda não está pronto no banco. Nada foi alterado; avise a equipe técnica.";
+      return "Registrar o envio ainda não está disponível no sistema. Nada foi alterado; avise a equipe técnica.";
     }
   }
   return "Não foi possível agora. Tente de novo em instantes.";

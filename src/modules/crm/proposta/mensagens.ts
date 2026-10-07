@@ -52,10 +52,10 @@ export function fraseErroProposta(erro: unknown, acao: string): string {
   if (codigo && FRASES[codigo]) return FRASES[codigo];
   if (erro instanceof ErroRepositorio) {
     if (erro.codigo === "sem_permissao") {
-      return "O banco recusou: a proposta pede o seu papel comercial ou da diretoria e o código do aplicativo (MFA).";
+      return "A proposta abre só para o comercial e a diretoria, com o código do aplicativo de verificação. Entre de novo com o código e tente outra vez.";
     }
     if (erro.codigo === "funcao_pendente") {
-      return "O banco ainda não tem essa função. Avise a equipe técnica; nada foi alterado.";
+      return "Esta ação ainda não está disponível no sistema. Nada foi alterado; avise a equipe técnica.";
     }
   }
   return `Não foi possível ${acao} agora. Nada foi alterado; tente de novo em instantes.`;

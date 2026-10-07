@@ -44,7 +44,7 @@ const FRASES: Record<string, string> = {
 };
 
 const FRASE_SEM_PERMISSAO =
-  "O seu papel não permite esta etapa. As notas são do financeiro e da diretoria.";
+  "A sua função não permite esta etapa. As notas são do financeiro e da diretoria.";
 
 export const FRASE_CONFLITO_NOTA =
   "Outra pessoa alterou esta nota enquanto você editava. Atualize a tela para ver o estado atual.";
@@ -56,7 +56,7 @@ export function fraseErroNota(erro: unknown, acao: string): string {
   if (erro instanceof ErroRepositorio) {
     if (erro.codigo === "sem_permissao") return FRASE_SEM_PERMISSAO;
     if (erro.codigo === "funcao_pendente") {
-      return "O banco ainda não tem essa função. Avise a equipe técnica; nada foi alterado.";
+      return "Esta ação ainda não está disponível no sistema. Nada foi alterado; avise a equipe técnica.";
     }
   }
   return `Não foi possível ${acao} agora. Nada foi alterado; tente de novo em instantes.`;

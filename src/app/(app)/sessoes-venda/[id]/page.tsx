@@ -386,7 +386,8 @@ export default async function PaginaSessaoVenda({
               ) : leitura.situacao === "mfa" ? (
                 <div className="flex flex-col gap-3">
                   <p className="text-corpo text-texto">
-                    A gravação pede o código do aplicativo (MFA) antes de abrir.
+                    A gravação pede o código do aplicativo de verificação antes
+                    de abrir.
                   </p>
                   <Botao
                     asChild

@@ -92,8 +92,8 @@ export default async function PaginaConfiguracoes({
         }
       />
       <Nota className="mt-3.5">
-        <b>Regra de negócio não mora no código.</b> Tudo nesta tela é editável
-        pela Kraamzorg sem precisar de deploy.
+        <b>Tudo nesta tela a própria Kraamzorg pode mudar,</b> sem pedir nada à
+        equipe técnica.
       </Nota>
       <div className="mt-3.5">
         <AbasConfiguracoes abas={abas} ativa={aba} />
@@ -120,7 +120,7 @@ export default async function PaginaConfiguracoes({
         ) : (
           <EstadoVazio
             ilustracao={<ChaveDeCasa tamanho={104} />}
-            titulo="Esta seção não está disponível para o seu papel"
+            titulo="Esta seção não faz parte da sua função"
             texto="Volte para os termos de alerta ou fale com a diretoria se precisar de mais acesso."
           />
         )}

@@ -116,9 +116,11 @@ export function FaixaAlerta({
       <div>
         <p className={cn("text-3 leading-snug font-semibold", iconeClasse)}>
           {codigo ? (
-            <span className="text-apoio mr-2 font-mono font-medium">
-              {codigo}
-            </span>
+            <>
+              <span className="text-apoio mr-1 font-mono font-medium">
+                {codigo}
+              </span>{" "}
+            </>
           ) : null}
           {titulo}
         </p>

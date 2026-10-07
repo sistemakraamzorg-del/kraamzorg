@@ -41,7 +41,9 @@ async function sessaoDaChamada() {
 function resposta(erro: unknown): NextResponse {
   if (erro instanceof ErroRepositorio && erro.codigo === "sem_permissao") {
     return NextResponse.json(
-      { erro: "Confirme o código do aplicativo (MFA) e tente de novo." },
+      {
+        erro: "Confirme o código do aplicativo de verificação e tente de novo.",
+      },
       { status: 403 },
     );
   }

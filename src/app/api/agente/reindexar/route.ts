@@ -39,7 +39,9 @@ export async function POST() {
   // MFA e ainda não confirmou o código não aciona nada por aqui.
   if (precisaMfa(sessao)) {
     return NextResponse.json(
-      { erro: "Confirme o código do aplicativo (MFA) e tente de novo." },
+      {
+        erro: "Confirme o código do aplicativo de verificação e tente de novo.",
+      },
       { status: 403 },
     );
   }

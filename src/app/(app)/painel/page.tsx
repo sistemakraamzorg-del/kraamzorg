@@ -64,9 +64,9 @@ export default async function PaginaPainel({
             situacao={tela.situacao}
             caminho="/painel"
             aalPossivel={usuario.aalPossivel}
-            motivoMfa="O painel reúne números de vendas e de dinheiro, por isso pede o código do aplicativo (MFA) antes de abrir."
+            motivoMfa="O painel reúne números de vendas e de dinheiro, por isso pede o código do aplicativo de verificação antes de abrir."
             motivoPapel="O painel executivo é da diretoria."
-            tituloPapel="O painel não está com o seu papel"
+            tituloPapel="O painel não faz parte da sua função"
           />
         )}
       </div>

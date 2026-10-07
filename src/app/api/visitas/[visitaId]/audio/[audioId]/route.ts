@@ -32,7 +32,7 @@ export async function GET(
   }
   if (sessao.aal !== "aal2") {
     return NextResponse.json(
-      { erro: "Confirme o código do aplicativo (MFA)." },
+      { erro: "Confirme o código do aplicativo de verificação." },
       { status: 403 },
     );
   }

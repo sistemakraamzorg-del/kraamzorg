@@ -61,7 +61,7 @@ export default async function PaginaOcorrencias({
         ) : tela.situacao === "sem_permissao" ? (
           <FaixaAlerta
             variante="info"
-            titulo="As ocorrências não estão com o seu papel"
+            titulo="As ocorrências não fazem parte da sua função"
           >
             As ocorrências são da coordenação e da diretoria.
           </FaixaAlerta>

@@ -129,7 +129,7 @@ export default async function PaginaTalentos() {
                 strokeWidth={1.75}
               />
               Esta tela guarda dados de candidatas, por isso pede o código do
-              aplicativo (MFA) antes de abrir.
+              aplicativo de verificação antes de abrir.
             </p>
             <Botao
               asChild
@@ -169,7 +169,7 @@ export default async function PaginaTalentos() {
             >
               {lista.paginaPublicaAtiva
                 ? "Quem se candidatar pelo site entra aqui como Nova."
-                : "Por enquanto ninguém se candidata pelo site. Para abrir, a diretoria liga o parâmetro da página de candidatura em Configurações."}
+                : "Por enquanto ninguém se candidata pelo site. Para abrir, a diretoria liga a página de candidatura em Configurações."}
             </FaixaAlerta>
             {lista.candidatas.length === 0 ? (
               <EstadoVazio

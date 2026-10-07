@@ -73,9 +73,9 @@ export default async function PaginaExtrato({
             situacao={tela.situacao}
             caminho="/financeiro/extrato"
             aalPossivel={usuario.aalPossivel}
-            motivoMfa="O extrato do banco é dado financeiro, por isso pede o código do aplicativo (MFA) antes de abrir."
+            motivoMfa="O extrato do banco é dado financeiro, por isso pede o código do aplicativo de verificação antes de abrir."
             motivoPapel="O extrato do banco é do financeiro e da diretoria."
-            tituloPapel="O extrato não está com o seu papel"
+            tituloPapel="O extrato não faz parte da sua função"
           />
         )}
       </div>

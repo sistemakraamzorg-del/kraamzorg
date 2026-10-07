@@ -56,7 +56,7 @@ export default async function PaginaNotas({
                 strokeWidth={1.75}
               />
               As notas mostram valores, pagadores e documentos fiscais, por isso
-              pedem o código do aplicativo (MFA) antes de abrir.
+              pedem o código do aplicativo de verificação antes de abrir.
             </p>
             <Botao
               asChild
@@ -74,10 +74,10 @@ export default async function PaginaNotas({
         ) : tela.situacao === "sem_permissao" ? (
           <FaixaAlerta
             variante="info"
-            titulo="As notas não estão com o seu papel"
+            titulo="As notas não fazem parte da sua função"
           >
-            As notas fiscais são do financeiro e da diretoria. O comercial vê o
-            status da nota no contrato da família.
+            As notas fiscais são do financeiro e da diretoria. O comercial vê a
+            situação da nota no contrato da família.
           </FaixaAlerta>
         ) : (
           <ListaNotasTela lista={tela.lista} estado={estado} />

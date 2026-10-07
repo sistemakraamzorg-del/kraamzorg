@@ -21,11 +21,11 @@ import {
 function mensagemErro(erro: unknown): string {
   if (erro instanceof ErroRepositorio) {
     if (erro.codigo === "sem_permissao") {
-      return "Só a diretoria altera esta regra. Se você é diretoria, confirme o código do aplicativo (MFA).";
+      return "Só a diretoria altera esta regra. Se você é da diretoria, entre de novo com o código do aplicativo de verificação.";
     }
     if (erro.codigo === "recusado") return erro.message;
     if (erro.codigo === "funcao_pendente") {
-      return "O banco ainda não tem essa função (ela está sendo escrita por outra trilha agora). Avise a equipe técnica; nada foi alterado.";
+      return "Esta ação ainda não está disponível no sistema. Nada foi alterado; avise a equipe técnica.";
     }
   }
   return "Não foi possível salvar agora. Tente de novo em instantes.";

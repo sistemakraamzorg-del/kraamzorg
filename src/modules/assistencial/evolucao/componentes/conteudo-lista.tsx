@@ -42,7 +42,7 @@ export async function ConteudoListaEvolucoes({
     return (
       <FaixaAlerta
         variante="info"
-        titulo="As evoluções não estão com o seu papel"
+        titulo="As evoluções não fazem parte da sua função"
       >
         As evoluções são da enfermeira que atende, da coordenação e da
         diretoria.

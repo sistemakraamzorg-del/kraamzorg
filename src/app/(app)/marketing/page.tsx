@@ -71,7 +71,7 @@ export default async function PaginaMarketing({
                 strokeWidth={1.75}
               />
               O marketing mostra receita e custo, por isso pede o código do
-              aplicativo (MFA) antes de abrir.
+              aplicativo de verificação antes de abrir.
             </p>
             <Botao
               asChild
@@ -116,7 +116,7 @@ export default async function PaginaMarketing({
               ) : (
                 <FaixaAlerta
                   variante="info"
-                  titulo="O relatório não está com o seu papel"
+                  titulo="O relatório não faz parte da sua função"
                 >
                   O relatório é do marketing, da diretoria e do financeiro. Os
                   links por canal aparecem na outra aba.

@@ -73,7 +73,7 @@ export default async function PaginaParceiros() {
                 strokeWidth={1.75}
               />
               Esta tela cruza médicos e famílias, por isso pede o código do
-              aplicativo (MFA) antes de abrir.
+              aplicativo de verificação antes de abrir.
             </p>
             <Botao
               asChild
@@ -94,7 +94,7 @@ export default async function PaginaParceiros() {
             titulo={
               falhou
                 ? "Os parceiros não abriram agora"
-                : "Os parceiros não estão com o seu papel"
+                : "Os parceiros não fazem parte da sua função"
             }
           >
             {falhou

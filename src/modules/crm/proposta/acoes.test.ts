@@ -176,7 +176,7 @@ describe("link do formulário (P30 itens 2 e 3)", () => {
     );
   });
 
-  it("em AAL1 o banco recusa e a tela explica o MFA", async () => {
+  it("em AAL1 o banco recusa e a tela pede o código do aplicativo de verificação", async () => {
     await entrar("Perfil Teste Comercial", "aal1");
     const resultado = await acaoGerarLinkFormulario(
       "00000000-0000-4000-8000-000000000000",
@@ -184,7 +184,7 @@ describe("link do formulário (P30 itens 2 e 3)", () => {
     );
     expect(resultado).toEqual({
       ok: false,
-      erro: expect.stringMatching(/MFA/),
+      erro: expect.stringMatching(/código do aplicativo de verificação/),
     });
   });
 });

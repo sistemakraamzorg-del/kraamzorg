@@ -56,7 +56,7 @@ const FRASES: Record<string, string> = {
     "O valor recebido é menor que o da cobrança. Confira o comprovante; a baixa parcial não existe por aqui.",
   situacao_invalida: "Esse filtro não existe. Escolha outro.",
   sem_permissao:
-    "O seu papel não permite esta etapa. Fale com a diretoria se precisar dela.",
+    "A sua função não permite esta etapa. Fale com a diretoria se precisar dela.",
 };
 
 const FRASES_SERVICO: Record<string, string> = {
@@ -95,7 +95,7 @@ export function fraseErroContrato(erro: unknown, acao: string): string {
   if (erro instanceof ErroRepositorio) {
     if (erro.codigo === "sem_permissao") return FRASES.sem_permissao!;
     if (erro.codigo === "funcao_pendente") {
-      return "O banco ainda não tem essa função. Avise a equipe técnica; nada foi alterado.";
+      return "Esta ação ainda não está disponível no sistema. Nada foi alterado; avise a equipe técnica.";
     }
   }
   return `Não foi possível ${acao} agora. Nada foi alterado; tente de novo em instantes.`;

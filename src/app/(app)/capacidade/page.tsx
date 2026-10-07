@@ -22,7 +22,10 @@ export default async function PaginaCapacidade() {
   try {
     tela = await obterTelaCapacidade(usuario);
   } catch (erro) {
-    console.error("[tela-erro] /capacidade", erro instanceof Error ? erro.message : erro);
+    console.error(
+      "[tela-erro] /capacidade",
+      erro instanceof Error ? erro.message : erro,
+    );
     tela = null;
   }
 
@@ -50,7 +53,7 @@ export default async function PaginaCapacidade() {
                 strokeWidth={1.75}
               />
               A capacidade mostra a carga da equipe, por isso pede o código do
-              aplicativo (MFA) antes de abrir.
+              aplicativo de verificação antes de abrir.
             </p>
             <Botao
               asChild
@@ -68,7 +71,7 @@ export default async function PaginaCapacidade() {
         ) : tela.situacao === "sem_permissao" ? (
           <FaixaAlerta
             variante="info"
-            titulo="A capacidade não está com o seu papel"
+            titulo="A capacidade não faz parte da sua função"
           >
             A capacidade é da coordenação e da diretoria.
           </FaixaAlerta>

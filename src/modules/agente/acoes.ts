@@ -30,7 +30,7 @@ import { CLASSIFICACOES_NAO_LEAD } from "./loja-extra";
 function mensagemErro(erro: unknown, contexto: string): string {
   if (erro instanceof ErroRepositorio) {
     if (erro.codigo === "sem_permissao") {
-      return "O banco recusou: confirme o papel e, se precisar, o código do aplicativo (MFA), e tente de novo.";
+      return "Seu acesso não permite fazer isso. Se deveria permitir, entre de novo com o código do aplicativo de verificação e tente outra vez.";
     }
     if (erro.codigo === "nao_encontrado") {
       return "Essa conversa não está mais disponível. Atualize a tela.";
@@ -39,7 +39,7 @@ function mensagemErro(erro: unknown, contexto: string): string {
       return `Não deu para ${contexto}. Atualize a tela e confira o estado atual.`;
     }
     if (erro.codigo === "funcao_pendente") {
-      return "O banco ainda não tem essa função (ela está sendo escrita por outra trilha agora). Avise a equipe técnica; nada foi alterado.";
+      return "Esta ação ainda não está disponível no sistema. Nada foi alterado; avise a equipe técnica.";
     }
   }
   return `Não foi possível ${contexto} agora. Tente de novo em instantes.`;

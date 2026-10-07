@@ -12,11 +12,11 @@ function mensagemErro(erro: unknown, contexto: "mesclar" | "vincular"): string {
   if (erro instanceof ErroRepositorio) {
     if (erro.codigo === "funcao_pendente") {
       return contexto === "mesclar"
-        ? "O banco ainda não tem a função de mesclagem. Avise a equipe técnica; nada foi alterado."
-        : "O banco ainda não tem a função de vínculo de nova gestação. Avise a equipe técnica; nada foi alterado.";
+        ? "Unir dois cadastros ainda não está disponível no sistema. Nada foi alterado; avise a equipe técnica."
+        : "Ligar uma nova gestação a um cadastro ainda não está disponível no sistema. Nada foi alterado; avise a equipe técnica.";
     }
     if (erro.codigo === "sem_permissao") {
-      return "O banco recusou: confirme o papel e tente de novo.";
+      return "Seu acesso não permite fazer isso. Se deveria permitir, fale com a diretoria.";
     }
     if (erro.codigo === "recusado") {
       return contexto === "mesclar"

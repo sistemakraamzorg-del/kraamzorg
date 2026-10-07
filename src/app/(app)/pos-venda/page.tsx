@@ -46,7 +46,7 @@ export default async function PaginaPosVenda({
         ) : tela.situacao === "sem_permissao" ? (
           <FaixaAlerta
             variante="info"
-            titulo="O pós-venda não está com o seu papel"
+            titulo="O pós-venda não faz parte da sua função"
           >
             O pós-venda é da coordenação e da diretoria.
           </FaixaAlerta>

@@ -56,7 +56,7 @@ const PESQUISA: Record<string, string> = {
 };
 
 const FRASE_SEM_PERMISSAO =
-  "O seu papel não permite esta etapa. Fale com a coordenação se precisar dela.";
+  "A sua função não permite esta etapa. Fale com a coordenação se precisar dela.";
 export const FRASE_CONFLITO_OCORRENCIA =
   "Outra pessoa alterou esta ocorrência enquanto você editava. Atualize a tela para ver a versão mais recente antes de salvar.";
 
@@ -72,7 +72,7 @@ function frase(
   if (erro instanceof ErroRepositorio) {
     if (erro.codigo === "sem_permissao") return FRASE_SEM_PERMISSAO;
     if (erro.codigo === "funcao_pendente") {
-      return "O banco ainda não tem essa função. Avise a equipe técnica; nada foi alterado.";
+      return "Esta ação ainda não está disponível no sistema. Nada foi alterado; avise a equipe técnica.";
     }
   }
   return `Não foi possível ${acao} agora. Nada foi alterado; tente de novo em instantes.`;

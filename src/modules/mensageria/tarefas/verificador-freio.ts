@@ -76,7 +76,7 @@ const FRASES: Record<string, string> = {
   fora_da_janela:
     "Agora está fora da janela de horário de envio. Tente de novo dentro dela.",
   funcao_pendente:
-    "A verificação do freio ainda não está pronta no banco. Nada foi enviado.",
+    "Não deu para conferir o freio desta família agora. Por segurança, nada foi enviado; avise a equipe técnica.",
   indisponivel:
     "Não deu para confirmar se pode enviar agora. Tente de novo em instantes.",
 };
@@ -84,7 +84,7 @@ const FRASES: Record<string, string> = {
 export function motivoLegivel(codigo: string): string {
   return (
     FRASES[codigo] ??
-    "O banco recusou o envio para essa família. Nada foi enviado."
+    "O envio para essa família não foi liberado. Nada foi enviado."
   );
 }
 

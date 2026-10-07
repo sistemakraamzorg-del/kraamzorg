@@ -43,7 +43,9 @@ export async function POST(
   }
   if (sessao.aal !== "aal2") {
     return NextResponse.json(
-      { erro: "Confirme o código do aplicativo (MFA) e tente de novo." },
+      {
+        erro: "Confirme o código do aplicativo de verificação e tente de novo.",
+      },
       { status: 403 },
     );
   }

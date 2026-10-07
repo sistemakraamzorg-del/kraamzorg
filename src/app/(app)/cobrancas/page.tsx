@@ -56,7 +56,7 @@ export default async function PaginaCobrancas({
                 strokeWidth={1.75}
               />
               As cobranças mostram valores e pagamentos, por isso pedem o código
-              do aplicativo (MFA) antes de abrir.
+              do aplicativo de verificação antes de abrir.
             </p>
             <Botao
               asChild
@@ -74,10 +74,10 @@ export default async function PaginaCobrancas({
         ) : tela.situacao === "sem_permissao" ? (
           <FaixaAlerta
             variante="info"
-            titulo="As cobranças não estão com o seu papel"
+            titulo="As cobranças não fazem parte da sua função"
           >
-            As cobranças são do financeiro e da diretoria. O comercial vê o
-            status de cada uma no contrato da família.
+            As cobranças são do financeiro e da diretoria. O comercial vê a
+            situação de cada uma no contrato da família.
           </FaixaAlerta>
         ) : (
           <ListaCobrancasTela

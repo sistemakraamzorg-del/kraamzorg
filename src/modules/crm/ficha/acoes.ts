@@ -25,7 +25,7 @@ import { ROTULO_ESTADO_SENSIVEL } from "./rotulos";
 function mensagemErro(erro: unknown, contexto: string): string {
   if (erro instanceof ErroRepositorio) {
     if (erro.codigo === "sem_permissao") {
-      return "O banco recusou: confirme o papel e, se precisar, o código do aplicativo (MFA), e tente de novo.";
+      return "Seu acesso não permite fazer isso. Se deveria permitir, entre de novo com o código do aplicativo de verificação e tente outra vez.";
     }
     if (erro.codigo === "recusado") {
       return `Não deu para ${contexto}. Confira os dados e tente de novo.`;
@@ -34,7 +34,7 @@ function mensagemErro(erro: unknown, contexto: string): string {
       return "Essa família não está mais disponível. Atualize a tela.";
     }
     if (erro.codigo === "funcao_pendente") {
-      return "O banco ainda não tem essa função. Avise a equipe técnica; nada foi alterado.";
+      return "Esta ação ainda não está disponível no sistema. Nada foi alterado; avise a equipe técnica.";
     }
   }
   return `Não foi possível ${contexto} agora. Tente de novo em instantes.`;
@@ -342,7 +342,7 @@ export async function acaoVerDadosContratoCompletos(
   } catch (erro) {
     if (erro instanceof ErroRepositorio && erro.codigo === "sem_permissao") {
       return {
-        erro: "Ver os dados completos exige entrar com o código do aplicativo autenticador (MFA). Se o seu acesso ainda não tem MFA, peça à diretoria para ativar e entre de novo.",
+        erro: "Para ver os dados completos, entre com o código do aplicativo de verificação. Se o seu acesso ainda não usa esse código, peça à diretoria para ativar e entre de novo.",
       };
     }
     return { erro: mensagemErro(erro, "ver os dados completos") };

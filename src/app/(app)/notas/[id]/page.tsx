@@ -61,7 +61,7 @@ export default async function PaginaNota({
                   strokeWidth={1.75}
                 />
                 A nota mostra valores e documentos fiscais, por isso pede o
-                código do aplicativo (MFA) antes de abrir.
+                código do aplicativo de verificação antes de abrir.
               </p>
               <Botao
                 asChild
@@ -79,7 +79,7 @@ export default async function PaginaNota({
           ) : (
             <FaixaAlerta
               variante="info"
-              titulo="As notas não estão com o seu papel"
+              titulo="As notas não fazem parte da sua função"
             >
               As notas fiscais são do financeiro e da diretoria.
             </FaixaAlerta>

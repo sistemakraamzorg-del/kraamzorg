@@ -57,7 +57,7 @@ export default async function PaginaOcorrencia({
           ) : (
             <FaixaAlerta
               variante="info"
-              titulo="Esta ocorrência não está com o seu papel"
+              titulo="Esta ocorrência não faz parte da sua função"
             >
               As ocorrências são da coordenação e da diretoria. A enfermeira vê
               só as que estão sob a responsabilidade dela.

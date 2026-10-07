@@ -90,9 +90,9 @@ export default async function PaginaDespesas({
             situacao={tela.situacao}
             caminho="/financeiro/despesas"
             aalPossivel={usuario.aalPossivel}
-            motivoMfa="As despesas são dado financeiro, por isso pedem o código do aplicativo (MFA) antes de abrir."
+            motivoMfa="As despesas são dado financeiro, por isso pedem o código do aplicativo de verificação antes de abrir."
             motivoPapel="As despesas são da equipe financeira e da diretoria."
-            tituloPapel="As despesas não estão com o seu papel"
+            tituloPapel="As despesas não fazem parte da sua função"
           />
         )}
       </div>

@@ -65,7 +65,7 @@ export default async function PaginaCobranca({
                   strokeWidth={1.75}
                 />
                 A cobrança mostra valores e pagamentos, por isso pede o código
-                do aplicativo (MFA) antes de abrir.
+                do aplicativo de verificação antes de abrir.
               </p>
               <Botao
                 asChild
@@ -83,7 +83,7 @@ export default async function PaginaCobranca({
           ) : (
             <FaixaAlerta
               variante="info"
-              titulo="As cobranças não estão com o seu papel"
+              titulo="As cobranças não fazem parte da sua função"
             >
               As cobranças são do financeiro e da diretoria.
             </FaixaAlerta>

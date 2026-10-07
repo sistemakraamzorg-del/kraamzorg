@@ -82,7 +82,7 @@ export default async function PaginaAcessoFamilia() {
               strokeWidth={1.75}
             />
             Esta tela mostra as famílias com contrato, por isso pede o código do
-            aplicativo (MFA) antes de abrir.
+            aplicativo de verificação antes de abrir.
           </p>
           <Botao
             asChild

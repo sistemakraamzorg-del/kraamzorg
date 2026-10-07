@@ -48,7 +48,7 @@ export default async function PaginaDocumentoEvolucao({
         ) : (
           <FaixaAlerta
             variante="info"
-            titulo="Esta evolução não está com o seu papel"
+            titulo="Esta evolução não faz parte da sua função"
           >
             As evoluções são da enfermeira que atende, da coordenação e da
             diretoria.

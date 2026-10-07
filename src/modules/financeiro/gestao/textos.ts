@@ -95,7 +95,7 @@ export function fraseErroGestao(erro: unknown, oQueTentava: string): string {
   if (codigo && FRASES[codigo]) return FRASES[codigo];
   if (erro instanceof ErroRepositorio) {
     if (erro.codigo === "sem_permissao") {
-      return `Esse passo é do financeiro e da diretoria, com o código do aplicativo (MFA) confirmado. Nada foi alterado.`;
+      return `Esse passo é do financeiro e da diretoria, com o código do aplicativo de verificação confirmado. Nada foi alterado.`;
     }
     if (erro.codigo === "indisponivel") {
       return `Sem conexão com o servidor agora. Nada foi alterado; tente ${oQueTentava} de novo em instantes.`;

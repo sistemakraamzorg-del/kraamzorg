@@ -80,7 +80,7 @@ export default async function PaginaProposta({
                   strokeWidth={1.75}
                 />
                 A proposta mostra valores e dados do contrato, por isso pede o
-                código do aplicativo (MFA) antes de abrir.
+                código do aplicativo de verificação antes de abrir.
               </p>
               <Botao
                 asChild
@@ -105,7 +105,7 @@ export default async function PaginaProposta({
           ) : (
             <FaixaAlerta
               variante="info"
-              titulo="A proposta desta família não está com o seu papel"
+              titulo="A proposta desta família não faz parte da sua função"
             >
               A proposta é do comercial e da diretoria. O financeiro vê a
               proposta quando o contrato existe.

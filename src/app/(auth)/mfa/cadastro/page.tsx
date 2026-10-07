@@ -33,7 +33,7 @@ export default async function PaginaCadastroMfa({
           Proteja o seu acesso
         </h1>
         <p className="text-corpo text-texto">
-          O seu papel vê dados de saúde ou financeiros, então cada entrada pede
+          A sua função vê dados de saúde ou financeiros, então cada entrada pede
           também um código que muda a cada 30 segundos.
         </p>
       </div>
@@ -53,7 +53,7 @@ export default async function PaginaCadastroMfa({
             </li>
             <li>Digite o código de 6 números que aparecer no aplicativo.</li>
           </ol>
-          <figure className="rounded-3 bg-[image:var(--brilho-superficie)] shadow-1 flex flex-col items-center gap-3 p-5">
+          <figure className="rounded-3 shadow-1 flex flex-col items-center gap-3 bg-[image:var(--brilho-superficie)] p-5">
             {/* O QR é um data URI de SVG gerado pelo Supabase Auth: next/image não se aplica. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img

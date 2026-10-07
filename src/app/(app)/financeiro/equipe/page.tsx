@@ -69,9 +69,9 @@ export default async function PaginaEquipe({
             situacao={tela.situacao}
             caminho="/financeiro/equipe"
             aalPossivel={usuario.aalPossivel}
-            motivoMfa="O pagamento da equipe é dado financeiro, por isso pede o código do aplicativo (MFA) antes de abrir."
+            motivoMfa="O pagamento da equipe é dado financeiro, por isso pede o código do aplicativo de verificação antes de abrir."
             motivoPapel="O pagamento da equipe é do financeiro e da diretoria. Cada enfermeira vê só o próprio."
-            tituloPapel="O pagamento da equipe não está com o seu papel"
+            tituloPapel="O pagamento da equipe não faz parte da sua função"
           />
         )}
       </div>

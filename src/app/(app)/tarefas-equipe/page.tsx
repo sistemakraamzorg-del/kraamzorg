@@ -67,7 +67,7 @@ export default async function PaginaTarefasEquipe() {
                 strokeWidth={1.75}
               />
               Esta tela reúne as tarefas de todas as equipes, por isso pede o
-              código do aplicativo (MFA) antes de abrir.
+              código do aplicativo de verificação antes de abrir.
             </p>
             <Botao
               asChild

@@ -69,7 +69,7 @@ export default async function PaginaContrato({
                   strokeWidth={1.75}
                 />
                 O contrato mostra valores e dados pessoais, por isso pede o
-                código do aplicativo (MFA) antes de abrir.
+                código do aplicativo de verificação antes de abrir.
               </p>
               <Botao
                 asChild
@@ -87,7 +87,7 @@ export default async function PaginaContrato({
           ) : (
             <FaixaAlerta
               variante="info"
-              titulo="O contrato desta família não está com o seu papel"
+              titulo="O contrato desta família não faz parte da sua função"
             >
               O contrato é do comercial e da diretoria. O financeiro vê o
               contrato quando ele existe.

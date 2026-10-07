@@ -280,7 +280,7 @@ export function criarGestaoDemonstracao(
 
   function exigir(nome: string, ...papeis: Papel[]): LojaGestao {
     if (!contexto.usuarioId || bloqueadoPorMfa() || !tem(...papeis)) {
-      semPermissao(`${nome} não é do seu papel`);
+      semPermissao(`${nome} não é da sua função`);
     }
     return obterLojaGestao();
   }

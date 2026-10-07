@@ -68,7 +68,7 @@ function exigirDiretoria(
   if (exigeMfa(sessao.papeis as never) && sessao.aal !== "aal2") {
     throw new ErroRepositorio(
       "sem_permissao",
-      "confirme o código do aplicativo (MFA)",
+      "confirme o código do aplicativo de verificação",
     );
   }
 }

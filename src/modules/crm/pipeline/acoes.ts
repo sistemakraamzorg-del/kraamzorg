@@ -12,7 +12,7 @@ import { MOTIVOS_PERDA, ORIGENS_LEAD, PAPEIS_PESSOA } from "./estagios";
 function mensagemErro(erro: unknown, contexto: string): string {
   if (erro instanceof ErroRepositorio) {
     if (erro.codigo === "sem_permissao") {
-      return "O banco recusou: confirme o papel e o código do aplicativo e tente de novo.";
+      return "Seu acesso não permite fazer isso. Se deveria permitir, entre de novo com o código do aplicativo de verificação e tente outra vez.";
     }
     if (erro.codigo === "recusado") {
       return `Esse passo não existe a partir do estágio atual. Atualize a tela e tente de novo.`;
@@ -21,7 +21,7 @@ function mensagemErro(erro: unknown, contexto: string): string {
       return "Essa família não está mais no pipeline. Atualize a tela.";
     }
     if (erro.codigo === "funcao_pendente") {
-      return "O banco ainda não tem essa função. Avise a equipe técnica; nada foi alterado.";
+      return "Esta ação ainda não está disponível no sistema. Nada foi alterado; avise a equipe técnica.";
     }
   }
   return `Não foi possível ${contexto} agora. Tente de novo em instantes.`;

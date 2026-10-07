@@ -73,9 +73,9 @@ export default async function PaginaFinanceiro({
             situacao={tela.situacao}
             caminho="/financeiro"
             aalPossivel={usuario.aalPossivel}
-            motivoMfa="O financeiro mostra valores e pagamentos, por isso pede o código do aplicativo (MFA) antes de abrir."
-            motivoPapel="O financeiro é da equipe financeira e da diretoria. O comercial vê o status de cada cobrança no contrato da família."
-            tituloPapel="O financeiro não está com o seu papel"
+            motivoMfa="O financeiro mostra valores e pagamentos, por isso pede o código do aplicativo de verificação antes de abrir."
+            motivoPapel="O financeiro é da equipe financeira e da diretoria. O comercial vê a situação de cada cobrança no contrato da família."
+            tituloPapel="O financeiro não faz parte da sua função"
           />
         )}
       </div>

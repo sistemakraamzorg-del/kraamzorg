@@ -76,7 +76,7 @@ export const MENSAGENS = {
   desligado:
     "O copiloto está desligado neste ambiente. Nada foi enviado a nenhum serviço de IA.",
   assistencial:
-    "O copiloto não responde sobre registro assistencial nem sobre a saúde de mães e bebês. Esse dado só se abre pela ficha da família, com o código do aplicativo (MFA), e fica registrado.",
+    "O copiloto não responde sobre registro assistencial nem sobre a saúde de mães e bebês. Esse dado só se abre pela ficha da família, com o código do aplicativo de verificação, e fica registrado.",
   foraDoEscopo:
     "Isso está fora do que o copiloto consulta. Ele responde sobre pipeline, conversão, receita, ocupação e origem dos leads.",
   semPermissao:

@@ -5,7 +5,7 @@ import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 
 /**
  * O que a tela mostra quando a pessoa ainda não confirmou o código do
- * aplicativo (MFA) ou quando o papel dela não abre aquela tela. A defesa é o
+ * aplicativo de verificação ou quando o papel dela não abre aquela tela. A defesa é o
  * banco (papel e AAL2 conferidos dentro de cada função); isto só explica, em
  * frase completa, o que fazer (PRD 20.3).
  */

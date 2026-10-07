@@ -37,7 +37,7 @@ export async function revogarSessoes(
   } catch (erro) {
     if (erro instanceof ErroRepositorio && erro.codigo === "funcao_pendente") {
       return {
-        erro: "O banco ainda não tem a função que encerra sessões. Avise a equipe técnica; nada foi alterado.",
+        erro: "Encerrar acessos ainda não está disponível no sistema. Nada foi alterado; avise a equipe técnica.",
       };
     }
     if (erro instanceof ErroRepositorio && erro.codigo === "sem_permissao") {

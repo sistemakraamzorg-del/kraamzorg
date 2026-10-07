@@ -21,11 +21,11 @@ export function traduzirErroPadrao(
       case "nao_encontrado":
         return "Não achamos esse registro. Atualize a página e tente de novo.";
       case "recusado":
-        return "O banco recusou essa alteração. Confira os dados e tente de novo.";
+        return "A alteração não foi aceita. Confira os dados e tente de novo.";
       case "funcao_pendente":
-        return "O banco ainda não tem o que falta para isso. Avise a equipe técnica; nada foi alterado.";
+        return "Esta ação ainda não está disponível no sistema. Nada foi alterado; avise a equipe técnica.";
       case "indisponivel":
-        return "Sem conexão com o banco agora. Tente de novo em instantes.";
+        return "Sem conexão com o sistema agora. Tente de novo em instantes.";
       default:
         return "Não foi possível salvar agora. Tente de novo em instantes.";
     }
