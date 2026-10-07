@@ -9,6 +9,7 @@ import {
   useMemo,
   useRef,
   useSyncExternalStore,
+  useTransition,
   type ReactNode,
 } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -110,6 +111,10 @@ export function ProvedorTour({
   const passos = useMemo(() => montarTour(papeis), [papeis]);
   const minutos = useMemo(() => minutosDoTour(passos.slice(1, -1)), [passos]);
   const origemRef = useRef<HTMLElement | null>(null);
+  // Enquanto a tela do passo carrega, Próximo e Voltar esperam: duas
+  // navegações seguidas (uma delas com redirecionamento, como a das
+  // transferências) podiam terminar na tela errada.
+  const [navegando, iniciarNavegacao] = useTransition();
 
   // O passo atual e o convite vêm do armazenamento do navegador (loja
   // externa): assim o provedor da outra casca retoma de onde parou.
@@ -143,8 +148,9 @@ export function ProvedorTour({
         indice: novo,
         caminho: passo.caminho,
       });
-      if (passo.caminho && !estaNaTela(caminhoAtual, passo.caminho)) {
-        router.push(passo.caminho);
+      const destino = passo.caminho;
+      if (destino && !estaNaTela(caminhoAtual, destino)) {
+        iniciarNavegacao(() => router.push(destino));
       }
     },
     [passos, caminhoAtual, router, usuarioId],
@@ -208,6 +214,7 @@ export function ProvedorTour({
           indice={indice}
           total={passos.length}
           caminhoAtual={caminhoAtual}
+          navegando={navegando}
           aoVoltar={() => irPara(Math.max(0, indice - 1))}
           aoAvancar={() =>
             indice + 1 < passos.length

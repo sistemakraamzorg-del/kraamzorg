@@ -46,6 +46,10 @@ const DISTANCIA = 12;
 /** Véu do tour: marinho translúcido, para a tela de fundo seguir legível. */
 const COR_VEU = "color-mix(in srgb, var(--marinho) 28%, transparent)";
 const VEU = `0 0 0 200vmax ${COR_VEU}`;
+/** Largura do cartão: no computador (a partir de 1024 px) e no celular (no máximo). */
+const LARGURA_COMPUTADOR = 1024;
+const LARGURA_CARTAO_COMPUTADOR = 372;
+const LARGURA_CARTAO_CELULAR = 400;
 /** Menor altura aceitável para o cartão encolhido ao lado do destaque. */
 const ALTURA_MINIMA_CARTAO = 240;
 /** Até quantas palavras ficam à vista; o resto vai para "Ver mais". */
@@ -59,21 +63,22 @@ interface Retangulo {
   raio: string;
 }
 
-type Posicao =
-  | { modo: "centro" }
-  | {
-      modo: "ancorado";
-      top: number;
-      left: number;
-      /** Sem espaço para o cartão inteiro: ele encolhe e rola por dentro. */
-      alturaMaxima?: number;
-      apertado?: boolean;
-    };
+/** Onde o cartão fica: em volta do destaque, ou no centro da tela. */
+interface Posicao {
+  modo: "centro" | "ancorado";
+  top: number;
+  left: number;
+  /** Sem espaço para o cartão inteiro: ele encolhe e rola por dentro. */
+  alturaMaxima?: number;
+  apertado?: boolean;
+}
 
 interface Medida {
   passoId: string;
   destaque: Retangulo | null;
   posicao: Posicao;
+  /** Largura do cartão, medida na tela (não em vw: tela que rola de lado infla o vw). */
+  largura: number;
   /** O destaque caiu na aba Mais (tela que no celular mora lá). */
   emMais: boolean;
 }
@@ -90,8 +95,8 @@ function mesmoRetangulo(a: Retangulo | null, b: Retangulo): boolean {
 }
 
 function mesmaPosicao(a: Posicao, b: Posicao): boolean {
-  if (a.modo === "centro" || b.modo === "centro") return a.modo === b.modo;
   return (
+    a.modo === b.modo &&
     Math.round(a.top) === Math.round(b.top) &&
     Math.round(a.left) === Math.round(b.left) &&
     Math.round(a.alturaMaxima ?? -1) === Math.round(b.alturaMaxima ?? -1)
@@ -100,6 +105,7 @@ function mesmaPosicao(a: Posicao, b: Posicao): boolean {
 
 function mesmaMedida(a: Medida | null, b: Medida): boolean {
   if (!a || a.passoId !== b.passoId || a.emMais !== b.emMais) return false;
+  if (Math.round(a.largura) !== Math.round(b.largura)) return false;
   if (!mesmaPosicao(a.posicao, b.posicao)) return false;
   if (!a.destaque || !b.destaque) return a.destaque === b.destaque;
   return mesmoRetangulo(a.destaque, b.destaque);
@@ -180,66 +186,100 @@ function prefereMenosMovimento(): boolean {
   }
 }
 
+/** A parte da tela que a pessoa vê (a janela, ou a área visível com zoom). */
+interface Tela {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+function telaVisivel(): Tela {
+  const vv = window.visualViewport;
+  if (vv && vv.width > 0 && vv.height > 0) {
+    return {
+      x: vv.offsetLeft,
+      y: vv.offsetTop,
+      width: vv.width,
+      height: vv.height,
+    };
+  }
+  return {
+    x: 0,
+    y: 0,
+    width: document.documentElement.clientWidth || window.innerWidth,
+    height: window.innerHeight,
+  };
+}
+
+/** O cartão no meio da tela. */
+function noCentro(
+  cartao: { width: number; height: number },
+  tela: Tela,
+): Posicao {
+  return {
+    modo: "centro",
+    top: tela.y + Math.max(MARGEM, (tela.height - cartao.height) / 2),
+    left: tela.x + Math.max(MARGEM, (tela.width - cartao.width) / 2),
+    alturaMaxima: tela.height - MARGEM * 2,
+  };
+}
+
 /** Onde o cartão fica em volta do destaque, sem sair da tela. */
 function posicionar(
   alvo: Retangulo,
   cartao: { width: number; height: number },
-  tela: { width: number; height: number },
+  tela: Tela,
   /** Borda direita da barra lateral, quando o alvo mora nela. */
   bordaDaLateral?: number,
 ): Posicao {
   const limitar = (valor: number, min: number, max: number) =>
     Math.min(Math.max(valor, min), Math.max(min, max));
+  const esquerda = tela.x + MARGEM;
+  const direita = tela.x + tela.width - MARGEM;
+  const alto = tela.y + MARGEM;
+  const baixo = tela.y + tela.height - MARGEM;
   const centroX = limitar(
     alvo.left + alvo.width / 2 - cartao.width / 2,
-    MARGEM,
-    tela.width - cartao.width - MARGEM,
+    esquerda,
+    direita - cartao.width,
   );
   const centroY = limitar(
     alvo.top + alvo.height / 2 - cartao.height / 2,
-    MARGEM,
-    tela.height - cartao.height - MARGEM,
+    alto,
+    baixo - cartao.height,
   );
-  const cabe = {
-    direita:
-      tela.width - (alvo.left + alvo.width) - DISTANCIA - MARGEM >=
-      cartao.width,
-    abaixo:
-      tela.height - (alvo.top + alvo.height) - DISTANCIA - MARGEM >=
-      cartao.height,
-    acima: alvo.top - DISTANCIA - MARGEM >= cartao.height,
-    esquerda: alvo.left - DISTANCIA - MARGEM >= cartao.width,
-  };
+  const espacoAbaixo = baixo - (alvo.top + alvo.height) - DISTANCIA;
+  const espacoAcima = alvo.top - DISTANCIA - alto;
+  const espacoDireita = direita - (alvo.left + alvo.width) - DISTANCIA;
+  const espacoEsquerda = alvo.left - DISTANCIA - esquerda;
+
   // Item da barra lateral: o cartão vai logo depois da coluna, à direita.
   if (
     bordaDaLateral !== undefined &&
-    tela.width - bordaDaLateral - DISTANCIA - MARGEM >= cartao.width
+    direita - bordaDaLateral - DISTANCIA >= cartao.width
   ) {
-    return {
-      modo: "ancorado",
-      top: centroY,
-      left: bordaDaLateral + DISTANCIA,
-    };
+    return { modo: "ancorado", top: centroY, left: bordaDaLateral + DISTANCIA };
   }
-  if (cabe.abaixo)
+  if (espacoAbaixo >= cartao.height)
     return {
       modo: "ancorado",
       top: alvo.top + alvo.height + DISTANCIA,
       left: centroX,
     };
-  if (cabe.acima)
+  if (espacoAcima >= cartao.height)
     return {
       modo: "ancorado",
       top: alvo.top - DISTANCIA - cartao.height,
       left: centroX,
     };
-  if (cabe.direita)
+  if (espacoDireita >= cartao.width)
     return {
       modo: "ancorado",
       top: centroY,
       left: alvo.left + alvo.width + DISTANCIA,
     };
-  if (cabe.esquerda)
+  if (espacoEsquerda >= cartao.width)
     return {
       modo: "ancorado",
       top: centroY,
@@ -247,28 +287,28 @@ function posicionar(
     };
   // Não cabe inteiro em lado nenhum (celular): o cartão fica do lado com
   // mais espaço, mais baixo, e rola por dentro. O destaque segue à vista.
-  const espacoAbaixo =
-    tela.height - (alvo.top + alvo.height) - DISTANCIA - MARGEM;
-  const espacoAcima = alvo.top - DISTANCIA - MARGEM;
   const espaco = Math.max(espacoAbaixo, espacoAcima);
   if (espaco >= ALTURA_MINIMA_CARTAO) {
-    return espacoAbaixo >= espacoAcima
-      ? {
-          modo: "ancorado",
-          top: alvo.top + alvo.height + DISTANCIA,
-          left: centroX,
-          alturaMaxima: espaco,
-          apertado: true,
-        }
-      : {
-          modo: "ancorado",
-          top: MARGEM,
-          left: centroX,
-          alturaMaxima: espaco,
-          apertado: true,
-        };
+    return {
+      modo: "ancorado",
+      top:
+        espacoAbaixo >= espacoAcima ? alvo.top + alvo.height + DISTANCIA : alto,
+      left: centroX,
+      alturaMaxima: espaco,
+      apertado: true,
+    };
   }
-  return { modo: "centro" };
+  return noCentro(cartao, tela);
+}
+
+/** O destaque está dentro da parte visível da tela. */
+function dentroDaTela(alvo: Retangulo, tela: Tela): boolean {
+  return (
+    alvo.top + alvo.height > tela.y &&
+    alvo.top < tela.y + tela.height &&
+    alvo.left + alvo.width > tela.x &&
+    alvo.left < tela.x + tela.width
+  );
 }
 
 export interface CartaoTourProps {
@@ -276,6 +316,8 @@ export interface CartaoTourProps {
   indice: number;
   total: number;
   caminhoAtual: string;
+  /** A tela do passo ainda está carregando: Próximo e Voltar esperam. */
+  navegando?: boolean;
   aoVoltar: () => void;
   aoAvancar: () => void;
   aoPular: () => void;
@@ -288,6 +330,7 @@ export function CartaoTour({
   indice,
   total,
   caminhoAtual,
+  navegando = false,
   aoVoltar,
   aoAvancar,
   aoPular,
@@ -307,7 +350,7 @@ export function CartaoTour({
   const aberto = abertoEm === passo.id;
   const atual = medida?.passoId === passo.id ? medida : null;
   const destaque = atual?.destaque ?? null;
-  const posicao: Posicao = atual?.posicao ?? { modo: "centro" };
+  const posicao = atual?.posicao ?? null;
   const emMais = atual?.emMais ?? false;
 
   const primeiro = indice === 0;
@@ -326,11 +369,20 @@ export function CartaoTour({
     const cartao = cartaoRef.current;
     if (!cartao) return;
     const { el, emMais: noMais } = alvoDoPasso(passo);
+    // A parte visível da tela (não o vw: tela que rola de lado infla o vw).
+    const tela = telaVisivel();
+    const largura =
+      tela.width >= LARGURA_COMPUTADOR
+        ? LARGURA_CARTAO_COMPUTADOR
+        : Math.min(LARGURA_CARTAO_CELULAR, tela.width - MARGEM * 2);
+    // Altura natural (o cartão encolhido rola por dentro).
+    const tamanho = { width: largura, height: cartao.scrollHeight + 2 };
     let nova: Medida = {
       passoId: passo.id,
       destaque: null,
-      posicao: { modo: "centro" },
+      posicao: noCentro(tamanho, tela),
       emMais: noMais,
+      largura,
     };
     if (el) {
       // Leva o alvo para a vista uma vez por passo (lista lateral comprida,
@@ -368,20 +420,13 @@ export function CartaoTour({
         coluna.height > window.innerHeight / 2
           ? coluna.right
           : undefined;
-      const posicao = posicionar(
-        ret,
-        // Altura natural (o cartão encolhido rola por dentro).
-        { width: cartao.offsetWidth, height: cartao.scrollHeight + 2 },
-        { width: window.innerWidth, height: window.innerHeight },
-        bordaDaLateral,
-      );
+      const posicao = posicionar(ret, tamanho, tela, bordaDaLateral);
       // Elemento da página sem espaço em volta para o cartão (celular): sobe
       // o elemento para o alto da tela, e o cartão cabe embaixo dele.
       const naPagina = !el.closest("nav");
       const chave = `${passo.id}:alto`;
       if (
-        (posicao.modo === "centro" ||
-          (posicao.modo === "ancorado" && posicao.apertado)) &&
+        (posicao.modo === "centro" || posicao.apertado) &&
         naPagina &&
         !rolagensRef.current.has(chave)
       ) {
@@ -392,7 +437,9 @@ export function CartaoTour({
           behavior: prefereMenosMovimento() ? "auto" : "smooth",
         });
       }
-      nova = { ...nova, destaque: ret, posicao };
+      // Alvo preso fora da parte visível (navegação fixa numa tela que
+      // rola de lado): o cartão fica no centro, sem destaque.
+      if (dentroDaTela(ret, tela)) nova = { ...nova, destaque: ret, posicao };
     }
     definirMedida((anterior) =>
       mesmaMedida(anterior, nova) ? anterior : nova,
@@ -443,10 +490,12 @@ export function CartaoTour({
       aoPular();
     } else if (evento.key === "ArrowRight") {
       evento.preventDefault();
+      if (navegando) return;
       if (ultimo) aoConcluir();
       else aoAvancar();
     } else if (evento.key === "ArrowLeft" && !primeiro) {
       evento.preventDefault();
+      if (navegando) return;
       aoVoltar();
     }
   };
@@ -511,18 +560,20 @@ export function CartaoTour({
         data-tour-cartao={passo.id}
         className={cn(
           "rounded-3 border-linha bg-superficie shadow-2 fixed z-[var(--z-aviso)] flex max-h-[calc(100dvh-32px)] w-[calc(100vw-32px)] max-w-[400px] flex-col overflow-y-auto border p-5 outline-none lg:w-[372px] lg:p-6",
-          posicao.modo === "centro" &&
-            "top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2",
+          // Antes da primeira medida: no centro, pelo CSS.
+          !posicao && "top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2",
           // Até a primeira medida do passo, o cartão espera invisível no
           // lugar (um quadro), para não piscar no centro e pular para o alvo.
           "motion-safe:transition-opacity motion-safe:duration-140",
           !atual && "opacity-0",
         )}
         style={
-          posicao.modo === "ancorado"
+          posicao && atual
             ? {
                 top: posicao.top,
                 left: posicao.left,
+                width: atual.largura,
+                maxWidth: atual.largura,
                 maxHeight: posicao.alturaMaxima,
               }
             : undefined
@@ -684,8 +735,11 @@ export function CartaoTour({
           ) : !primeiro ? (
             <button
               type="button"
-              onClick={aoVoltar}
-              className="text-corpo text-texto-2 hover:bg-marinho-08 hover:text-texto mr-auto inline-flex min-h-[44px] items-center gap-1.5 rounded-[7px] px-3 font-medium"
+              onClick={() => {
+                if (!navegando) aoVoltar();
+              }}
+              aria-disabled={navegando || undefined}
+              className="text-corpo text-texto-2 hover:bg-marinho-08 hover:text-texto mr-auto inline-flex min-h-[44px] items-center gap-1.5 rounded-[7px] px-3 font-medium aria-disabled:cursor-progress"
             >
               <ArrowLeft aria-hidden="true" className="size-4" />
               {TEXTOS_TOUR.voltar}
@@ -693,8 +747,13 @@ export function CartaoTour({
           ) : null}
           <button
             type="button"
-            onClick={ultimo ? aoConcluir : aoAvancar}
-            className="text-corpo border-acao bg-acao text-acao-texto hover:bg-acao-hover inline-flex min-h-[44px] min-w-[128px] items-center justify-center gap-2 rounded-[7px] border px-5 font-semibold"
+            onClick={() => {
+              if (navegando) return;
+              if (ultimo) aoConcluir();
+              else aoAvancar();
+            }}
+            aria-disabled={navegando || undefined}
+            className="text-corpo border-acao bg-acao text-acao-texto hover:bg-acao-hover inline-flex min-h-[44px] min-w-[128px] items-center justify-center gap-2 rounded-[7px] border px-5 font-semibold aria-disabled:cursor-progress"
           >
             {ultimo
               ? TEXTOS_TOUR.concluir
