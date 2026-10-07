@@ -261,6 +261,21 @@ function plural(n: number, um: string, varios: string): string {
   return `${n} ${n === 1 ? um : varios}`;
 }
 
+/**
+ * Primeiro nome para o rótulo curto do gráfico. Se duas pessoas da lista têm
+ * o mesmo primeiro nome, junta o último sobrenome, para as barras não ficarem
+ * iguais ("Ana" e "Ana" viram "Ana Souza" e "Ana Lima").
+ */
+function nomeCurto(nome: string, todos: string[]): string {
+  const partes = nome.trim().split(/\s+/);
+  const primeiro = partes[0] ?? nome;
+  const repetido =
+    todos.filter((n) => n.trim().split(/\s+/)[0] === primeiro).length > 1;
+  return repetido && partes.length > 1
+    ? `${primeiro} ${partes[partes.length - 1]}`
+    : primeiro;
+}
+
 interface EntradaIndicadores {
   dia: DadosDoDia;
   porEnfermeira: VisitasDaEnfermeira[];
@@ -458,9 +473,14 @@ function GraficoVisitasEnfermeira({
           rotulo="Visitas de hoje por enfermeira"
           larguraRotulo="6.5rem"
           itens={porEnfermeira.map((e) => ({
-            rotulo: e.nome.split(" ")[0] ?? e.nome,
+            chave: e.profissionalId,
+            rotulo: nomeCurto(
+              e.nome,
+              porEnfermeira.map((x) => x.nome),
+            ),
             valor: e.visitas.length,
             tom: limite && e.visitas.length >= limite ? "aviso" : "dourado",
+            dica: `${e.nome}: ${plural(e.visitas.length, "visita", "visitas")} hoje`,
           }))}
         />
       ) : null}
@@ -484,9 +504,11 @@ function GraficoCapacidade({ visao }: { visao: CapacidadeVisao | null }) {
       {semanas.length > 0 ? (
         <Colunas
           rotulo="Ocupação por semana, em porcentagem"
+          formato="percentual"
           itens={semanas.map((s) => ({
             rotulo: dataCurta(s.semana),
             valor: s.ocupacaoPct,
+            dica: `Semana de ${dataCurta(s.semana)}: ${formatarPct(s.ocupacaoPct)} ocupada`,
           }))}
         />
       ) : null}
@@ -534,6 +556,7 @@ function GraficoRegioes({ visao }: { visao: CapacidadeVisao | null }) {
                   rotulo: r.regiao,
                   valor: s.ocupacaoPct,
                   nota: formatarPct(s.ocupacaoPct),
+                  dica: `${r.regiao}: ${formatarPct(s.ocupacaoPct)} da capacidade ocupada`,
                   tom: (s.nivel === "folga"
                     ? "sucesso"
                     : s.nivel === "atencao"
@@ -555,6 +578,7 @@ function GraficoRegioes({ visao }: { visao: CapacidadeVisao | null }) {
         <BarrasHorizontais
           rotulo="Ocupação por região, em porcentagem"
           larguraRotulo="7rem"
+          formato="percentual"
           itens={itens}
         />
       ) : null}
@@ -714,7 +738,11 @@ function CorpoDoDia({
             <CartaoLista
               titulo="Alertas prioritários"
               idTour="/inicio:alertas"
-              direita={dia.alertas ? `${totalAlertas} abertos` : undefined}
+              direita={
+                dia.alertas
+                  ? `${totalAlertas} ${totalAlertas === 1 ? "aberto" : "abertos"}`
+                  : undefined
+              }
             >
               {dia.alertas === null ? (
                 <NaoCarregou oque="A lista de alertas" />
@@ -990,62 +1018,108 @@ function TabelaAgenda({
   visitas: VisitaAgenda[];
   limite: number | null;
 }) {
+  const linhaEnfermeira = (v: VisitaAgenda) =>
+    limite
+      ? linhaDaEnfermeira(
+          visitas.filter((x) => x.profissionalId === v.profissionalId).length,
+          limite,
+        )
+      : null;
   return (
-    <table className={tabelaMock.tabela}>
-      <thead>
-        <tr>
-          <th className={`${tabelaMock.th} w-[74px]`}>Horário</th>
-          <th className={tabelaMock.th}>Família</th>
-          <th className={tabelaMock.th}>Profissional</th>
-          <th className={tabelaMock.th}>Região</th>
-          <th className={tabelaMock.th}>Dia</th>
-          <th className={`${tabelaMock.th} w-[132px]`}>Status</th>
-        </tr>
-      </thead>
-      <tbody>
+    <>
+      {/* No celular, cada visita vira um item de lista: a tabela de seis
+          colunas não cabe em 390 px e escondia a situação fora da tela. */}
+      <ul className="sm:hidden">
         {visitas.map((v) => (
-          <tr key={v.visitaId} className={tabelaMock.tr}>
-            <td className={`${tabelaMock.td} font-mono text-[11.5px]`}>
+          <li
+            key={v.visitaId}
+            className="border-fio-3 flex items-start gap-3 border-b px-4 py-3 last:border-b-0"
+          >
+            <span className="text-tinta-70 w-11 shrink-0 pt-0.5 font-mono text-[11.5px]">
               {horaCurta(v.horaPrevista) ??
                 (v.turno === "tarde" ? "tarde" : "manhã")}
-            </td>
-            <td className={tabelaMock.td}>
-              <Link
-                href={`/agenda/visitas/${v.visitaId}`}
-                className={`${tabelaMock.nome} text-inherit no-underline hover:underline`}
-              >
-                {v.nomeExibicao}
-              </Link>
-              <div className={tabelaMock.sub}>
-                {v.diaNumero} de {v.diasContratados} visitas
+            </span>
+            <div className="flex min-w-0 flex-1 flex-col gap-1">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                <Link
+                  href={`/agenda/visitas/${v.visitaId}`}
+                  className={`${tabelaMock.nome} min-h-toque inline-flex items-center text-inherit no-underline hover:underline`}
+                >
+                  {v.nomeExibicao}
+                </Link>
+                <Selo variante={ESTADO_SELO[v.estado] ?? "neutro"}>
+                  {ROTULO_ESTADO_VISITA[v.estado]}
+                </Selo>
               </div>
-            </td>
-            <td className={tabelaMock.td}>
-              {v.profissionalNome}
-              {limite ? (
-                <div className={tabelaMock.sub}>
-                  {linhaDaEnfermeira(
-                    visitas.filter((x) => x.profissionalId === v.profissionalId)
-                      .length,
-                    limite,
-                  )}
-                </div>
-              ) : null}
-            </td>
-            <td className={tabelaMock.td}>
-              {v.bairro ?? v.cidade ?? "Sem região"}
-            </td>
-            <td className={`${tabelaMock.td} font-mono text-[11.5px]`}>
-              D{v.diaNumero}
-            </td>
-            <td className={tabelaMock.td}>
-              <Selo variante={ESTADO_SELO[v.estado] ?? "neutro"}>
-                {ROTULO_ESTADO_VISITA[v.estado]}
-              </Selo>
-            </td>
-          </tr>
+              <span className={tabelaMock.sub}>
+                D{v.diaNumero} de {v.diasContratados} ·{" "}
+                {v.bairro ?? v.cidade ?? "Sem região"}
+              </span>
+              <span className="text-tinta-70 text-[12px]">
+                {v.profissionalNome}
+                {linhaEnfermeira(v) ? `, ${linhaEnfermeira(v)}` : ""}
+              </span>
+            </div>
+          </li>
         ))}
-      </tbody>
-    </table>
+      </ul>
+      <table className={`${tabelaMock.tabela} max-sm:hidden`}>
+        <thead>
+          <tr>
+            <th className={`${tabelaMock.th} w-[74px]`}>Horário</th>
+            <th className={tabelaMock.th}>Família</th>
+            <th className={tabelaMock.th}>Profissional</th>
+            <th className={tabelaMock.th}>Região</th>
+            <th className={tabelaMock.th}>Dia</th>
+            <th className={`${tabelaMock.th} w-[132px]`}>Situação</th>
+          </tr>
+        </thead>
+        <tbody>
+          {visitas.map((v) => (
+            <tr key={v.visitaId} className={tabelaMock.tr}>
+              <td className={`${tabelaMock.td} font-mono text-[11.5px]`}>
+                {horaCurta(v.horaPrevista) ??
+                  (v.turno === "tarde" ? "tarde" : "manhã")}
+              </td>
+              <td className={tabelaMock.td}>
+                <Link
+                  href={`/agenda/visitas/${v.visitaId}`}
+                  className={`${tabelaMock.nome} text-inherit no-underline hover:underline`}
+                >
+                  {v.nomeExibicao}
+                </Link>
+                <div className={tabelaMock.sub}>
+                  {v.diaNumero} de {v.diasContratados} visitas
+                </div>
+              </td>
+              <td className={tabelaMock.td}>
+                {v.profissionalNome}
+                {limite ? (
+                  <div className={tabelaMock.sub}>
+                    {linhaDaEnfermeira(
+                      visitas.filter(
+                        (x) => x.profissionalId === v.profissionalId,
+                      ).length,
+                      limite,
+                    )}
+                  </div>
+                ) : null}
+              </td>
+              <td className={tabelaMock.td}>
+                {v.bairro ?? v.cidade ?? "Sem região"}
+              </td>
+              <td className={`${tabelaMock.td} font-mono text-[11.5px]`}>
+                D{v.diaNumero}
+              </td>
+              <td className={tabelaMock.td}>
+                <Selo variante={ESTADO_SELO[v.estado] ?? "neutro"}>
+                  {ROTULO_ESTADO_VISITA[v.estado]}
+                </Selo>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </>
   );
 }

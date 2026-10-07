@@ -354,7 +354,7 @@ export function VisaoFinanceiraTela({ v }: { v: VisaoFinanceira }) {
         </CartaoGrafico>
       </Grade>
 
-      <div className="grid grid-cols-1 items-start gap-3.5 min-[900px]:grid-cols-[1fr_340px]">
+      <div className="grid grid-cols-1 items-start gap-3.5 min-[1200px]:grid-cols-[minmax(0,1fr)_340px]">
         <BlocoTabela
           id="fin-atraso"
           idTour="/financeiro:atrasos"
@@ -388,7 +388,8 @@ export function VisaoFinanceiraTela({ v }: { v: VisaoFinanceira }) {
                   ),
                   atraso: (
                     <Selo variante={c.diasAtraso > 30 ? "alerta" : "aviso"}>
-                      Atrasada {c.diasAtraso}d
+                      Atrasada há {c.diasAtraso}{" "}
+                      {c.diasAtraso === 1 ? "dia" : "dias"}
                     </Selo>
                   ),
                   valor: formatarMoeda(c.valorCentavos),

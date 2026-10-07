@@ -131,9 +131,14 @@ export function BlocoTabela({
   idTour?: string;
 }) {
   return (
-    <Card id={id} data-tour={idTour} className={cn("scroll-mt-24", className)}>
+    <Card
+      id={id}
+      data-tour={idTour}
+      className={cn("min-w-0 scroll-mt-24", className)}
+    >
       <CardHead titulo={titulo} direita={direita} />
-      {children}
+      {/* Tabela larga rola dentro do cartão, nunca a página inteira. */}
+      <div className="min-w-0 min-[720px]:overflow-x-auto">{children}</div>
       {rodape ? (
         <CardBody className="border-linha border-t">{rodape}</CardBody>
       ) : null}

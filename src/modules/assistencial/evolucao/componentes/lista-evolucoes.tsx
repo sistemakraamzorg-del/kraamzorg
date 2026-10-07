@@ -103,10 +103,11 @@ export function ListaEvolucoesTela({
   }
 
   return (
-    <ul className="grid grid-cols-1 items-start gap-4 xl:grid-cols-2">
+    <ul className="grid grid-cols-1 gap-4 xl:grid-cols-2">
       {lista.acompanhamentos.map((a) => (
-        <li key={a.acompanhamentoId}>
-          <Card className="flex flex-col">
+        <li key={a.acompanhamentoId} className="flex min-w-0">
+          {/* O cartão estica até a altura do vizinho de linha: sem buraco embaixo do mais baixo. */}
+          <Card className="flex w-full flex-col">
             <CardBody className="flex flex-col gap-3.5">
               <div className="flex flex-wrap items-start gap-x-3 gap-y-2">
                 <div className="min-w-0 flex-1">
@@ -152,13 +153,7 @@ export function ListaEvolucoesTela({
                   contato na ficha.
                 </FaixaAlerta>
               ) : null}
-              <ul
-                className={
-                  a.situacao === "concluida"
-                    ? "flex flex-col gap-2"
-                    : "flex flex-col gap-2"
-                }
-              >
+              <ul className="flex flex-col gap-2">
                 {a.documentos.map((d) => (
                   <Documento
                     key={`${d.tipo}-${d.bebeId ?? "mae"}`}

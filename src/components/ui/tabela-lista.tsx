@@ -81,7 +81,9 @@ export function TabelaLista({
                   "h-12 px-3 align-middle",
                   (coluna.alinhamento === "direita" || coluna.numerica) &&
                     "text-right",
-                  coluna.numerica && "font-mono tabular-nums",
+                  // Valor não quebra no meio ("R$" numa linha, "4.550" na outra).
+                  coluna.numerica &&
+                    "font-mono tabular-nums min-[720px]:whitespace-nowrap",
                   "max-[719px]:block max-[719px]:h-auto max-[719px]:p-0 max-[719px]:text-left",
                   coluna.principal &&
                     "max-[719px]:text-corpo max-[719px]:font-semibold",

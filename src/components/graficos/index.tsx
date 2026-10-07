@@ -44,15 +44,21 @@ function escrever(formato: FormatoValor, v: number, curto = false): string {
   if (formato === "moeda")
     return curto ? formatarMoedaCurta(v) : formatarMoeda(v);
   if (formato === "percentual") return formatarPct(v);
-  return String(v);
+  // Número no jeito brasileiro: 17,1 e 1.250 (nunca 17.1 nem 1250).
+  return new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1 }).format(v);
 }
 
-/** Dica que aparece ao passar o mouse ou ao focar o elemento. */
+/**
+ * Dica que aparece ao passar o mouse ou ao focar o elemento. Fora disso ela
+ * não existe na página (`hidden`, e não só transparente): invisível, mas com
+ * largura, ela empurrava a página para o lado no celular. Quando aparece,
+ * quebra a linha antes de passar da largura da tela.
+ */
 function Dica({ children }: { children: React.ReactNode }) {
   return (
     <span
       role="tooltip"
-      className="bg-marinho text-texto-inverso text-apoio rounded-2 shadow-2 pointer-events-none absolute -top-2 left-1/2 z-10 -translate-x-1/2 -translate-y-full px-2.5 py-1.5 whitespace-nowrap opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100"
+      className="bg-marinho text-texto-inverso text-apoio rounded-2 shadow-2 pointer-events-none absolute -top-2 left-1/2 z-10 hidden w-max max-w-[min(18rem,calc(100vw-2rem))] -translate-x-1/2 -translate-y-full px-2.5 py-1.5 text-center transition-[opacity,display] transition-discrete duration-150 group-hover:block group-focus-visible:block starting:opacity-0"
     >
       {children}
     </span>
@@ -117,6 +123,8 @@ export function Sparkline({
 
 export interface ItemBarra {
   rotulo: string;
+  /** Identidade da barra quando o rótulo pode repetir (ex.: o id da pessoa). */
+  chave?: string;
   valor: number;
   tom?: TomGrafico;
   /** Texto à direita da barra (ex.: "23" ou "61%"). */
@@ -148,7 +156,7 @@ export function BarrasHorizontais({
         const pct = total > 0 ? Math.round((i.valor / total) * 100) : 0;
         return (
           <li
-            key={i.rotulo}
+            key={i.chave ?? i.rotulo}
             className="group relative grid items-center gap-3 outline-none"
             tabIndex={0}
             style={{ gridTemplateColumns: `${larguraRotulo} 1fr auto` }}
@@ -182,6 +190,8 @@ export function BarrasHorizontais({
 
 export interface ItemColuna {
   rotulo: string;
+  /** Identidade da coluna quando o rótulo pode repetir. */
+  chave?: string;
   valor: number;
   /** Segunda série opcional (ex.: "viraram contrato"). */
   valor2?: number;
@@ -263,7 +273,7 @@ export function Colunas({
         <div className="absolute inset-0 flex items-end gap-3">
           {itens.map((i, k) => (
             <div
-              key={i.rotulo}
+              key={i.chave ?? i.rotulo}
               className="group relative flex h-full flex-1 items-end justify-center gap-1 outline-none"
               tabIndex={0}
             >
@@ -316,7 +326,7 @@ export function Colunas({
       <div className="mt-2 flex gap-3">
         {itens.map((i) => (
           <span
-            key={i.rotulo}
+            key={i.chave ?? i.rotulo}
             className="text-apoio text-texto-3 flex-1 text-center"
           >
             {i.rotulo}
@@ -478,8 +488,8 @@ export function Rosca({
             />
             <span className="min-w-0 break-words">{f.rotulo}</span>
             <span className="text-texto ml-auto font-mono whitespace-nowrap tabular-nums">
-              {escrever(formato, f.valor)}
-              <span className="text-texto-3 ml-1">
+              {escrever(formato, f.valor)}{" "}
+              <span className="text-texto-3">
                 {Math.round((f.valor / total) * 100)}%
               </span>
             </span>
