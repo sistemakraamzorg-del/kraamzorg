@@ -32,6 +32,7 @@ import { ROTULO_MOTIVO_HANDOFF, ROTULO_NAO_LEAD } from "../../tipos";
 import type { ClassificacaoNaoLead, ConversaComPausa } from "../../tipos";
 import type { MotivoHandoff } from "@/lib/dados/tipos";
 import type { FichaTela } from "@/modules/crm/ficha/tipos";
+import { ComSiglas, Sigla } from "@/components/ui/siglas";
 
 export interface FaixaEstadoConversaProps {
   conversa: ConversaComPausa;
@@ -288,7 +289,9 @@ function QuatroDatas({ ficha }: { ficha: FichaTela }) {
     <dl className="tablet:grid-cols-4 mt-3 grid grid-cols-2 gap-x-4 gap-y-2">
       {ficha.datas.map((data) => (
         <div key={data.rotulo} className="flex flex-col gap-0.5">
-          <dt className="text-mini text-texto-2">{data.rotulo}</dt>
+          <dt className="text-mini text-texto-2">
+            <ComSiglas texto={data.rotulo} />
+          </dt>
           <dd className="text-apoio text-texto">
             {data.valor ? (
               <span className="font-mono">{formatarData(data.valor)}</span>
@@ -345,7 +348,9 @@ export function ResumoIsadora({ ficha }: { ficha: FichaTela }) {
         <dd>{onde ?? "não informado"}</dd>
         {dpp ? (
           <>
-            <dt className="text-marinho-72">DPP</dt>
+            <dt className="text-marinho-72">
+              <Sigla>DPP</Sigla>
+            </dt>
             <dd>
               <span className="font-mono">{formatarData(dpp)}</span>{" "}
               <span className="text-texto-2 italic">estimativa</span>

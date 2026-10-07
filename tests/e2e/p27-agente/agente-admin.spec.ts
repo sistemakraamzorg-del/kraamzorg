@@ -10,10 +10,10 @@ import { porProjeto } from "../p13-configuracoes/apoio";
  * P27 itens 4 e 5 · Painel da Isadora (`/agente`), modo demonstração: base de
  * conhecimento (cadastro do comercial, aprovação da diretoria) e métricas do
  * 11.12. [v4.5] O modo do agente, os números de teste e a janela de retomada
- * são parâmetros do agente, mantidos pela equipe de implantação: a tela não
+ * são parâmetros do agente, mantidos pela equipe técnica: a tela não
  * tem mais campo para eles, nem para a diretoria.
  */
-test("a tela da Isadora explica que os ajustes são da equipe de implantação e não traz campo de modo nem de retomada", async ({
+test("a tela da Isadora explica que os ajustes são da equipe técnica e não traz campo de modo nem de retomada", async ({
   page,
 }) => {
   for (const papel of ["Diretoria", "Comercial"]) {
@@ -26,7 +26,7 @@ test("a tela da Isadora explica que os ajustes são da equipe de implantação e
     await expect(
       page.getByRole("heading", { name: "Ajustes da Isadora" }),
     ).toBeVisible();
-    await expect(page.getByText(/equipe de implantação/).first()).toBeVisible();
+    await expect(page.getByText(/equipe técnica/).first()).toBeVisible();
 
     // nenhum controle de modo, de lista de teste nem de janela de retomada
     await expect(page.getByRole("radio", { name: /Em teste/ })).toHaveCount(0);

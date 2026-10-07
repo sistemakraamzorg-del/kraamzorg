@@ -135,18 +135,18 @@ export default async function PaginaAgente({
       <AbaLimites
         ajustes={
           <p className="text-tinta-70 text-[12.5px] leading-[1.6]">
-            Quando ela responde, a lista de teste, as pausas, a retomada e a
-            agenda são ajustes feitos pela equipe de implantação, fora do
-            aplicativo, para a Isadora nunca falar com uma família por um número
-            trocado sem querer. Para pedir uma mudança, fale com a equipe de
-            implantação.
+            Os horários em que ela responde, os números de teste, as pausas, a
+            retomada e a agenda são ajustados pela equipe técnica, fora do
+            sistema, para a Isadora nunca falar com uma família por um número
+            trocado sem querer. Para pedir uma mudança, fale com a equipe
+            técnica.
           </p>
         }
         retomada={
           <div className="flex flex-col gap-3">
             <p className="text-tinta-50 text-[11.5px]">
-              A Isadora manda uma única mensagem de retomada. D+3 e D+14
-              continuam como tarefa humana.
+              A Isadora manda uma única mensagem para retomar a conversa. As
+              retomadas de 3 e de 14 dias depois viram tarefa para a equipe.
             </p>
             {regraR.v ? (
               <PainelRegraRetomada regra={regraR.v} />

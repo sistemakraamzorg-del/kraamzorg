@@ -55,8 +55,8 @@ export default async function PaginaMesclagem({
         }
       />
       <p className="text-apoio text-texto-2 max-w-leitura mt-3">
-        Compare os dois lados, escolha qual família fica e confirme. Não há como
-        desfazer (P17).
+        Compare os dois lados, escolha qual família fica e confirme. Depois de
+        confirmar, não há como desfazer.
       </p>
 
       <div className="pt-6">

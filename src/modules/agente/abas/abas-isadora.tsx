@@ -169,7 +169,7 @@ export function AbaConversas({
       <Card>
         <CardHead
           titulo="Conversas"
-          direita="WhatsApp Business API · janela de 24h monitorada"
+          direita="Conversas pelo WhatsApp da Kraamzorg"
         />
         <div className="lg:grid lg:h-[520px] lg:grid-cols-[236px_1fr_268px]">
           <nav
@@ -247,7 +247,7 @@ export function AbaConversas({
           >
             {c ? (
               <>
-                <Eyebrow className="mb-[9px] block">Handoff</Eyebrow>
+                <Eyebrow className="mb-[9px] block">Transferência</Eyebrow>
                 {t ? (
                   <dl className="mb-3.5 grid grid-cols-[96px_1fr] gap-x-2.5 gap-y-[5px] text-[12.5px]">
                     <ParLinha rotulo="Motivo">{t.motivoRotulo}</ParLinha>
@@ -271,7 +271,7 @@ export function AbaConversas({
                           ? "Operação"
                           : "Comercial"}
                     </ParLinha>
-                    <ParLinha rotulo="SLA">
+                    <ParLinha rotulo="Prazo">
                       {t.slaVenceEm ? (
                         <span className="font-mono">
                           até {horaBrasilia(t.slaVenceEm)}
@@ -325,8 +325,8 @@ export function AbaConversas({
                   </Nota>
                 ) : c.situacao === "equipe" || t ? (
                   <Nota tom="alerta" className="mb-3 text-[11.5px]">
-                    Fluxo comercial com a equipe nesta conversa. A Isadora só
-                    volta a atuar se a equipe devolver.
+                    A equipe está cuidando desta conversa. A Isadora só volta a
+                    responder se a equipe devolver a conversa a ela.
                   </Nota>
                 ) : null}
 
@@ -378,8 +378,10 @@ export function AbaHandoffs({ fila }: { fila: TransferenciaTela[] | null }) {
         <Card>
           <CardBody>
             <div className="mb-3 flex items-baseline gap-[9px]">
-              <b className="text-[13px] font-semibold">Handoffs por motivo</b>
-              <span className="text-tinta-50 text-[11px]">abertos agora</span>
+              <b className="text-[13px] font-semibold">
+                Transferências por motivo
+              </b>
+              <span className="text-tinta-50 text-[11px]">abertas agora</span>
             </div>
             {itens.length > 0 ? (
               <BarrasHorizontais
@@ -399,16 +401,16 @@ export function AbaHandoffs({ fila }: { fila: TransferenciaTela[] | null }) {
         <BlocoVazio
           titulo="Tempo até assumir"
           sub="minutos, por prioridade"
-          texto="O app ainda não guarda o histórico de quanto tempo cada transferência levou para ser assumida. Quando esse registro existir, a comparação com o prazo aparece aqui."
+          texto="Este número ainda não está disponível. Quando o sistema passar a guardar quanto tempo cada transferência esperou, a comparação com o prazo aparece aqui."
         />
       </div>
 
       <Card>
         <CardHead
-          titulo="Fila de handoff"
+          titulo="Fila de transferências"
           direita={
             fila
-              ? `${lista.length} ${lista.length === 1 ? "aberto" : "abertos"}`
+              ? `${lista.length} ${lista.length === 1 ? "aberta" : "abertas"}`
               : undefined
           }
         />
@@ -420,8 +422,8 @@ export function AbaHandoffs({ fila }: { fila: TransferenciaTela[] | null }) {
                   "Família",
                   "Motivo",
                   "Destino",
-                  "Aberto",
-                  "SLA",
+                  "Aberta às",
+                  "Prazo",
                   "Situação",
                 ].map((h) => (
                   <th key={h} className={tabelaMock.th}>
@@ -497,7 +499,7 @@ export function AbaHandoffs({ fila }: { fila: TransferenciaTela[] | null }) {
                           {t.pausaVenceu
                             ? "Pausa venceu"
                             : t.status === "assumido"
-                              ? "Assumido"
+                              ? "Assumida"
                               : "Aguardando"}
                         </Selo>
                       </td>
@@ -546,8 +548,8 @@ export function AbaSolicitacoes() {
           Solicitações são o que a Isadora pede ao sistema, não o que ela
           responde.
         </b>{" "}
-        Cada ação com efeito real passa por aqui e pode exigir aprovação humana
-        conforme a configuração.
+        Cada pedido que muda algo de verdade passa por aqui e pode precisar da
+        aprovação de uma pessoa da equipe.
       </Nota>
       <Card>
         <div className="overflow-x-auto">
@@ -571,10 +573,10 @@ export function AbaSolicitacoes() {
             <tbody>
               <tr>
                 <td colSpan={6} className={cn(tabelaMock.td, "text-tinta-50")}>
-                  O app ainda não registra as solicitações da Isadora. Quando o
-                  registro existir, cada pedido aparece aqui com a hora e a
-                  situação. Por enquanto, as transferências para a equipe estão
-                  na aba Handoffs.
+                  Os pedidos da Isadora ainda não aparecem nesta lista. Quando
+                  aparecerem, cada pedido vem com a hora e a situação. Por
+                  enquanto, as passagens de conversa para a equipe estão na aba
+                  Handoffs.
                 </td>
               </tr>
             </tbody>
@@ -666,29 +668,29 @@ export function AbaMetricas({
         <BlocoVazio
           titulo="Volume de conversas"
           sub="por semana, quem inicia"
-          texto="Sem série semanal por enquanto. O app ainda não guarda quem iniciou cada conversa."
+          texto="Este gráfico ainda não está disponível. Ele precisa saber quem começou cada conversa, e esse dado ainda não é guardado."
         />
         <BlocoVazio
           titulo="Resolução sem humano"
           sub="evolução"
-          texto="Sem série mensal por enquanto. Aparece quando houver meses fechados com e sem transferência."
+          texto="Este gráfico aparece quando houver pelo menos um mês completo de conversas."
         />
       </div>
       <div className="grid grid-cols-1 gap-3.5 lg:grid-cols-3">
         <BlocoVazio
           titulo="Horário das conversas"
           sub="quando a família procura"
-          texto="Sem distribuição por horário por enquanto."
+          texto="Este gráfico ainda não está disponível."
         />
         <BlocoVazio
-          titulo="FAQs mais acionadas"
+          titulo="Perguntas frequentes mais usadas"
           sub="no mês"
-          texto="O app ainda não conta quantas vezes cada resposta da base foi usada."
+          texto="Este número ainda não está disponível. O sistema ainda não conta quantas vezes cada resposta da base foi usada."
         />
         <BlocoVazio
           titulo="Custo por conversa"
-          sub="WhatsApp API"
-          texto="O custo das conversas ainda não chega ao app."
+          sub="no WhatsApp"
+          texto="Este número ainda não está disponível. O custo das conversas no WhatsApp ainda não chega ao sistema."
         />
       </div>
     </div>
@@ -720,12 +722,12 @@ export function AbaLimites({
         <Card>
           <CardHead
             titulo="Limites da Isadora"
-            direita="regras fixas do agente"
+            direita="regras fixas da Isadora"
           />
           <CardBody>
             <p className="text-tinta-50 mb-3 text-[11.5px]">
-              O que está bloqueado aqui está bloqueado no sistema. Não é
-              instrução de texto, é regra.
+              O que está bloqueado aqui a Isadora não consegue fazer, nem se
+              alguém pedir na conversa.
             </p>
             <ul className="flex flex-col gap-2">
               {LIMITES_FIXOS.map((l) => (
@@ -751,19 +753,18 @@ export function AbaLimites({
         <Card>
           <CardHead
             titulo="Termos de alerta"
-            direita="encerram o fluxo comercial na hora"
+            direita="param a conversa de venda na hora"
           />
           <CardBody>
             <p className="text-tinta-50 mb-3 text-[11.5px] leading-[1.7]">
-              A lista é definida pela coordenação clínica da Kraamzorg. O
-              sistema apenas executa; quem escreve a lista é quem entende de
-              obstetrícia. Ela fica com a equipe de implantação e não é exibida
-              neste aplicativo.
+              Quem define a lista é a coordenação clínica da Kraamzorg; o
+              sistema só segue. A lista fica guardada com a equipe técnica e não
+              aparece nesta tela.
             </p>
             <Nota tom="sensivel" className="text-[11.5px]">
-              Termos ligados a perda gestacional acionam também o estado
-              sensível da família, congelando todas as réguas antes de qualquer
-              pessoa ser notificada.
+              Termos ligados a perda gestacional também colocam a família em
+              estado sensível: todas as mensagens automáticas param antes de
+              qualquer pessoa ser avisada.
             </Nota>
           </CardBody>
         </Card>
@@ -783,7 +784,7 @@ export function AbaLimites({
       <Card>
         <CardHead
           titulo="Ajustes da Isadora"
-          direita="com a equipe de implantação"
+          direita="feitos pela equipe técnica"
         />
         <CardBody>{ajustes}</CardBody>
       </Card>

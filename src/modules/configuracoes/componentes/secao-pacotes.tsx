@@ -81,7 +81,9 @@ export async function SecaoPacotes() {
             {anteriores.length > 0 ? (
               <details className="mt-3">
                 <summary className="text-apoio text-texto-2 cursor-pointer">
-                  {anteriores.length} versão(ões) anterior(es)
+                  {anteriores.length === 1
+                    ? "1 versão anterior"
+                    : `${anteriores.length} versões anteriores`}
                 </summary>
                 <ul className="mt-2 flex flex-col gap-1">
                   {anteriores

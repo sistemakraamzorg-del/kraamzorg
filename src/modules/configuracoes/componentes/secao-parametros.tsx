@@ -33,13 +33,13 @@ function AvisoAjustesDaIsadora() {
   return (
     <FaixaAlerta
       variante="info"
-      titulo="Os ajustes da Isadora ficam com a equipe de implantação"
+      titulo="Os ajustes da Isadora ficam com a equipe técnica"
       className="mb-4"
     >
-      Quando ela responde, a lista de teste, as pausas, a retomada e a agenda da
-      Edilaine são feitos fora do aplicativo, para nenhuma mudança por engano
-      chegar às famílias. Para pedir uma alteração, fale com a equipe de
-      implantação.
+      Os horários em que ela responde, os números de teste, as pausas, a
+      retomada e a agenda da Edilaine são ajustados fora do sistema, para
+      nenhuma mudança por engano chegar às famílias. Para pedir uma alteração,
+      fale com a equipe técnica.
     </FaixaAlerta>
   );
 }
@@ -60,7 +60,7 @@ export async function SecaoParametros() {
         <AvisoAjustesDaIsadora />
         <EstadoVazio
           titulo="Nenhum parâmetro visível"
-          texto="Parâmetros aparecem aqui só para a diretoria. Se você é da diretoria e a lista está vazia, confira a sessão e o MFA."
+          texto="Os ajustes aparecem aqui só para a diretoria. Se você é da diretoria e a lista está vazia, saia e entre de novo com o código do aplicativo de verificação."
         />
       </>
     );

@@ -5,13 +5,14 @@ import { obterRepositorios } from "@/lib/dados/fabrica";
 import { formatarDataHora } from "@/lib/formatacao";
 import { obterRepositorioModulo } from "../dados";
 import { AcoesMensagem } from "./acoes-mensagem";
+import { nomeDaMensagem } from "../nomes-mensagens";
 import { FormularioMensagem } from "./formulario-mensagem";
 
 const ROTULO_DESTINATARIO: Record<string, string> = {
   familia: "Família",
   equipe: "Equipe",
   medico: "Médico",
-  agente: "Agente",
+  agente: "Isadora",
 };
 
 const ROTULO_STATUS: Record<
@@ -36,7 +37,7 @@ export async function SecaoMensagens() {
     return (
       <EstadoVazio
         titulo="Nenhuma mensagem visível"
-        texto="Os textos que o sistema envia para a família, a equipe e o agente aparecem aqui, sempre com o aprovador registrado."
+        texto="Os textos que o sistema envia para a família, a equipe e a Isadora aparecem aqui, sempre com o nome de quem aprovou."
       />
     );
   }
@@ -47,8 +48,8 @@ export async function SecaoMensagens() {
     const lista = await usuarios.listarUsuarios();
     nomePorId = Object.fromEntries(lista.map((u) => [u.id, u.nome]));
   } catch {
-    // Sem a lista de usuários, mostra o id mesmo (não é motivo para
-    // esconder a mensagem inteira).
+    // Sem a lista de usuários, a aprovação diz só "pela equipe" (não é
+    // motivo para esconder a mensagem inteira).
   }
 
   const porDestinatario = new Map<string, typeof mensagens>();
@@ -70,8 +71,8 @@ export async function SecaoMensagens() {
             <TabelaLista
               rotulo={`Mensagens para ${ROTULO_DESTINATARIO[destinatario] ?? destinatario}`}
               colunas={[
-                { chave: "chave", rotulo: "Chave", principal: true },
-                { chave: "status", rotulo: "Status", canto: true },
+                { chave: "chave", rotulo: "Mensagem", principal: true },
+                { chave: "status", rotulo: "Situação", canto: true },
                 { chave: "texto", rotulo: "Texto" },
                 { chave: "aprovacao", rotulo: "Aprovação" },
                 { chave: "editar", rotulo: "Editar" },
@@ -86,8 +87,8 @@ export async function SecaoMensagens() {
                   id: mensagem.chave,
                   valores: {
                     chave: (
-                      <span className="text-texto font-mono font-semibold">
-                        {mensagem.chave}
+                      <span className="text-texto font-semibold">
+                        {nomeDaMensagem(mensagem.chave)}
                       </span>
                     ),
                     status: (
@@ -101,10 +102,14 @@ export async function SecaoMensagens() {
                       </span>
                     ),
                     aprovacao:
-                      mensagem.status === "aprovado" && mensagem.aprovadoPor ? (
+                      mensagem.status === "aprovado" ? (
+                        // Aprovada antes de o sistema guardar quem aprovou:
+                        // diz só a data, nunca "ainda não aprovado".
                         <span className="text-apoio text-texto-2">
-                          {nomePorId[mensagem.aprovadoPor] ??
-                            mensagem.aprovadoPor}
+                          {mensagem.aprovadoPor
+                            ? (nomePorId[mensagem.aprovadoPor] ??
+                              "Pessoa da equipe")
+                            : "Aprovada"}
                           {mensagem.aprovadoEm
                             ? `, ${formatarDataHora(mensagem.aprovadoEm)}`
                             : ""}

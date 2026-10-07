@@ -13,7 +13,7 @@ test("edita o rascunho, vê a prévia sem a variável vazia e aprova com o nome 
   await page.goto("/configuracoes?aba=mensagens");
 
   await page
-    .getByRole("button", { name: "Editar mensagem followup_d3" })
+    .getByRole("button", { name: "Editar a mensagem Retorno depois de 3 dias" })
     .click();
   const dialogo = page.getByRole("dialog");
   await expect(dialogo.getByText(/caracteres/)).toBeVisible();
@@ -25,16 +25,18 @@ test("edita o rascunho, vê a prévia sem a variável vazia e aprova com o nome 
   await expect(dialogo).toBeHidden();
 
   await page
-    .locator("tr", { hasText: "followup_d3" })
+    .locator("tr", { hasText: "Retorno depois de 3 dias" })
     .getByRole("button", { name: "Aprovar" })
     .click();
 
   await expect(
-    page.locator("tr", { hasText: "followup_d3" }).getByText("Aprovado"),
+    page
+      .locator("tr", { hasText: "Retorno depois de 3 dias" })
+      .getByText("Aprovado"),
   ).toBeVisible();
   await expect(
     page
-      .locator("tr", { hasText: "followup_d3" })
+      .locator("tr", { hasText: "Retorno depois de 3 dias" })
       .getByText(/Perfil Teste Diretoria/),
   ).toBeVisible();
 });
@@ -43,14 +45,20 @@ test("travessão vira vírgula ao salvar o rascunho", async ({ page }) => {
   await entrarComo(page, "Diretoria");
   await page.goto("/configuracoes?aba=mensagens");
 
-  await page.getByRole("button", { name: "Editar mensagem perda" }).click();
+  await page
+    .getByRole("button", {
+      name: "Editar a mensagem Acolhimento depois de uma perda",
+    })
+    .click();
   const dialogo = page.getByRole("dialog");
   const texto = dialogo.getByLabel("Texto");
   await texto.fill("Sinto muito — estamos aqui.");
   await dialogo.getByRole("button", { name: "Salvar rascunho" }).click();
   await expect(dialogo).toBeHidden();
 
-  const linha = page.locator("tr", { hasText: "perda" });
+  const linha = page.locator("tr", {
+    hasText: "Acolhimento depois de uma perda",
+  });
   await expect(linha.getByText("Sinto muito, estamos aqui.")).toBeVisible();
   await expect(linha).not.toContainText("—");
 });

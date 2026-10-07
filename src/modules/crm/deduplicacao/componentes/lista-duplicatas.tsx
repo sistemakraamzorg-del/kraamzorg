@@ -70,11 +70,10 @@ export function ListaDuplicatas({
     return (
       <FaixaAlerta
         variante="info"
-        titulo="O banco ainda não tem a função de duplicatas"
+        titulo="A busca de cadastros repetidos ainda não está disponível"
       >
-        A detecção de duplicatas (`api.buscar_duplicatas`) está sendo escrita em
-        outra trilha. Assim que ela chegar, esta tela passa a mostrar os pares
-        de verdade.
+        Assim que ela for ligada, esta tela passa a mostrar as famílias que
+        parecem cadastradas mais de uma vez. Até lá, nada muda nos cadastros.
       </FaixaAlerta>
     );
   }

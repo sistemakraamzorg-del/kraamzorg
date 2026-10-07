@@ -21,6 +21,7 @@ import {
   extrairVariaveis,
   montarPreviaMensagem,
 } from "../dados/mensagem-preview";
+import { nomeDaMensagem } from "../nomes-mensagens";
 import { CampoSelecao } from "./campo-selecao";
 import type { MensagemModeloDetalhe } from "../dados/tipos";
 
@@ -82,11 +83,14 @@ export function FormularioMensagem({
       <DialogoGatilho asChild>
         <Botao
           variante="icone"
-          aria-label={`Editar mensagem ${mensagem.chave}`}
+          aria-label={`Editar a mensagem ${nomeDaMensagem(mensagem.chave)}`}
           iconeEsquerda={<Pencil aria-hidden="true" className="size-4" />}
         />
       </DialogoGatilho>
-      <DialogoConteudo titulo={mensagem.chave} rotuloFechar="Fechar sem salvar">
+      <DialogoConteudo
+        titulo={nomeDaMensagem(mensagem.chave)}
+        rotuloFechar="Fechar sem salvar"
+      >
         <form action={acao} className="mt-2 flex flex-col gap-4">
           <input type="hidden" name="chave" value={mensagem.chave} />
           <div className="flex gap-3">
@@ -112,7 +116,7 @@ export function FormularioMensagem({
             linhas={6}
             value={texto}
             onChange={(evento) => definirTexto(evento.target.value)}
-            descricao={`${texto.length} caracteres. Variáveis entre chaves, como {nome}.`}
+            descricao={`${texto.length} caracteres. O que fica entre chaves, como {nome}, é trocado na hora do envio.`}
             estado={temTravessao ? "aviso" : "normal"}
           />
           {temTravessao ? (

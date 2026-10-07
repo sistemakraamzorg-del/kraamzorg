@@ -247,10 +247,10 @@ export default async function PaginaPipeline({
             {pipeline === 1 ? (
               <>
                 <Nota className="mt-4">
-                  <b className="font-semibold">Nutrição não é arquivo morto.</b>{" "}
-                  É o maior pipeline do sistema por volume e o principal motor
-                  comercial. A régua acompanha a semana gestacional, não os dias
-                  desde o cadastro, e se recalcula sozinha quando a DPP muda.
+                  <b className="font-semibold">Coluna Nutrição.</b> Aqui ficam
+                  as famílias que ainda estão grávidas e não fecharam. A
+                  mensagem de acompanhamento sai conforme a semana da gestação e
+                  muda sozinha quando a data prevista do parto é corrigida.
                 </Nota>
               </>
             ) : null}

@@ -108,7 +108,7 @@ export function criarConfiguracoesModuloDemonstracao(
         negar("só a diretoria cria parâmetros");
       const loja = obterLoja();
       if (chaveDoPrefixoDoAgente(chave)) {
-        negar("parâmetro do agente é mantido pela equipe de implantação");
+        negar("parâmetro do agente é mantido pela equipe técnica");
       }
       if (loja.parametros.some((p) => p.chave === chave)) {
         throw new ErroRepositorio(

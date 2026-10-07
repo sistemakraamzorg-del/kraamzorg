@@ -269,7 +269,11 @@ export function FormularioProposta({
               }))}
               valor={String(parcelasValidas)}
               onMudar={(valor) => definirParcelas(Number(valor))}
-              descricao={`Até ${maximo}x sem juros neste pacote${condicao?.tipo === "parcelamento" ? " com esta condição" : ""}.`}
+              descricao={
+                maximo === 1
+                  ? "Neste pacote, o pagamento é à vista."
+                  : `Até ${maximo}x sem juros neste pacote${condicao?.tipo === "parcelamento" ? " com esta condição" : ""}.`
+              }
             />
           </div>
 

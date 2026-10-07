@@ -68,7 +68,7 @@ test("a lista de parâmetros não traz nenhum do agente e diz com quem ficam os 
   await page.goto("/configuracoes");
 
   await expect(
-    page.getByText("Os ajustes da Isadora ficam com a equipe de implantação"),
+    page.getByText("Os ajustes da Isadora ficam com a equipe técnica"),
   ).toBeVisible();
   // Parâmetros que o app também usa continuam na lista...
   await expect(

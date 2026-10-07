@@ -6,7 +6,10 @@ const SELO: Record<
   EstadoSensivel,
   { rotulo: string; variante: "sucesso" | "sensivel" }
 > = {
-  normal: { rotulo: "Normal, réguas ativas", variante: "sucesso" },
+  normal: {
+    rotulo: "Normal, mensagens automáticas ligadas",
+    variante: "sucesso",
+  },
   atencao: { rotulo: "Freio em atenção", variante: "sensivel" },
   bloqueio_total: { rotulo: "Freio em bloqueio total", variante: "sensivel" },
   encerrado_sensivel: { rotulo: "Encerrado sensível", variante: "sensivel" },
@@ -29,8 +32,8 @@ export function PainelEstadoSensivel({ estado }: { estado: EstadoSensivel }) {
         </div>
         <p className="text-tinta-50 text-[11.5px] leading-[1.65]">
           {estado === "normal"
-            ? "Use o botão Freio, no alto da ficha, se houver intercorrência, perda gestacional ou qualquer situação que exija silêncio automático. Todas as réguas param na hora. Justificar depois é aceitável."
-            : "As réguas desta família estão paradas. Só contato humano, pelo nome. A coordenação e a diretoria podem reverter pelo selo Freio ativo, no alto da ficha."}
+            ? "Use o botão Freio, no alto da ficha, se houver intercorrência, perda gestacional ou qualquer situação em que nada automático deve sair. Todas as mensagens automáticas param na hora. A justificativa pode ser escrita depois."
+            : "As mensagens automáticas desta família estão paradas. Só contato de uma pessoa da equipe, pelo nome. A coordenação e a diretoria podem reverter pelo selo Freio ativo, no alto da ficha."}
         </p>
       </CardBody>
     </Card>

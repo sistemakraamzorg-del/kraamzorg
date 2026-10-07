@@ -72,7 +72,7 @@ export default async function PaginaCopiloto() {
                 strokeWidth={1.75}
               />
               O copiloto consulta números do negócio, por isso pede o código do
-              aplicativo (MFA) antes de abrir.
+              aplicativo de verificação antes de abrir.
             </p>
             <Botao
               asChild
@@ -93,7 +93,7 @@ export default async function PaginaCopiloto() {
             titulo={
               falhou
                 ? "O copiloto não abriu agora"
-                : "O copiloto não está com o seu papel"
+                : "O copiloto não faz parte da sua função"
             }
           >
             {falhou
@@ -119,14 +119,13 @@ export default async function PaginaCopiloto() {
                     <CardHead titulo="Limite de acesso" />
                     <CardBody>
                       <p className="text-tinta-50 text-[11.5px] leading-[1.7]">
-                        O copiloto responde exatamente o que o papel de quem
-                        pergunta permite ver. Registro assistencial ele não
-                        consulta: a pergunta recebe uma negativa clara, e não um
-                        resumo suavizado.
+                        O copiloto responde só o que a sua função permite ver.
+                        Sobre a saúde das famílias ele não responde: a pergunta
+                        recebe um não claro, sem resumo.
                       </p>
                       <Nota tom="sensivel" className="mt-3 text-[11.5px]">
-                        Regra aplicada no banco, não no prompt. Um modelo pode
-                        ser convencido; uma permissão de leitura, não.
+                        Essa trava está no próprio sistema, não num pedido ao
+                        copiloto. Por isso nenhuma pergunta consegue contornar.
                       </Nota>
                     </CardBody>
                   </Card>

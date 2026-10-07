@@ -3,6 +3,7 @@ import { Selo } from "@/components/ui/selo";
 import { formatarData } from "@/lib/formatacao";
 import type { FichaTela } from "../tipos";
 import { emModoSensivel, linhaDaFicha } from "./meta-ficha";
+import { ComSiglas } from "@/components/ui/siglas";
 
 /**
  * "Datas que governam a operação" (`.kv` do mockup): as quatro datas, a DPP
@@ -16,13 +17,17 @@ export function PainelDatas({ ficha }: { ficha: FichaTela }) {
   const linha = linhaDaFicha(ficha);
   return (
     <Card>
-      <CardHead titulo="Datas que governam a operação" />
+      <CardHead titulo="Datas do acompanhamento" />
       <CardBody>
         <dl className="grid grid-cols-[96px_minmax(0,1fr)] gap-x-2.5 gap-y-[5px] text-[12.5px]">
           {ficha.datas.map((data) => (
             <div key={data.rotulo} className="contents">
               <dt className="text-tinta-50 text-[11.5px]">
-                {data.rotulo === "Início" ? "Início efetivo" : data.rotulo}
+                {data.rotulo === "Início" ? (
+                  "Início efetivo"
+                ) : (
+                  <ComSiglas texto={data.rotulo} />
+                )}
               </dt>
               <dd className="font-medium">
                 {data.valor ? (
@@ -52,9 +57,9 @@ export function PainelDatas({ ficha }: { ficha: FichaTela }) {
         {linha ? <div className="mt-3 max-w-md">{linha}</div> : null}
         {sensivel ? null : (
           <Nota className="mt-3 text-[11.5px]">
-            A DPP é estimativa. Nascimento, alta e início entram quando
-            acontecem. Nenhuma automação de operação é disparada por DPP. O
-            gatilho real é a alta.
+            A DPP (data provável do parto) é só uma estimativa. Nascimento, alta
+            e início entram quando acontecem. Nenhuma visita nem aviso é marcado
+            pela DPP: o que vale é a alta.
           </Nota>
         )}
       </CardBody>

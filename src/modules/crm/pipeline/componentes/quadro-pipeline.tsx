@@ -160,7 +160,7 @@ export function QuadroPipeline({
           const dica =
             `${n === 1 ? "1 família" : `${n} famílias`}, ${total ? Math.round((n / total) * 100) : 0}% do funil.` +
             (n
-              ? ` ${por("quente")} quentes, ${por("morno")} mornas, ${por("frio")} frias.`
+              ? ` ${por("quente")} ${por("quente") === 1 ? "quente" : "quentes"}, ${por("morno")} ${por("morno") === 1 ? "morna" : "mornas"}, ${por("frio")} ${por("frio") === 1 ? "fria" : "frias"}.`
               : "");
           const destacado = alvo === grupo.estagio && permitido;
           return (

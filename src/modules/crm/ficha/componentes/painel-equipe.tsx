@@ -12,8 +12,8 @@ export function PainelEquipe() {
       <CardHead titulo="Equipe designada" />
       <CardBody>
         <p className="text-tinta-50 text-[11.5px] leading-[1.65]">
-          Os nomes da enfermeira responsável e da backup ainda não aparecem
-          nesta ficha. A designação é feita pela operação.
+          Quem escolhe a enfermeira responsável e a backup é a coordenação, no
+          Radar, onde os nomes aparecem.
         </p>
       </CardBody>
     </Card>
