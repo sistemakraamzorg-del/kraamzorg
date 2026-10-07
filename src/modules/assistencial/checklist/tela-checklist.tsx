@@ -111,6 +111,11 @@ export interface TelaChecklistProps {
   usuarioId: string;
   /** Para onde o botão de voltar leva ("/hoje" para a enfermeira). */
   voltarPara: string;
+  /**
+   * Fim do checklist já feito: a grade com todos os dias e todas as marcações
+   * (`DiaADia`), montada no servidor e só exibida na visão do registro assinado.
+   */
+  fimDoChecklist?: React.ReactNode;
   /** Injetáveis (teste); em uso normal são os do aparelho. */
   aparelho?: Aparelho;
   agora?: () => Date;
@@ -145,6 +150,7 @@ function ChecklistComInstrumento({
   checklist,
   usuarioId,
   voltarPara,
+  fimDoChecklist,
   aparelho,
   agora = () => new Date(),
 }: TelaChecklistProps) {
@@ -171,6 +177,7 @@ function ChecklistComInstrumento({
         c={c}
         voltarPara={voltarPara}
         usuarioId={usuarioId}
+        fimDoChecklist={fimDoChecklist}
       />
     );
   }
@@ -1485,11 +1492,13 @@ function VisaoAssinada({
   c,
   voltarPara,
   usuarioId,
+  fimDoChecklist,
 }: {
   checklist: ChecklistVisita;
   c: Controle;
   voltarPara: string;
   usuarioId: string;
+  fimDoChecklist?: React.ReactNode;
 }) {
   const router = useRouter();
   const registro = checklist.registro!;
@@ -1711,6 +1720,8 @@ function VisaoAssinada({
         armazem={c.aparelho?.armazem}
         somenteLeitura
       />
+
+      {fimDoChecklist}
 
       <Dialogo open={adendoAberto} onOpenChange={definirAdendoAberto}>
         <DialogoConteudo

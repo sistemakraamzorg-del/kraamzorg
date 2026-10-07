@@ -1,93 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { DEFINICAO_DOC2 } from "@/lib/dados/demonstracao/assistencial-fixtures";
-import type { BaseEvolucao } from "@/lib/dados/tipos-evolucao";
-import { celulaDoValor, montarRotina, type LinhaRotina } from "./rotina";
-
-const BEBE = "00000000-0000-4000-8620-000000000011";
-
-function base(parcial: Partial<BaseEvolucao> = {}): BaseEvolucao {
-  return {
-    acompanhamento: {
-      id: "a",
-      familiaId: "f",
-      estado: "em_execucao",
-      diasContratados: 6,
-      horasPorVisita: 3,
-      inicio: "2026-09-21",
-      fim: "2026-09-22",
-      concluidoEm: null,
-      dataAlta: "2026-09-19",
-      dataNascimento: "2026-09-17",
-    },
-    hoje: "2026-09-22",
-    familiaNome: "Família Teste Aurora",
-    paciente: { nome: "Marina Teste Aurora", idade: 29 },
-    filiacao: [],
-    bebes: [
-      {
-        id: BEBE,
-        ordem: 1,
-        nome: "Bebê Teste Aurora",
-        sexo: "feminino",
-        tipoParto: "vaginal",
-        dataNascimento: "2026-09-17",
-        pesoNascimentoG: 3300,
-        pesoAltaG: 3150,
-      },
-    ],
-    medicos: [],
-    profissional: null,
-    funcoes: {},
-    visitas: [
-      {
-        visitaId: "v1",
-        diaNumero: 1,
-        data: "2026-09-21",
-        profissionalId: "p",
-        dados: {
-          "1": {
-            data: "2026-09-21",
-            horario: "09:34",
-            acompanhante_presente: { resposta: true, texto: "Parceiro" },
-          },
-          "2.1": {
-            pressao_arterial: { partes: { sistolica: 118, diastolica: 76 } },
-            temperatura: 36.7,
-          },
-          "2.8": { latch: { valor: 9, complemento: "otimo" } },
-          "3": [{ bebe_id: BEBE, cor_da_pele_icterica: "zona_i" }],
-        },
-        resumoDescritivo: "Primeira visita tranquila.",
-        assinadoEm: "2026-09-21T15:50:00.000Z",
-      },
-    ],
-    rotina: [
-      {
-        visitaId: "v1",
-        diaNumero: 1,
-        data: "2026-09-21",
-        horaPrevista: "09:30",
-        checkinEm: "2026-09-21T12:34:00.000Z",
-        checkoutEm: "2026-09-21T15:39:00.000Z",
-        estado: "ficha_entregue",
-      },
-      {
-        visitaId: "v2",
-        diaNumero: 2,
-        data: "2026-09-22",
-        horaPrevista: "09:30",
-        checkinEm: null,
-        checkoutEm: null,
-        estado: "agendada",
-      },
-    ],
-    definicaoChecklist: DEFINICAO_DOC2,
-    relatorios: [],
-    textos: {},
-    orientacoesRotulos: {},
-    ...parcial,
-  };
-}
+import {
+  celulaDoValor,
+  montarRotina,
+  separarCampos,
+  type LinhaRotina,
+} from "./rotina";
+import { BEBE, baseDeExemplo as base } from "./rotina-apoio";
 
 const linha = (linhas: LinhaRotina[], chave: string): LinhaRotina =>
   linhas.find((l) => l.chave === chave)!;
@@ -200,5 +119,43 @@ describe("valor de um campo", () => {
     expect(
       celulaDoValor(campo, { ausente: true, justificativa: "Sem retorno" }),
     ).toEqual({ principal: "Não informado", detalhe: "Sem retorno" });
+  });
+});
+
+describe("campos com e sem registro", () => {
+  it("a grade só leva as linhas que alguém preencheu, e o resto vira lista de rótulos", () => {
+    const m = montarRotina(base());
+    const r = separarCampos(m.grupos);
+    expect(r.totalComRegistro).toBeGreaterThan(0);
+    expect(r.totalSemRegistro).toBeGreaterThan(0);
+    const sinais = r.comRegistro.find((g) => g.chave === "2.1")!;
+    expect(sinais.linhas.map((l) => l.chave)).toEqual([
+      "2.1.pressao_arterial",
+      "2.1.temperatura",
+    ]);
+    const vazios = r.semRegistro.find((g) => g.chave === "2.1")!;
+    expect(vazios.rotulos).toEqual(["Frequência cardíaca (bpm)"]);
+    for (const g of r.comRegistro) {
+      for (const l of g.linhas) {
+        expect(l.celulas.some((c) => c !== null)).toBe(true);
+      }
+    }
+  });
+
+  it("sem nenhum registro, tudo vai para a lista e a grade fica vazia", () => {
+    const b = base();
+    const m = montarRotina({
+      ...b,
+      visitas: b.visitas.map((v) => ({
+        ...v,
+        dados: {},
+        resumoDescritivo: null,
+        assinadoEm: null,
+      })),
+    });
+    const r = separarCampos(m.grupos);
+    expect(r.comRegistro).toEqual([]);
+    expect(r.totalComRegistro).toBe(0);
+    expect(r.totalSemRegistro).toBeGreaterThan(40);
   });
 });

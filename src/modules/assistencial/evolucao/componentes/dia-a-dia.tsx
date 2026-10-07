@@ -1,4 +1,5 @@
 import { CalendarClock, ChevronDown } from "lucide-react";
+import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { TileIcone } from "@/components/ui/tile-icone";
 import { formatarData, formatarDuracao } from "@/lib/formatacao";
 import type { BaseEvolucao } from "@/lib/dados/tipos-evolucao";
@@ -7,6 +8,7 @@ import {
   montarRotina,
   type Celula,
   type ColunaDia,
+  separarCampos,
   type LinhaRotina,
 } from "../rotina";
 
@@ -19,9 +21,17 @@ import {
  * A tabela rola de lado dentro da própria caixa (nunca a página) e a
  * primeira coluna fica presa, para o rótulo não sumir no celular.
  */
-export function DiaADia({ base }: { base: BaseEvolucao }) {
+export function DiaADia({
+  base,
+  checklistAberto = false,
+}: {
+  base: BaseEvolucao;
+  /** Abre a grade do checklist já na entrada (fim do checklist assinado da enfermeira). */
+  checklistAberto?: boolean;
+}) {
   const modelo = montarRotina(base);
   if (modelo.colunas.length === 0) return null;
+  const campos = separarCampos(modelo.grupos);
 
   const plano = planoEmTexto(modelo.diasPrevistos, modelo.horasPorVisita);
   const total = formatarDuracao(modelo.minutosNaCasa);
@@ -56,6 +66,10 @@ export function DiaADia({ base }: { base: BaseEvolucao }) {
               ? ` Tempo na casa somando entrada e saída: ${total}${contratado ? `, para ${contratado} do plano nesses dias` : ""}.`
               : ""}
           </p>
+          <p className="text-apoio text-texto-2 max-w-[64ch]">
+            É só leitura. Quem preenche é a enfermeira, no checklist de cada
+            visita, pelo portal.
+          </p>
         </div>
       </div>
 
@@ -68,9 +82,22 @@ export function DiaADia({ base }: { base: BaseEvolucao }) {
         tom="lavanda"
         dataNoCabecalho={false}
       />
+      <p className="text-mini text-texto-2 -mt-2 max-w-[64ch]">
+        A entrada e a saída vêm dos botões “Cheguei” e “Saí da casa”, que a
+        enfermeira toca durante a visita. Dia sem toque fica em branco.
+      </p>
 
-      {modelo.grupos.length > 0 ? (
-        <details className="group/detalhe">
+      {campos.totalComRegistro === 0 ? (
+        <FaixaAlerta
+          variante="info"
+          titulo="Nenhum campo do checklist foi registrado ainda"
+        >
+          A enfermeira preenche o checklist de cada dia na visita, pelo portal.
+          Quando ela assina o dia, as marcações aparecem aqui, uma coluna por
+          dia.
+        </FaixaAlerta>
+      ) : (
+        <details className="group/detalhe" open={checklistAberto}>
           <summary className="rounded-pilula bg-areia-clara text-apoio text-texto min-h-toque ease-estado hover:bg-areia inline-flex w-fit cursor-pointer list-none items-center gap-2 px-5 font-semibold transition-colors duration-140 [&::-webkit-details-marker]:hidden">
             <ChevronDown
               aria-hidden="true"
@@ -78,17 +105,18 @@ export function DiaADia({ base }: { base: BaseEvolucao }) {
               strokeWidth={2}
             />
             <span className="group-open/detalhe:hidden">
-              Ver o checklist de cada dia, campo por campo
+              Ver as marcações de cada dia ({campos.totalComRegistro} campos
+              registrados)
             </span>
             <span className="hidden group-open/detalhe:inline">
-              Esconder o checklist de cada dia
+              Esconder as marcações de cada dia
             </span>
           </summary>
           <div className="mt-4">
             <Grade
-              rotulo="Checklist de cada dia, campo por campo"
+              rotulo="Marcações do checklist de cada dia"
               colunas={modelo.colunas}
-              secoes={modelo.grupos.map((g) => ({
+              secoes={campos.comRegistro.map((g) => ({
                 chave: g.chave,
                 titulo: g.titulo,
                 linhas: g.linhas,
@@ -97,6 +125,27 @@ export function DiaADia({ base }: { base: BaseEvolucao }) {
               dataNoCabecalho
             />
           </div>
+        </details>
+      )}
+
+      {campos.totalSemRegistro > 0 ? (
+        <details className="group/pendentes">
+          <summary className="text-apoio text-texto-2 min-h-toque hover:text-texto inline-flex cursor-pointer list-none items-center gap-2 font-medium [&::-webkit-details-marker]:hidden">
+            <ChevronDown
+              aria-hidden="true"
+              className="size-4 transition-transform duration-140 group-open/pendentes:rotate-180"
+              strokeWidth={2}
+            />
+            Campos sem registro em nenhum dia ({campos.totalSemRegistro})
+          </summary>
+          <ul className="text-apoio text-texto-2 mt-2 flex max-w-[78ch] flex-col gap-2">
+            {campos.semRegistro.map((g) => (
+              <li key={g.chave}>
+                <span className="text-texto font-medium">{g.titulo}:</span>{" "}
+                {g.rotulos.join(", ")}.
+              </li>
+            ))}
+          </ul>
         </details>
       ) : null}
     </section>

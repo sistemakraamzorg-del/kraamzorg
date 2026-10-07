@@ -1,3 +1,4 @@
+import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import {
   entrarComo,
@@ -100,9 +101,9 @@ test.describe("evolução aos médicos", () => {
       agenda.getByRole("row", { name: /Tempo na casa/ }),
     ).toContainText("de 6h");
 
-    await secao.getByText("Ver o checklist de cada dia").click();
+    await secao.getByText("Ver as marcações de cada dia").click();
     const checklist = secao.getByRole("table", {
-      name: "Checklist de cada dia, campo por campo",
+      name: "Marcações do checklist de cada dia",
     });
     await expect(checklist).toBeVisible();
     for (const bloco of [
@@ -120,6 +121,39 @@ test.describe("evolução aos médicos", () => {
     ).toBeVisible();
     await semRolagemLateral(page);
     await semViolacaoGrave(page);
+  });
+
+  test("no fim do checklist já assinado a enfermeira vê todas as marcações dos dias", async ({
+    page,
+  }) => {
+    await entrarComo(page, "Enfermeira");
+    // Aurora, dia 3: assinado, com os dias 1 e 2 já feitos
+    await page.goto("/visita/00000000-0000-4000-8530-000000000003");
+    const secao = page.getByRole("region", {
+      name: "Dia a dia do atendimento",
+    });
+    await expect(secao).toBeVisible();
+    await expect(secao).toContainText("É só leitura");
+    const grade = secao.getByRole("table", {
+      name: "Marcações do checklist de cada dia",
+    });
+    await expect(grade).toBeVisible();
+    await expect(
+      grade.getByRole("rowheader", { name: "Pressão arterial (mmHg)" }),
+    ).toBeVisible();
+    await expect(
+      grade.getByRole("columnheader", { name: "2.1 Sinais vitais" }),
+    ).toBeVisible();
+    await semRolagemLateral(page);
+    // Só a seção nova: a linha "Evolução" da visita (dias futuros em cinza claro) já
+    // tinha contraste baixo e não é deste bloco.
+    const axe = await new AxeBuilder({ page })
+      .include("section[aria-labelledby=dia-a-dia-titulo]")
+      .analyze();
+    const graves = axe.violations.filter(
+      (v) => v.impact === "serious" || v.impact === "critical",
+    );
+    expect(graves, JSON.stringify(graves, null, 2)).toEqual([]);
   });
 
   test("a enfermeira monta o rascunho e vê o que só ela pode dizer", async ({

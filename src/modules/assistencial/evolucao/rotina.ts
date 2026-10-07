@@ -56,6 +56,49 @@ export interface ModeloRotina {
   horasPorVisita: number | null;
 }
 
+/** O que a planilha de papel tem preenchido e o que ficou em branco em todos os dias. */
+export interface ResumoCampos {
+  /** Só as linhas que têm valor em pelo menos um dia (grupos sem linha ficam de fora). */
+  comRegistro: GrupoRotina[];
+  /** Os campos que ninguém preencheu em dia nenhum, por grupo, só com o rótulo. */
+  semRegistro: { chave: string; titulo: string; rotulos: string[] }[];
+  totalComRegistro: number;
+  totalSemRegistro: number;
+}
+
+/**
+ * Separa os campos do checklist em "alguém registrou" e "ninguém registrou".
+ * A tela mostra a grade só do primeiro grupo; o segundo vira uma lista de
+ * texto, para a coordenação ver o que falta sem uma parede de células vazias.
+ */
+export function separarCampos(grupos: readonly GrupoRotina[]): ResumoCampos {
+  const comRegistro: GrupoRotina[] = [];
+  const semRegistro: ResumoCampos["semRegistro"] = [];
+  let totalComRegistro = 0;
+  let totalSemRegistro = 0;
+  for (const grupo of grupos) {
+    const preenchidas = grupo.linhas.filter((l) =>
+      l.celulas.some((c) => c !== null),
+    );
+    const vazias = grupo.linhas.filter((l) =>
+      l.celulas.every((c) => c === null),
+    );
+    if (preenchidas.length > 0) {
+      comRegistro.push({ ...grupo, linhas: preenchidas });
+      totalComRegistro += preenchidas.length;
+    }
+    if (vazias.length > 0) {
+      semRegistro.push({
+        chave: grupo.chave,
+        titulo: grupo.titulo,
+        rotulos: vazias.map((l) => l.rotulo),
+      });
+      totalSemRegistro += vazias.length;
+    }
+  }
+  return { comRegistro, semRegistro, totalComRegistro, totalSemRegistro };
+}
+
 const ROTULOS_AGENDA = {
   data: "Data",
   combinado: "Horário combinado",
