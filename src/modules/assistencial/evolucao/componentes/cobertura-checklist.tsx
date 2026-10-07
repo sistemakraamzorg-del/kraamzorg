@@ -15,6 +15,7 @@ import type {
   ResumoCampos,
   SituacaoChecklistDia,
 } from "../rotina";
+import { grupoContaNaCobertura } from "../rotina";
 
 /**
  * O estado do checklist da família, dia a dia e campo a campo, em linguagem de
@@ -214,21 +215,23 @@ function ResumoPorBloco({
   totalCampos: number;
 }) {
   const percentual = Math.round((campos.totalComRegistro / totalCampos) * 100);
-  const blocos = grupos.map((g) => {
-    const feitos = g.linhas.filter((l) =>
-      l.celulas.some((c) => c !== null),
-    ).length;
-    const faltam = g.linhas
-      .filter((l) => l.celulas.every((c) => c === null))
-      .map((l) => l.rotulo);
-    return {
-      chave: g.chave,
-      titulo: g.titulo,
-      total: g.linhas.length,
-      feitos,
-      faltam,
-    };
-  });
+  const blocos = grupos
+    .filter((g) => grupoContaNaCobertura(g.chave))
+    .map((g) => {
+      const feitos = g.linhas.filter((l) =>
+        l.celulas.some((c) => c !== null),
+      ).length;
+      const faltam = g.linhas
+        .filter((l) => l.celulas.every((c) => c === null))
+        .map((l) => l.rotulo);
+      return {
+        chave: g.chave,
+        titulo: g.titulo,
+        total: g.linhas.length,
+        feitos,
+        faltam,
+      };
+    });
   const incompletos = blocos.filter((b) => b.faltam.length > 0);
 
   return (
@@ -266,7 +269,7 @@ function ResumoPorBloco({
           <p className="text-apoio text-texto-2 max-w-[62ch]">
             {incompletos.length === 0
               ? "Todos os campos do checklist têm marcação em algum dia."
-              : "Os campos abaixo ainda não foram marcados em nenhum dia. Quem preenche é a enfermeira, na visita."}
+              : "Estes campos não tiveram marcação em nenhum dia. Alguns só valem em certos casos, como cesárea ou laserterapia. Quem preenche é a enfermeira, na visita."}
           </p>
         </div>
       </div>

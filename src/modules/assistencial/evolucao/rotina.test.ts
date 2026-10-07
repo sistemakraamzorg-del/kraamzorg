@@ -159,3 +159,33 @@ describe("campos com e sem registro", () => {
     expect(r.totalSemRegistro).toBeGreaterThan(40);
   });
 });
+
+describe("o que não conta como marcação do checklist", () => {
+  it("a hora da assinatura e o resumo do dia não contam como campo marcado", () => {
+    const b = base();
+    const m = montarRotina({
+      ...b,
+      visitas: b.visitas.map((v) => ({ ...v, dados: {} })),
+    });
+    const r = separarCampos(m.grupos);
+    expect(r.totalComRegistro).toBe(0);
+    expect(m.diasChecklist[0]!.situacao).toBe("sem_campos");
+    expect(m.diasChecklist[0]!.campos).toBe(0);
+    // a assinatura e o resumo continuam na grade quando existem
+    expect(r.comRegistro.map((g) => g.chave)).toEqual(["assinatura", "resumo"]);
+    // e não entram na lista do que falta
+    expect(r.semRegistro.some((g) => g.chave === "assinatura")).toBe(false);
+    expect(r.semRegistro.some((g) => g.chave === "resumo")).toBe(false);
+  });
+
+  it("cada dia diz a sua situação: feito, falta preencher ou ainda não chegou", () => {
+    const m = montarRotina(base());
+    const por = Object.fromEntries(
+      m.diasChecklist.map((d) => [d.diaNumero, d.situacao]),
+    );
+    expect(por[1]).toBe("feito");
+    expect(por[2]).toBe("adiante");
+    expect(por[3]).toBe("adiante");
+    expect(m.diasChecklist[0]!.campos).toBeGreaterThan(5);
+  });
+});

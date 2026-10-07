@@ -82,6 +82,18 @@ export interface ModeloRotina {
   horasPorVisita: number | null;
 }
 
+/**
+ * Grupos que o sistema preenche sozinho ou que moram fora de `dados` (hora da
+ * assinatura e resumo do dia): aparecem na grade quando existem, mas não contam
+ * como "campo do checklist marcado" na cobertura nem na situação de cada dia.
+ */
+const GRUPOS_FORA_DA_CONTA = new Set(["assinatura", "resumo"]);
+
+/** Verdadeiro para o grupo que conta como campo do checklist na cobertura. */
+export function grupoContaNaCobertura(chave: string): boolean {
+  return !GRUPOS_FORA_DA_CONTA.has(chave);
+}
+
 /** O que a planilha de papel tem preenchido e o que ficou em branco em todos os dias. */
 export interface ResumoCampos {
   /** Só as linhas que têm valor em pelo menos um dia (grupos sem linha ficam de fora). */
@@ -103,6 +115,7 @@ export function separarCampos(grupos: readonly GrupoRotina[]): ResumoCampos {
   let totalComRegistro = 0;
   let totalSemRegistro = 0;
   for (const grupo of grupos) {
+    const foraDaConta = GRUPOS_FORA_DA_CONTA.has(grupo.chave);
     const preenchidas = grupo.linhas.filter((l) =>
       l.celulas.some((c) => c !== null),
     );
@@ -111,8 +124,9 @@ export function separarCampos(grupos: readonly GrupoRotina[]): ResumoCampos {
     );
     if (preenchidas.length > 0) {
       comRegistro.push({ ...grupo, linhas: preenchidas });
-      totalComRegistro += preenchidas.length;
+      if (!foraDaConta) totalComRegistro += preenchidas.length;
     }
+    if (foraDaConta) continue;
     if (vazias.length > 0) {
       semRegistro.push({
         chave: grupo.chave,
@@ -471,10 +485,13 @@ export function montarRotina(base: BaseEvolucao): ModeloRotina {
   }
 
   const camposPorDia = dias.map((_, i) =>
-    grupos.reduce(
-      (soma, g) => soma + g.linhas.filter((l) => l.celulas[i] !== null).length,
-      0,
-    ),
+    grupos
+      .filter((g) => !GRUPOS_FORA_DA_CONTA.has(g.chave))
+      .reduce(
+        (soma, g) =>
+          soma + g.linhas.filter((l) => l.celulas[i] !== null).length,
+        0,
+      ),
   );
   const diasChecklist: DiaChecklist[] = dias.map((n, i) => {
     const visita = porDiaRotina.get(n);
