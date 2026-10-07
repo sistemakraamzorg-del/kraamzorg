@@ -206,9 +206,14 @@ select is(
 
 select is(
   (select coalesce(array_agg(distinct r.funcao order by r.funcao), '{}')
-     from p53_resultado r where r.papel = 'marketing'),
+     from p53_resultado r where r.papel = 'marketing'
+      -- As ações de tarefa (0046_tarefas_acoes) são dos seis papéis por desenho, cada uma só na
+      -- tarefa em que a pessoa pode mexer (o papel marketing conclui a tarefa do papel marketing).
+      -- Que tarefa alheia é recusada (P0001) está provado em 046_tarefas_acoes.sql. Todo o resto
+      -- continua proibido ao marketing.
+      and r.funcao <> all (array['tarefa_criar', 'tarefa_mudar_estado', 'tarefa_atribuir', 'tarefa_concluir'])),
   '{}'::text[],
-  'marketing não executa nenhuma função de api que recebe id de família, visita ou cobrança');
+  'marketing não executa nenhuma função de api que recebe id de família, visita ou cobrança (fora as ações de tarefa, dos seis papéis)');
 
 -- -----------------------------------------------------------------------------
 -- 4. RLS: a conta sem papel não lê tabela nenhuma de public
