@@ -901,7 +901,7 @@ export function VitrineDesignSystem() {
           <BarraLateral
             posicao="solta"
             nomeMarca="Kraamzorg OS"
-            logoSrc="/brand/logo-negativo.png"
+            logoSrc="/brand/simbolo-negativo.png"
             grupos={GRUPOS_LATERAL}
             rotulo="Exemplo de navegação"
             rodape={

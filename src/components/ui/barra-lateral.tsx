@@ -39,7 +39,7 @@ export interface GrupoBarraLateral {
 export interface BarraLateralProps {
   /** Nome do sistema, ao lado do símbolo (ex: "Kraamzorg OS"). */
   nomeMarca: string;
-  /** Caminho da logo para fundo escuro (versão negativa do guia da marca), em `/public/brand`. */
+  /** Caminho do símbolo para fundo escuro (versão negativa do guia da marca, inteiro), em `/public/brand`. */
   logoSrc: string;
   grupos: GrupoBarraLateral[];
   /** Rótulo acessível da navegação (ex: "Navegação principal"). O nome da marca não é o rótulo da navegação. */
@@ -74,21 +74,16 @@ export function BarraLateral({
       )}
     >
       <div className="border-texto-inverso/10 mb-3 flex shrink-0 items-center gap-2.5 border-b px-[18px] pt-0.5 pb-4">
-        {/* O símbolo é o arquivo oficial recortado pela moldura: nenhuma tela redesenha a logo. */}
-        <span
+        {/* O símbolo é o arquivo oficial do guia da marca, inteiro e sem moldura de corte: nenhuma tela redesenha a logo. */}
+        <Image
+          src={logoSrc}
+          alt=""
           aria-hidden="true"
-          className="relative block h-[30px] w-[38px] shrink-0 overflow-hidden"
-        >
-          <Image
-            src={logoSrc}
-            alt=""
-            width={87}
-            height={75}
-            priority
-            className="absolute max-w-none"
-            style={{ left: -22, top: -23 }}
-          />
-        </span>
+          width={29}
+          height={36}
+          priority
+          className="h-9 w-auto shrink-0"
+        />
         <span aria-hidden="true" className="font-titulo flex flex-col">
           <span className="text-creme text-[11px] tracking-[0.2em]">
             KRAAMZORG
