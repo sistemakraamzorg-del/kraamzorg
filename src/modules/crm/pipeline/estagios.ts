@@ -529,3 +529,73 @@ export const ROTULO_PAPEL_PESSOA: Record<
   responsavel: "Responsável",
   presenteador: "Quem está presenteando",
 };
+
+/**
+ * Próximo passo da linha principal de cada cartão, em frase de quem usa
+ * (botão "Próximo passo" do painel de detalhes). Não decide permissão: quem
+ * barra de verdade é `privado.transicionar`. Do estágio "Sessão realizada" o
+ * passo é montar a proposta, que mora na ficha da família.
+ */
+export type ProximoPasso =
+  | {
+      tipo: "mover";
+      estagio: EstagioP1 | EstagioP2;
+      /** Texto do botão: "Marcar como qualificado". */
+      rotuloBotao: string;
+      /** Papel mínimo que confirma essa passagem. */
+      papelMinimo: Papel | null;
+    }
+  | { tipo: "proposta"; rotuloBotao: string };
+
+const BOTAO_P1: Partial<Record<EstagioP1, { para: EstagioP1; botao: string }>> =
+  {
+    novo: { para: "em_conversa_ia", botao: "Iniciar a conversa" },
+    em_conversa_ia: { para: "qualificado", botao: "Marcar como qualificado" },
+    qualificado: {
+      para: "sessao_venda_agendada",
+      botao: "Agendar a sessão de venda",
+    },
+    sessao_venda_agendada: {
+      para: "sessao_venda_realizada",
+      botao: "Registrar sessão realizada",
+    },
+    nutricao: { para: "em_conversa_ia", botao: "Retomar a conversa" },
+  };
+
+export function proximoPasso(
+  pipeline: NumeroPipeline,
+  de: EstagioP1 | EstagioP2 | null,
+): ProximoPasso | null {
+  if (!de) return null;
+  if (pipeline === 1) {
+    if (de === "sessao_venda_realizada") {
+      return { tipo: "proposta", rotuloBotao: "Montar a proposta" };
+    }
+    const passo = BOTAO_P1[de as EstagioP1];
+    if (!passo) return null;
+    const regra = TRANSICOES_P1.find(
+      (t) => t.de === de && t.para === passo.para,
+    );
+    return {
+      tipo: "mover",
+      estagio: passo.para,
+      rotuloBotao: passo.botao,
+      papelMinimo: regra?.papelMinimo ?? null,
+    };
+  }
+  const regra = TRANSICOES_P2.find(
+    (t) =>
+      t.de === de &&
+      t.para !== "perdido" &&
+      t.para !== "cancelado" &&
+      t.para !== "distato" &&
+      t.para !== "intercorrencia",
+  );
+  if (!regra) return null;
+  return {
+    tipo: "mover",
+    estagio: regra.para as EstagioP2,
+    rotuloBotao: `Avançar para ${rotuloEstagio(2, regra.para as EstagioP2)}`,
+    papelMinimo: regra.papelMinimo ?? null,
+  };
+}

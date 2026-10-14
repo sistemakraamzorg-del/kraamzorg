@@ -241,6 +241,7 @@ export function QuadroPipeline({
       <DetalheOportunidade
         cartao={detalhe}
         pipeline={pipeline}
+        papeis={papeis}
         aoFechar={() => definirDetalheId(null)}
       />
       {perda ? (

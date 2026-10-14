@@ -10,10 +10,12 @@ import {
 import { LinhaGestacao } from "@/components/ui/linha-gestacao";
 import { Selo } from "@/components/ui/selo";
 import { formatarData, localidade } from "@/lib/formatacao";
+import type { Papel } from "@/lib/auth/papeis";
 import type { NumeroPipeline } from "@/lib/dados/tipos";
 import { ROTULO_ORIGEM_LEAD, rotuloEstagio } from "../estagios";
 import { calcularIdadeGestacional, hojeBrasilia } from "../idade-gestacional";
 import type { CartaoPipelineTela } from "../tipos";
+import { BotaoProximoPasso } from "./botao-proximo-passo";
 
 export const ROTULO_CLASSIFICACAO = {
   quente: "Quente",
@@ -47,10 +49,12 @@ function Linha({
 export function DetalheOportunidade({
   cartao,
   pipeline,
+  papeis,
   aoFechar,
 }: {
   cartao: CartaoPipelineTela | null;
   pipeline: NumeroPipeline;
+  papeis: readonly Papel[];
   aoFechar: () => void;
 }) {
   const estagio = cartao
@@ -192,7 +196,12 @@ export function DetalheOportunidade({
               </Linha>
             ) : null}
           </dl>
-          <Botao asChild className="mt-4 w-full">
+          <BotaoProximoPasso
+            cartao={cartao}
+            pipeline={pipeline}
+            papeis={papeis}
+          />
+          <Botao asChild variante="fantasma" className="mt-3 w-full">
             <Link href={`/familias/${cartao.familiaId}`}>
               Abrir ficha completa
             </Link>

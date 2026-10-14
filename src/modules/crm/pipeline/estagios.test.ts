@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   destinosPermitidos,
+  ORDEM_P1,
+  ORDEM_P2,
   papelProvavelmenteConfirma,
+  proximoPasso,
   rotuloEstagio,
 } from "./estagios";
 
@@ -125,5 +128,55 @@ describe("rotuloEstagio", () => {
     expect(rotuloEstagio(2, "aguardando_nascimento")).toBe(
       "Aguardando nascimento",
     );
+  });
+});
+
+describe("proximoPasso", () => {
+  it("leva o lead pela linha de entrada até a proposta", () => {
+    expect(proximoPasso(1, "novo")).toMatchObject({
+      tipo: "mover",
+      estagio: "em_conversa_ia",
+      rotuloBotao: "Iniciar a conversa",
+    });
+    expect(proximoPasso(1, "em_conversa_ia")).toMatchObject({
+      estagio: "qualificado",
+    });
+    expect(proximoPasso(1, "qualificado")).toMatchObject({
+      estagio: "sessao_venda_agendada",
+    });
+    expect(proximoPasso(1, "sessao_venda_agendada")).toMatchObject({
+      estagio: "sessao_venda_realizada",
+    });
+    expect(proximoPasso(1, "sessao_venda_realizada")).toEqual({
+      tipo: "proposta",
+      rotuloBotao: "Montar a proposta",
+    });
+  });
+
+  it("no pipeline de venda avança pela linha principal e diz o papel da passagem", () => {
+    expect(proximoPasso(2, "proposta_enviada")).toMatchObject({
+      estagio: "em_negociacao",
+      papelMinimo: "comercial",
+    });
+    expect(proximoPasso(2, "assinado")).toMatchObject({
+      estagio: "cobranca_gerada",
+      papelMinimo: "financeiro",
+    });
+    expect(proximoPasso(2, "consulta_realizada")).toMatchObject({
+      estagio: "enfermeira_designada",
+      papelMinimo: "coordenacao",
+    });
+  });
+
+  it("nunca sugere perda como próximo passo e não inventa passo sem estágio", () => {
+    for (const p of [1, 2] as const) {
+      const ordem = p === 1 ? ORDEM_P1 : ORDEM_P2;
+      for (const e of ordem) {
+        const passo = proximoPasso(p, e);
+        if (passo?.tipo === "mover") expect(passo.estagio).not.toBe("perdido");
+      }
+    }
+    expect(proximoPasso(1, null)).toBeNull();
+    expect(proximoPasso(1, "perdido")).toBeNull();
   });
 });
