@@ -287,7 +287,7 @@ function FluxoDeEstados() {
           {ORDEM_STATUS.map((s, i) => (
             <React.Fragment key={s}>
               {i > 0 ? (
-                <li aria-hidden="true" className="text-tinta-30 list-none">
+                <li aria-hidden="true" className="text-tinta-50 list-none">
                   →
                 </li>
               ) : null}

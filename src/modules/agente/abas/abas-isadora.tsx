@@ -516,7 +516,7 @@ export function AbaHandoffs({ fila }: { fila: TransferenciaTela[] | null }) {
               (e, i) => (
                 <span key={e} className="contents">
                   {i > 0 ? (
-                    <span aria-hidden="true" className="text-tinta-30">
+                    <span aria-hidden="true" className="text-tinta-50">
                       →
                     </span>
                   ) : null}

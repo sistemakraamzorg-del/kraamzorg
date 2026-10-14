@@ -38,7 +38,7 @@ export function LinhaEvolucao({
                   agora && "border-marinho bg-marinho text-areia",
                   d < diaAtual &&
                     "border-linha bg-superficie text-dourado-texto",
-                  d > diaAtual && "border-fio-2 text-tinta-30 border-dashed",
+                  d > diaAtual && "border-fio-2 text-tinta-50 border-dashed",
                 )}
               >
                 <div className="font-titulo text-[15px] font-normal">D{d}</div>

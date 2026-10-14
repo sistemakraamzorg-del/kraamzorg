@@ -12,7 +12,7 @@ type TomCelula = "on" | "off" | "livre" | "conf";
 
 const CLASSE: Record<TomCelula, string> = {
   on: "bg-dourado-lavado border-dourado-2 text-dourado-texto font-semibold",
-  off: "bg-cinza-lavado border-dashed border-linha text-tinta-30",
+  off: "bg-cinza-lavado border-dashed border-linha text-tinta-50",
   livre: "bg-creme-2 border-linha text-tinta-50",
   conf: "bg-alerta-lavado border-alerta text-alerta-texto font-semibold",
 };
