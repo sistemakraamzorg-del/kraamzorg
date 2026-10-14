@@ -40,7 +40,7 @@ test.describe("notas fiscais", () => {
       page.getByRole("heading", { level: 1, name: "Notas" }),
     ).toBeVisible();
     await expect(
-      page.getByText(/esperam emissão|espera emissão/).first(),
+      page.getByText("Notas para emitir").first(),
     ).toBeVisible();
     await expect(page.getByText(/A emissão é manual/)).toBeVisible();
     await expect(page.getByText("Com erro").first()).toBeVisible();

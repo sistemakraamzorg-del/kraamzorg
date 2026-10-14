@@ -28,7 +28,10 @@ test.describe("ocorrências", () => {
     await expect(page.getByText(/ocorrências abertas/).first()).toBeVisible();
     await expect(page.getByText("Privada").first()).toBeVisible();
     await expect(
-      page.getByText("Pesquisa com nota baixa").first(),
+      page
+        .getByText("Pesquisa com nota baixa")
+        .filter({ visible: true })
+        .first(),
     ).toBeVisible();
     await semRolagemLateral(page);
     await semViolacaoGrave(page);
