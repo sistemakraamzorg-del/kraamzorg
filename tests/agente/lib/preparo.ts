@@ -43,11 +43,12 @@ async function trocarParametro(
  * seed) o dia inteiro: quem decide é o relógio do banco no instante do envio,
  * então sem isso o caso passaria ou não conforme a hora em que roda.
  *
- * A janela de texto livre da API oficial (`whatsapp_janela_horas`, 24) fica
- * como no seed, de propósito: a cadência de 1, 3 e 14 dias e a retomada das
- * opções vencidas saem com 24 horas ou mais de silêncio, e o fluxo 3 hoje
- * manda modelo da Meta fora dessa janela em qualquer canal, inclusive na
- * UAZAPI. Os casos que dependem disso declaram a lacuna (C16, C27 e V30).
+ * Põe o canal do agente em `uazapi` (`whatsapp_canal_agente`): a cadência de 1,
+ * 3 e 14 dias e a retomada das opções vencidas saem com 24 horas ou mais de
+ * silêncio, e a janela de texto livre de 24 horas (`whatsapp_janela_horas`) só
+ * vale na API oficial (`cloud_api`). Na UAZAPI, número comum de homologação,
+ * o texto livre vale (PRD 4.1, O-18, migration 0048). Sem isso o retorno só
+ * sairia como modelo da Meta. O valor anterior volta no fim do caso.
  */
 async function abrirJanelasDeEnvio(
   consulta: Consulta,
@@ -58,6 +59,9 @@ async function abrirJanelasDeEnvio(
       inicio: "00:00",
       fim: "23:59",
     }),
+  );
+  desfazer.push(
+    await trocarParametro(consulta, "whatsapp_canal_agente", "uazapi"),
   );
 }
 

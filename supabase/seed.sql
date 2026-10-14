@@ -217,6 +217,8 @@ insert into condicao_comercial (nome, tipo, valor, requer_aprovacao, ativa, obse
 insert into parametro (chave, valor, descricao) values
   ('agente_modo', '"desligado"',
    'PRD 11.3, 22.1 T-01: desligado em produção até a conta do WhatsApp ser restaurada e o adaptador cloud_api estar pronto. Seed local usa teste (ver observação abaixo).'),
+  ('whatsapp_canal_agente', '"uazapi"',
+   'PRD 4.1, 22.4 O-18: canal de envio do agente. Seed de desenvolvimento e homologação usa uazapi (número comum, texto livre vale, a cadência de follow-up sai sem a janela de 24 horas). Produção usa cloud_api (padrão da migration 0048): texto livre fora da janela nunca sai.'),
   ('agente_whitelist', '["+5511900000001","+5511900000002"]',
    'Números autorizados no modo teste (PRD 11.7). Só dado sintético.'),
   ('agente_pausa_handoff_horas', '48',

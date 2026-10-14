@@ -176,6 +176,10 @@ select testes.encerrar();
 -- 4. agente.janela_followup
 -- -----------------------------------------------------------------------------
 
+-- [0048, O-18] este bloco testa o comportamento da API oficial: o seed de
+-- homologação deixa o canal em uazapi, então fixamos cloud_api aqui.
+update parametro set valor = '"cloud_api"' where chave = 'whatsapp_canal_agente';
+
 -- aprova o modelo do follow-up depois do PDF (rascunho -> submetido -> aprovado)
 update privado.modelo_whatsapp set status = 'submetido' where mensagem_chave = 'followup_d1_pos_pdf';
 update privado.modelo_whatsapp set status = 'aprovado' where mensagem_chave = 'followup_d1_pos_pdf';
