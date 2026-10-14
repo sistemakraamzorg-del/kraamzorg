@@ -16,6 +16,7 @@ import { ROTULO_ORIGEM_LEAD, rotuloEstagio } from "../estagios";
 import { calcularIdadeGestacional, hojeBrasilia } from "../idade-gestacional";
 import type { CartaoPipelineTela } from "../tipos";
 import { BotaoProximoPasso } from "./botao-proximo-passo";
+import { MenuMover } from "./menu-mover";
 
 export const ROTULO_CLASSIFICACAO = {
   quente: "Quente",
@@ -201,6 +202,9 @@ export function DetalheOportunidade({
             pipeline={pipeline}
             papeis={papeis}
           />
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <MenuMover cartao={cartao} pipeline={pipeline} papeis={papeis} />
+          </div>
           <Botao asChild variante="fantasma" className="mt-3 w-full">
             <Link href={`/familias/${cartao.familiaId}`}>
               Abrir ficha completa

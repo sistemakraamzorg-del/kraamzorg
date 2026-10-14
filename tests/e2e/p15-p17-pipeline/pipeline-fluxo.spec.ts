@@ -24,7 +24,9 @@ test.describe.serial("Pipeline 1: mudança de estágio", () => {
     ).toBeVisible();
     await semViolacaoGrave(page);
 
-    await page.getByRole("button", { name: "Mover para" }).click();
+    await page
+      .getByRole("button", { name: /^Mover .* para outro estágio$/ })
+      .click();
     const menu = page.getByRole("menu");
     await expect(menu).toBeVisible();
     await expect(
@@ -55,7 +57,9 @@ test.describe.serial("Pipeline 1: mudança de estágio", () => {
       // O botão fica desabilitado enquanto a Server Action está em
       // andamento (MenuMover), então o clique seguinte já espera a
       // transição anterior terminar (auto-espera do Playwright).
-      await page.getByRole("button", { name: "Mover para" }).click();
+      await page
+        .getByRole("button", { name: /^Mover .* para outro estágio$/ })
+        .click();
       await page.getByRole("menuitem", { name: destino, exact: true }).click();
     }
 
@@ -79,7 +83,9 @@ test("perda exige motivo: sem escolher, mostra o aviso e não sai do estágio", 
   // Família Teste Cedro nasce "qualificado", que tem desvio para perdido.
   // Independente do describe acima: não toca na Aurora.
   await page.goto("/pipeline?pipeline=1&busca=Cedro");
-  await page.getByRole("button", { name: "Mover para" }).click();
+  await page
+    .getByRole("button", { name: /^Mover .* para outro estágio$/ })
+    .click();
   await page.getByRole("menuitem", { name: "Perdido, com motivo" }).click();
 
   await expect(

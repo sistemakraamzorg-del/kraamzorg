@@ -109,6 +109,7 @@ export function MenuMover({
           <DropdownMenu.Content
             align="start"
             sideOffset={4}
+            onClick={(e) => e.stopPropagation()}
             className="rounded-2 border-linha bg-superficie shadow-2 z-50 flex min-w-56 flex-col gap-1 border p-2"
           >
             <DropdownMenu.Label className="text-mini text-texto-2 px-2 pt-1 pb-1">
@@ -154,24 +155,31 @@ export function MenuMover({
           {erro}
         </p>
       ) : null}
-      <FolhaPerda
-        aberta={perdaAberta}
-        aoFechar={() => definirPerdaAberta(false)}
-        oportunidadeId={cartao.oportunidadeId}
-        pipeline={pipeline}
-        nomeFamilia={cartao.nomeFamilia}
-      />
-      {saidaIntercorrencia ? (
-        <FolhaSaidaIntercorrencia
-          aberta
-          aoFechar={() => definirSaidaIntercorrencia(null)}
+      {/* Os diálogos moram no portal, mas os cliques sobem pela árvore do
+          React até o cartão e abririam o painel de detalhes por cima. */}
+      <div onClick={(e) => e.stopPropagation()}>
+        <FolhaPerda
+          aberta={perdaAberta}
+          aoFechar={() => definirPerdaAberta(false)}
           oportunidadeId={cartao.oportunidadeId}
           pipeline={pipeline}
-          destinoEstagio={saidaIntercorrencia}
-          destinoRotulo={rotuloEstagio(pipeline, saidaIntercorrencia as never)}
           nomeFamilia={cartao.nomeFamilia}
         />
-      ) : null}
+        {saidaIntercorrencia ? (
+          <FolhaSaidaIntercorrencia
+            aberta
+            aoFechar={() => definirSaidaIntercorrencia(null)}
+            oportunidadeId={cartao.oportunidadeId}
+            pipeline={pipeline}
+            destinoEstagio={saidaIntercorrencia}
+            destinoRotulo={rotuloEstagio(
+              pipeline,
+              saidaIntercorrencia as never,
+            )}
+            nomeFamilia={cartao.nomeFamilia}
+          />
+        ) : null}
+      </div>
     </>
   );
 }
