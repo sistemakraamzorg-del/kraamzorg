@@ -18,14 +18,13 @@ test("a tela da Isadora explica que os ajustes são da equipe técnica e não tr
 }) => {
   for (const papel of ["Diretoria", "Comercial"]) {
     await entrarComo(page, papel);
-    await page.goto("/agente");
+    // Os ajustes da Isadora moram na aba Limites (redesenho DashCore).
+    await page.goto("/agente?aba=limites");
 
     await expect(
       page.getByRole("heading", { level: 1, name: "Isadora" }),
     ).toBeVisible();
-    await expect(
-      page.getByRole("heading", { name: "Ajustes da Isadora" }),
-    ).toBeVisible();
+    await expect(page.getByText("Ajustes da Isadora")).toBeVisible();
     await expect(page.getByText(/equipe técnica/).first()).toBeVisible();
 
     // nenhum controle de modo, de lista de teste nem de janela de retomada
@@ -54,7 +53,8 @@ test("comercial cadastra item na base de conhecimento; diretoria aprova", async 
   );
 
   await entrarComo(page, "Comercial");
-  await page.goto("/agente");
+  // A base de conhecimento mora na aba Limites.
+  await page.goto("/agente?aba=limites");
 
   await page.getByRole("button", { name: "Novo item" }).click();
   await page.getByLabel("Título").fill(titulo);
@@ -71,7 +71,7 @@ test("comercial cadastra item na base de conhecimento; diretoria aprova", async 
   ).toBeVisible();
 
   await entrarComo(page, "Diretoria");
-  await page.goto("/agente");
+  await page.goto("/agente?aba=limites");
   const cartao = page
     .getByText(titulo)
     .locator("xpath=ancestor::*[contains(@class,'rounded-3')][1]");
@@ -81,11 +81,10 @@ test("comercial cadastra item na base de conhecimento; diretoria aprova", async 
 
 test("mostra os números do mês com base de comparação", async ({ page }) => {
   await entrarComo(page, "Diretoria");
-  await page.goto("/agente");
+  // Os números do mês moram na aba Métricas.
+  await page.goto("/agente?aba=metricas");
 
-  await expect(
-    page.getByRole("heading", { name: "Números do mês" }),
-  ).toBeVisible();
+  await expect(page.getByText("Números do mês", { exact: true })).toBeVisible();
   // Números do mês em frase, uma linha por métrica (DESIGN.md, 11.10).
   await expect(
     page.getByText(/responderam à mensagem de abertura/),

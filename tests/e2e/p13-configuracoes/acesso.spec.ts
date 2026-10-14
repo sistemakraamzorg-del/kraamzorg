@@ -28,7 +28,11 @@ test("diretoria vê todas as seções; coordenação só termos de alerta", asyn
     "Termos de alerta",
     "Régua",
   ]) {
-    await expect(page.getByRole("link", { name: aba })).toBeVisible();
+    await expect(
+      page
+        .getByRole("navigation", { name: "Seções de configurações" })
+        .getByRole("link", { name: aba }),
+    ).toBeVisible();
   }
   await semRolagemLateral(page);
   await semViolacaoGrave(page);

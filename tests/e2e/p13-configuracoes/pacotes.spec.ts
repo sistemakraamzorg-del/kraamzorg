@@ -41,7 +41,7 @@ test("a diretoria cria uma nova versão de preço e a anterior continua visível
   await expect(cartao.getByText("R$ 9.999")).toBeVisible();
 
   // A versão anterior não some: fica listada, com o preço de antes.
-  await cartao.getByText(/versão\(ões\) anterior/).click();
+  await cartao.getByText(/\d+ vers(ão|ões) anterior(es)?/).click();
   await expect(cartao.getByText(precoOriginal)).toBeVisible();
 });
 
